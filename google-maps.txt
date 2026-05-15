@@ -1,0 +1,8 @@
+<iframe
+  src="https://www.google.com/maps?q=Fresh+Fade+Studio+Barbershop+Donaustraße+16+88046+Friedrichshafen&output=embed"
+  width="100%"
+  height="450"
+  style="border:0;"
+  allowfullscreen=""
+  loading="lazy">
+</iframe>
