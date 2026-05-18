@@ -1,560 +1,293 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fresh Fade Studio | Barbershop Friedrichshafen</title>
-    <meta name="description"
-        content="Fresh Fade Studio Barbershop in Friedrichshafen. Moderne Herrenhaarschnitte, Skin Fades, Bartpflege mit Rasiermesser und professionelles Styling." />
+    <meta name="description" content="Fresh Fade Studio Barbershop in Friedrichshafen. Moderne Herrenhaarschnitte, Skin Fades, Bartpflege mit Rasiermesser und professionelles Styling." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <style>
-        :root {
-            --bg-color: #000000;
-            --surface-color: #0a0a0a;
-            --surface-hover: #141414;
-            --text-main: #ffffff;
-            --text-muted: #9a9a9a;
-            --accent-red: #d30000;
-            --accent-hover: #a30000;
-            --whatsapp-green: #25d366;
-            --whatsapp-hover: #1faa52;
-            --font-logo: "Orbitron", sans-serif;
-            --font-display: "Bebas Neue", sans-serif;
-            --font-body: "Inter", sans-serif;
-            --space-sm: 8px;
-            --space-md: 16px;
-            --space-lg: 32px;
-            --space-xl: 64px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: var(--bg-color);
-            color: var(--text-main);
-            font-family: var(--font-body);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        h1,
-        h2,
-        h3,
-        h4 {
-            font-family: var(--font-display);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            line-height: 1.1;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 var(--space-md);
-        }
-
-        .section {
-            padding: var(--space-xl) 0;
-        }
-
-        /* NAVIGATION */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid var(--accent-red);
-        }
-
-        .nav-inner {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .nav-logo-img {
-            width: 55px;
-            height: 55px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: var(--space-lg);
-        }
-
-        .nav-links a {
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent-red);
-        }
-
-        /* BUTTONS */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--accent-red);
-            color: white;
-            padding: 16px 32px;
-            border: none;
-            cursor: pointer;
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            transition: 0.3s ease;
-        }
-
-        .btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-        }
-
-        .whatsapp-btn {
-            background: var(--whatsapp-green);
-        }
-
-        .whatsapp-btn:hover {
-            background: var(--whatsapp-hover);
-        }
-
-        /* HERO */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 80px;
-            background: linear-gradient(to right, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.55) 100%), url("./assets/IMG_0282.JPG") center/cover;
-        }
-
-        .hero-content {
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .hero-logo-large {
-            width: 240px;
-        }
-
-        .tagline {
-            font-family: var(--font-logo);
-            font-size: 1.1rem;
-            letter-spacing: 5px;
-        }
-
-        .hero h1 {
-            font-size: clamp(3rem, 8vw, 6rem);
-        }
-
-        .hero-text {
-            color: var(--text-muted);
-            max-width: 650px;
-            font-size: 1.05rem;
-        }
-
-        /* ABOUT */
-        .about-box {
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--surface-color);
-            padding: var(--space-xl);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-        }
-
-        .about-box p {
-            color: var(--text-muted);
-            margin-bottom: 18px;
-        }
-
-        /* SERVICES */
-        .grid-3 {
-            margin-top: var(--space-lg);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: var(--space-lg);
-        }
-
-        .card {
-            background: var(--surface-color);
-            padding: var(--space-lg);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-            transition: 0.3s ease;
-        }
-
-        .card:hover {
-            background: var(--surface-hover);
-            transform: translateY(-5px);
-        }
-
-        .card h3 {
-            font-size: 2rem;
-            margin-bottom: 12px;
-            color: var(--accent-red);
-        }
-
-        .card p {
-            color: var(--text-muted);
-        }
-
-        /* GALLERY */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
-
-        .gallery-item {
-            overflow: hidden;
-            border-radius: 12px;
-            background: #111;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            cursor: pointer;
-            transition: 0.3s ease;
-        }
-
-        .gallery-item:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-red);
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 380px;
-            object-fit: cover;
-            transition: transform 0.4s ease;
-        }
-
-        .gallery-item:hover img {
-            transform: scale(1.05);
-        }
-
-        /* LIGHTBOX */
-        .lightbox {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.94);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.3s ease;
-            z-index: 9999;
-        }
-
-        .lightbox.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .lightbox-img {
-            max-width: 92%;
-            max-height: 90vh;
-            border-radius: 12px;
-            animation: zoomIn 0.25s ease;
-        }
-
-        .close-lightbox {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 60px;
-            color: white;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(0.9);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* PRICES */
-        .price-section {
-            background: var(--surface-color);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .price-list {
-            max-width: 850px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .price-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding-bottom: 14px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
-        }
-
-        .price-info h4 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-
-        .price-info p {
-            color: var(--text-muted);
-        }
-
-        .price-value {
-            color: var(--accent-red);
-            font-size: 1.5rem;
-            font-weight: 700;
-            font-family: var(--font-logo);
-        }
-
-        /* CONTACT */
-        .contact-wrapper {
-            background: var(--surface-color);
-            padding: var(--space-xl);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-lg);
-        }
-
-        .contact-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: var(--space-lg);
-            padding-bottom: var(--space-lg);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .contact-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .info-block h4 {
-            color: var(--accent-red);
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .info-block p {
-            color: var(--text-muted);
-        }
-
-        .map-box {
-            min-height: 320px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .contact-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        footer {
-            text-align: center;
-            padding: var(--space-xl) var(--space-md);
-        }
-
-        footer p {
-            color: var(--text-muted);
-        }
-
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .hero {
-                text-align: center;
-            }
-
-            .hero-content {
-                align-items: center;
-            }
-
-            .price-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .contact-actions .btn {
-                width: 100%;
-            }
-
-            .about-box,
-            .contact-wrapper {
-                padding: var(--space-lg);
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
 </head>
-
-<body> <!-- NAV -->
+<body>
+    <!-- NAV -->
     <nav>
-        <div class="container nav-inner"> <img src="./assets/logo1280X1280.jpg" alt="Fresh Fade Studio"
-                class="nav-logo-img">
-            <div class="nav-links"> <a href="#about">Über mich</a> <a href="#services">Leistungen</a> <a
-                    href="#gallery">Galerie</a> <a href="#preise">Preise</a> <a href="#contact">Kontakt</a> <a
-                    href="#oeffnungszeiten">Öffnungszeiten</a> </div>
-        </div>
-    </nav> <!-- HERO -->
-    <header class="hero">
-        <div class="container hero-content"> <img src="./assets/logo1280X1280.jpg" alt="Fresh Fade Studio"
-                class="hero-logo-large">
-            <p class="tagline">PLAY FRESH</p>
-            <h1>Fresh Fade Studio</h1>
-            <p class="hero-text"> Moderner Barbershop in Friedrichshafen für präzise Haarschnitte, Skin Fades,
-                Bartpflege und traditionelle Rasur. </p>
-            <div style="display:flex; gap:16px; flex-wrap:wrap;"> <a href="#contact" class="btn">Termin buchen</a>
+        <div class="container nav-inner"> 
+            <img src="./assets/logo/logo1280X1280.jpg" alt="Fresh Fade Studio" class="nav-logo-img">
+            <div class="nav-links"> 
+                <a href="#about">Über mich</a> 
+                <a href="#services">Leistungen</a> 
+                <a href="#gallery">Galerie</a> 
+                <a href="#preise">Preise</a> 
+                <a href="#contact">Kontakt</a> 
+                <a href="#oeffnungszeiten">Öffnungszeiten</a> 
+            </div>
+            <!-- HAMBURGER MENU ICON (oben rechts auf kleinen Bildschirmen) -->
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
-    </header> <!-- ABOUT -->
+    </nav> 
+
+    <!-- MOBILE MENU DROPDOWN -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#about" class="mobile-link">Über mich</a>
+        <a href="#services" class="mobile-link">Leistungen</a>
+        <a href="#gallery" class="mobile-link">Galerie</a>
+        <a href="#preise" class="mobile-link">Preise</a>
+        <a href="#contact" class="mobile-link">Kontakt</a>
+        <a href="#oeffnungszeiten" class="mobile-link">Öffnungszeiten</a>
+    </div>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="hero-slider" id="hero-slider">
+        </div>
+        <div class="container hero-content"> 
+            <img src="./assets/logo/logo1280X1280.jpg" alt="Fresh Fade Studio" class="hero-logo-large" style="border-radius:50%;">
+            <p class="tagline">PLAY FRISH</p>
+            <h1>Fresh Fade Studio</h1>
+            <p class="hero-text"> Moderner Barbershop in Friedrichshafen für präzise Haarschnitte, Bartpflege und traditionelle Rasur. </p>
+            <div style="display:flex; gap:16px; flex-wrap:wrap;"> 
+                <a href="#contact" class="btn">Termin buchen</a>
+            </div>
+        </div>
+    </header> 
+
+    <!-- ABOUT -->
     <section id="about" class="section">
         <div class="container">
-            <h2 style="text-align:center; font-size:3rem; margin-bottom:40px;"> Über <span
-                    style="color:var(--accent-red);">mich</span> </h2>
+            <h2 style="text-align:center; font-size:3rem; margin-bottom:40px;"> Über <span style="color:var(--accent-red);">mich</span> </h2>
             <div class="about-box">
-                <p> Herzliche Grüße! Mein Name ist <strong>Sorin Marinescu</strong>. Ich verfüge über mehr als 15 Jahre
-                    Erfahrung im Friseurhandwerk. </p>
-                <p> Liebe zum Detail und feine Übergänge sind meine Stärke. Wir verwenden professionelle und hochmoderne
-                    Werkzeuge für präzise und moderne Haarschnitte. </p>
-                <p> Kaffee und stilles Wasser stehen Ihnen selbstverständlich kostenlos zur Verfügung. </p>
-                <p> Direkt vor dem Salon befinden sich mehrere kostenlose Parkplätze. </p>
+                <img src="./assets/beispiele/aer5.jpeg" alt="Sorin Marinescu" style=" width:220px; height:220px; object-fit:cover; border-radius:50%; float:right; margin-left:25px; margin-bottom:15px; border: 2px solid var(--accent-red); ">
+                <p> Herzliche Grüße! Mein Name ist <strong>Sorin Marinescu</strong>. Ich verfüge über mehr als 15 Jahre Erfahrung im Friseurhandwerk. </p>
+                <p> Liebe zum Detail und Präzision sind meine Stärke. Wir verwenden professionelle und hochmoderne Werkzeuge für deinen perfekten Look. </p>
             </div>
         </div>
-    </section> <!-- SERVICES -->
+    </section> 
+
+    <!-- SERVICES -->
     <section id="services" class="section container">
-        <h2 style="text-align:center; font-size:3rem;"> Unsere <span style="color:var(--accent-red);">Leistungen</span>
-        </h2>
+        <h2 style="text-align:center; font-size:3rem;"> Unsere <span style="color:var(--accent-red);">Leistungen</span></h2>
         <div class="grid-3">
             <div class="card">
                 <h3>Haarschnitt</h3>
-                <p> Präzise. Modern. Auf den Punkt. </p>
-            </div>
-            <div class="card">
-                <h3>Skin Fade</h3>
-                <p> Von weich bis glashart — wir beherrschen jeden Übergang. </p>
+                <p>Präziser Schnitt mit Beratung & Styling. Play Fresh.</p>
             </div>
             <div class="card">
                 <h3>Bart & Rasur</h3>
-                <p> Traditionelle Bartpflege mit Rasiermesser. </p>
+                <p>Kontur schneiden, Bartöl & Aftershave. Perfekt gepflegt.</p>
+            </div>
+            <div class="card">
+                <h3>Beratung</h3>
+                <p>Kostenlose Beratung vor jedem Schnitt. Gemeinsam finden wir deinen Look.</p>
+            </div>
+            <div class="card">
+                <h3>Gratis Getränke</h3>
+                <p>Kaffee, Wasser oder Tee? Entspann dich .. du bist in guten Händen.</p>
             </div>
         </div>
-    </section> <!-- GALLERY -->
+    </section> 
+
+    <!-- GALLERY -->
     <section id="gallery" class="section container">
         <h2 style="text-align:center; font-size:3rem;"> Unsere <span style="color:var(--accent-red);">Cuts</span> </h2>
-        <p style=" text-align:center; color:var(--text-muted); margin-top:10px; margin-bottom:40px; "> Einige unserer
-            Arbeiten & moderne Fresh Fade Styles. </p>
-        <div class="gallery-grid">
-            <div class="gallery-item"> <img src="./assets/fotos/test.JPG" alt="Fresh Fade 1"> </div>
-            <div class="gallery-item"> <img src="./assets/fotos/test-1.JPG" alt="Fresh Fade 2"> </div>
-            <div class="gallery-item"> <img src="./assets/fotos/test-2.JPG" alt="Fresh Fade 3"> </div>
-            <div class="gallery-item"> <img src="./assets/fotos/test-3.JPG" alt="Fresh Fade 4"> </div>
-            <div class="gallery-item"> <img src="./assets/fotos/test-4.JPG" alt="Fresh Fade 5"> </div>
-            <div class="gallery-item"> <img src="./assets/fotos/test-5.JPG" alt="Fresh Fade 6"> </div>
-        </div>
-    </section> <!-- LIGHTBOX -->
-    <div class="lightbox" id="lightbox"> <span class="close-lightbox">&times;</span> <img class="lightbox-img"
-            id="lightbox-img" src="" alt="Großes Bild"> </div> <!-- PRICES -->
+        <p style=" text-align:center; color:var(--text-muted); margin-top:10px; margin-bottom:40px; "> Einige unserer Arbeiten & moderne Fresh Fade Styles. </p>
+        <div class="gallery-grid" id="gallery-grid"></div>
+    </section> 
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox" id="lightbox"> 
+        <span class="close-lightbox">&times;</span> 
+        <span class="lightbox-nav prev" id="lightbox-prev">&#10094;</span>
+        <span class="lightbox-nav next" id="lightbox-next">&#10095;</span>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="Großes Bild"> 
+    </div> 
+
+    <!-- PRICES -->
     <section id="preise" class="section price-section">
         <div class="container">
-            <h2 style=" text-align:center; font-size:3rem; margin-bottom:var(--space-xl); "> Unsere <span
-                    style="color:var(--accent-red);">Preise</span> </h2>
+            <h2 style=" text-align:center; font-size:3rem; margin-bottom:var(--space-xl); "> Unsere <span style="color:var(--accent-red);">Preise</span> </h2>
             <div id="preisliste-container" class="price-list"></div>
         </div>
-    </section> <!-- CONTACT -->
+    </section> 
+
+    <!-- CONTACT -->
     <section id="contact" class="section container">
-        <h2 style=" text-align:center; font-size:3rem; margin-bottom:var(--space-lg); "> Komm <span
-                style="color:var(--accent-red);">vorbei</span> </h2>
+        <h2 style=" text-align:center; font-size:3rem; margin-bottom:var(--space-lg); "> Komm <span style="color:var(--accent-red);">vorbei</span> </h2>
         <div class="contact-wrapper">
             <div class="contact-row">
                 <div class="info-block">
-                    <h4>Location</h4>
+                    <h4>Fresh Fade Barbershop Studio</h4>
                     <p> Donaustraße 16<br> 88046 Friedrichshafen </p> <br>
-                    <p> 🅿️ Mehrere kostenlose Parkplätze </p>
+                    <p> <strong>🅿️ Mehrere kostenlose Parkplätze</strong> </p>
                 </div>
-                <div class="map-box"> <iframe
-                        src="https://www.google.com/maps?q=Fresh+Fade+Studio+Barbershop+Donaustraße+16+88046+Friedrichshafen&output=embed"
-                        width="100%" height="100%" style="border:0;" loading="lazy"> </iframe> </div>
             </div>
             <div class="contact-row">
                 <div class="info-block">
                     <h4>Kontakt</h4>
-                    <p> 📞 0174 4891087<br> 📸 @freshfades_studiobarbershop </p> <br>
+                    <p> Telefon oder WhatsApp 📞 0174 4891087<br> Instagram 📸 @freshfades_studiobarbershop </p> <br>
                     <h4 id="oeffnungszeiten">Öffnungszeiten</h4>
                     <p>
                         <strong>Montag – Freitag:</strong><br>
                         &nbsp;&nbsp;&nbsp;9:30 – 19:30 Uhr
                         <br><br>
-
                         <strong>Samstag:</strong><br>
                         &nbsp;&nbsp;&nbsp;9:30 – 17:30 Uhr
                     </p>
                 </div>
-                <div class="contact-actions"> <a href="tel:01744891087" class="btn"> Jetzt anrufen </a> <a
-                        href="https://wa.me/491744891087" target="_blank" class="btn whatsapp-btn"> WhatsApp </a> </div>
+                <div class="contact-actions"> <a href="tel:01744891087" class="btn"> Telefon📞 </a> </div>
             </div>
         </div>
-    </section> <!-- FOOTER -->
-    <footer> <img src="./assets/logo1280X1280.jpg" alt="Logo"
-            style=" width:60px; margin:0 auto 16px; border-radius:50%; opacity:0.5; ">
-        <p> © 2026 Fresh Fade Studio Barbershop Friedrichshafen. </p>
-    </footer> <!-- SCRIPT -->
-    <script> // PREISE const preisDaten = [ { titel: "Haarschnitt für Kinder", beschreibung: "Bis 15 Jahre", preis: "18€" }, { titel: "Herrenhaarschnitt", beschreibung: "Inkl. Styling mit Produkt", preis: "24€" }, { titel: "Haarschnitt, Waschen & Föhnen", beschreibung: "Inkl. Styling mit Produkt", preis: "29€" }, { titel: "Bart Schneiden & Kontur", beschreibung: "Mit Rasiermesser", preis: "18€" }, { titel: "Bart Schneiden & Bart Färben", beschreibung: "", preis: "34€" }, { titel: "Haarschnitt, Waschen & Rasur", beschreibung: "Komplettpflege", preis: "48€" }, { titel: '"Gentleman Paket"', beschreibung: "Haarschnitt & Rasur", preis: "48€" }, { titel: "Augenbrauen formen & Säubern", beschreibung: "Mit Wachs", preis: "9€" }, { titel: "Nase & Ohren Haarentfernung", beschreibung: "Mit Warmwachs", preis: "8€" } ]; function generierePreisliste() { const container = document.getElementById("preisliste-container"); let html = ""; preisDaten.forEach(item => { html += ` <div class="price-item"> <div class="price-info"> <h4>${item.titel}</h4> ${item.beschreibung ? `<p>${item.beschreibung}</p>` : "" } </div> <div class="price-value"> ${item.preis} </div> </div> `; }); container.innerHTML = html; } generierePreisliste(); // LIGHTBOX const galleryImages = document.querySelectorAll(".gallery-item img"); const lightbox = document.getElementById("lightbox"); const lightboxImg = document.getElementById("lightbox-img"); const closeLightbox = document.querySelector(".close-lightbox"); galleryImages.forEach(img => { img.addEventListener("click", () => { lightbox.classList.add("active"); lightboxImg.src = img.src; }); }); closeLightbox.addEventListener("click", () => { lightbox.classList.remove("active"); }); lightbox.addEventListener("click", (e) => { if (e.target === lightbox) { lightbox.classList.remove("active"); } }); </script>
-</body>
+    </section> 
 
+    <!-- FOOTER -->
+    <footer> 
+        <img src="./assets/logo1280X1280.jpg" alt="Logo" style=" width:60px; margin:0 auto 16px; border-radius:50%; opacity:0.5; ">
+        <p> © 2026 Fresh Fade Studio Barbershop Friedrichshafen. </p>
+        <div class="footer-links">
+            <a href="impressum.html">Impressum</a>
+        </div>
+    </footer> 
+
+    <!-- SCRIPT -->
+    <script>
+// PREISE
+const preisDaten = { categories: [ { name: "Herren", services: [ { name: "Kinder bis 12 Jahre", price: 18 }, { name: "Maschinen Schnitt", price: 17 }, { name: "Herrenhaarschnitt", price: 26, description: "inkl. Styling mit hochwertigen Produkten" }, { name: "Haarschnitt + Waschen & Föhnen", price: 29, description: "inkl. Styling mit hochwertigen Produkten" }, { name: "Schüler Paket", price: 24, description: "Haarschnitt + Styling" } ] }, { name: "Damen", services: [ { name: "Kurze Haare", price: 25 }, { name: "Mittlere Haare", price: 30 }, { name: "Lange Haare", price: 35 } ] }, { name: "Bart", services: [ { name: "Bart schneiden & Kontur", price: 19, description: "inkl. Bartstyling, Bartöl & Aftershave" }, { name: "Bart schneiden & färben", price: 30, description: "inkl. Bartstyling, Bartöl & Aftershave" } ] }, { name: "Kombinationen", services: [ { name: "Haarschnitt & Rasur", price: 43 }, { name: "Haarschnitt, Waschen & Rasur", price: 47 }, { name: "Gentleman Paket", price: 55, description: "Haarschnitt, Bart, Styling, Augenbrauen & Waxing" } ] }, { name: "Color", services: [ { name: "Haare färben + Styling", price: 35 } ] }, { name: "Extras", services: [ { name: "Traditionelles Hot Towel Ritual", price: 4, priceType: "add_on" }, { name: "Augenbrauen", price: 3 }, { name: "Nase & Ohren", price: 8 }, { name: "Waschen + Föhnen + Styling", price: 15 } ] } ] }; 
+
+function generierePreisliste() { 
+    const container = document.getElementById("preisliste-container"); 
+    if(!container) return;
+    let html = ""; 
+    preisDaten.categories.forEach(category => { 
+        html += `<div class="price-category"><h3 class="price-category-title">${category.name}</h3>`; 
+        category.services.forEach(item => { 
+            const priceDisplay = item.priceType === "add_on" ? `+${item.price}€` : `${item.price}€`; 
+            html += ` <div class="price-item"> <div class="price-info"> <h4>${item.name}</h4> ${item.description ? `<p>${item.description}</p>` : ""} </div> <div class="price-value">${priceDisplay}</div> </div> `; 
+        }); 
+        html += `</div>`; 
+    }); 
+    container.innerHTML = html; 
+} 
+document.addEventListener("DOMContentLoaded", generierePreisliste);
+
+// GALLERY - Dynamic load from folder
+const galleryGrid = document.getElementById('gallery-grid');
+const galleryFolder = './assets/beispiele/';
+const galleryImageNames = ['test.JPG', 'test-1.JPG', 'test-2.JPG', 'test-3.JPG', 'test-4.JPG', 'test-5.JPG'];
+if (galleryGrid) {
+    galleryImageNames.forEach((name, i) => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        div.innerHTML = `<img src="${galleryFolder}${name}" alt="Fresh Fade ${i + 1}">`;
+        galleryGrid.appendChild(div);
+    });
+}
+
+// LIGHTBOX with navigation
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const closeLightbox = document.querySelector('.close-lightbox');
+const prevBtn = document.getElementById('lightbox-prev');
+const nextBtn = document.getElementById('lightbox-next');
+let currentImageIndex = 0;
+let galleryImageElements = [];
+
+function updateLightboxImage(index) {
+    if (galleryImageElements[index]) {
+        lightboxImg.src = galleryImageElements[index].src;
+        currentImageIndex = index;
+    }
+}
+
+if (galleryGrid) {
+    galleryImageElements = galleryGrid.querySelectorAll('.gallery-item img');
+    galleryImageElements.forEach((img, i) => {
+        img.addEventListener('click', () => {
+            currentImageIndex = i;
+            lightbox.classList.add('active');
+            lightboxImg.src = img.src;
+        });
+    });
+}
+
+if (prevBtn) prevBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentImageIndex = (currentImageIndex - 1 + galleryImageElements.length) % galleryImageElements.length;
+    updateLightboxImage(currentImageIndex);
+});
+if (nextBtn) nextBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentImageIndex = (currentImageIndex + 1) % galleryImageElements.length;
+    updateLightboxImage(currentImageIndex);
+});
+if (closeLightbox) closeLightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+if (lightbox) lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('active'); });
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft') { currentImageIndex = (currentImageIndex - 1 + galleryImageElements.length) % galleryImageElements.length; updateLightboxImage(currentImageIndex); }
+    if (e.key === 'ArrowRight') { currentImageIndex = (currentImageIndex + 1) % galleryImageElements.length; updateLightboxImage(currentImageIndex); }
+    if (e.key === 'Escape') lightbox.classList.remove('active');
+});
+
+// Touch swipe
+let touchStartX = 0;
+if (lightbox) {
+    lightbox.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    lightbox.addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) { currentImageIndex = (currentImageIndex + 1) % galleryImageElements.length; }
+            else { currentImageIndex = (currentImageIndex - 1 + galleryImageElements.length) % galleryImageElements.length; }
+            updateLightboxImage(currentImageIndex);
+        }
+    }, { passive: true });
+}
+
+// HAMBURGER MENU FIX
+const hamburger = document.getElementById("hamburger");
+const mobileMenu = document.getElementById("mobile-menu");
+const mobileLinks = document.querySelectorAll(".mobile-link");
+
+if(hamburger && mobileMenu) {
+    hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("active");
+        mobileMenu.classList.toggle("active");
+    });
+
+    // Close menu when a link is clicked
+    mobileLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            mobileMenu.classList.remove("active");
+        });
+    });
+}
+    // Hero Slider - dynamically loads images from assets/studio/
+    const slider = document.getElementById('hero-slider');
+    const studioImages = ['IMG_0282.JPG', 'IMG_0283.JPG', 'IMG_0284.JPG'];
+    if (slider && studioImages.length > 0) {
+        studioImages.forEach((img, i) => {
+            const div = document.createElement('div');
+            div.className = 'hero-slide' + (i === 0 ? ' active' : '');
+            div.style.cssText = `background-image: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 100%), url('./assets/studio/${img}');`;
+            slider.appendChild(div);
+        });
+        if (studioImages.length > 1) {
+            let current = 0;
+            setInterval(() => {
+                const allSlides = document.querySelectorAll('.hero-slide');
+                allSlides[current].classList.remove('active');
+                current = (current + 1) % studioImages.length;
+                allSlides[current].classList.add('active');
+            }, 5000);
+        }
+    }
+    </script>
+</body>
 </html>
