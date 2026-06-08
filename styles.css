@@ -58,7 +58,7 @@ nav {
 .nav-inner { height: 80px; display: flex; align-items: center; justify-content: space-between; }
 .nav-logo-img { width: 55px; height: 55px; object-fit: cover; border-radius: 20%; }
 .nav-links { display: flex; align-items: center; gap: var(--space-lg); }
-.nav-links a { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s ease; }
+.nav-links a { white-space: nowrap; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s ease; }
 .nav-links a:hover { color: var(--accent-red); }
 
 /* HAMBURGER */
