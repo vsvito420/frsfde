@@ -208,24 +208,55 @@
 
         <!-- SCRIPT -->
         <script>
-            // PREISE
-            const preisDaten = { categories: [{ name: "Herren", services: [{ name: "Kinder bis 12 Jahre", price: 18 }, { name: "Maschinen Schnitt", price: 17 }, { name: "Herrenhaarschnitt", price: 26, description: "inkl. Styling mit hochwertigen Produkten" }, { name: "Haarschnitt + Waschen & Föhnen", price: 29, description: "inkl. Styling mit hochwertigen Produkten" }, { name: "Schüler Paket", price: 24, description: "Haarschnitt + Styling" }] }, { name: "Damen", services: [{ name: "Kurze Haare", price: 25 }, { name: "Mittlere Haare", price: 30 }, { name: "Lange Haare", price: 35 }] }, { name: "Bart", services: [{ name: "Bart schneiden & Kontur", price: 19, description: "inkl. Bartstyling, Bartöl & Aftershave" }, { name: "Bart schneiden & färben", price: 30, description: "inkl. Bartstyling, Bartöl & Aftershave" }] }, { name: "Kombinationen", services: [{ name: "Haarschnitt & Rasur", price: 43 }, { name: "Haarschnitt, Waschen & Rasur", price: 47 }, { name: "Gentleman Paket", price: 55, description: "Haarschnitt, Bart, Styling, Augenbrauen & Waxing" }] }, { name: "Color", services: [{ name: "Haare färben + Styling", price: 35 }] }, { name: "Extras", services: [{ name: "Traditionelles Hot Towel Ritual", price: 4, priceType: "add_on" }, { name: "Augenbrauen", price: 3 }, { name: "Nase & Ohren", price: 8 }, { name: "Waschen + Föhnen + Styling", price: 15 }] }] };
 
-            function generierePreisliste() {
-                const container = document.getElementById("preisliste-container");
+            // PREISE
+            async function ladePreisliste() {
+                const container = document.getElementById('preisliste-container');
                 if (!container) return;
-                let html = "";
-                preisDaten.categories.forEach(category => {
-                    html += `<div class="price-category"><h3 class="price-category-title">${category.name}</h3>`;
-                    category.services.forEach(item => {
-                        const priceDisplay = item.priceType === "add_on" ? `+${item.price}€` : `${item.price}€`;
-                        html += ` <div class="price-item"> <div class="price-info"> <h4>${item.name}</h4> ${item.description ? `<p>${item.description}</p>` : ""} </div> <div class="price-value">${priceDisplay}</div> </div> `;
-                    });
-                    html += `</div>`;
-                });
-                container.innerHTML = html;
+
+                try {
+                    const response = await fetch('./preisliste.txt', { cache: 'no-store' });
+                    if (!response.ok) throw new Error('Preisliste nicht gefunden');
+
+                    const text = await response.text();
+                    const lines = text
+                        .split(/\r?\n/)
+                        .map(line => line.trim())
+                        .filter(line => line !== '');
+
+                    if (lines.length <= 1) {
+                        container.innerHTML = '<p>Keine Preise vorhanden.</p>';
+                        return;
+                    }
+
+                    const dataLines = lines.slice(1);
+                    let html = '';
+
+                    for (let i = 0; i < dataLines.length; i += 3) {
+                        const title = dataLines[i];
+                        const description = dataLines[i + 1] || '-';
+                        const price = dataLines[i + 2] || '';
+                        if (!title || !price) continue;
+
+                        html += `
+                <div class="price-item">
+                <div class="price-info">
+                    <h4>${title}</h4>
+                    ${description !== '-' ? `<p>${description}</p>` : ''}
+                </div>
+                <div class="price-value">${price}</div>
+                </div>
+            `;
+                    }
+
+                    container.innerHTML = html || '<p>Keine Preise vorhanden.</p>';
+                } catch (error) {
+                    container.innerHTML = '<p>Preisliste konnte nicht geladen werden.</p>';
+                    console.error(error);
+                }
             }
-            document.addEventListener("DOMContentLoaded", generierePreisliste);
+
+            document.addEventListener('DOMContentLoaded', ladePreisliste);
 
             // GALLERY - Dynamic load from folder
             const galleryGrid = document.getElementById('gallery-grid');

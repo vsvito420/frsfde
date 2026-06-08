@@ -1,0 +1,73 @@
+Erklärung: 1 Eintrag = 3 Zeilen | also: | Zeile 1 = Titel | Zeile 2 = "Beschreibung" oder "-" | Zeile 3 = Preis | Leerzeile = neuer Eintrag . Die erste zeile mit der erklärung wird ignoriert
+
+Kinder bis 12 Jahre
+-
+18€
+
+Maschinen Schnitt
+-
+17€
+
+Herrenhaarschnitt
+inkl. Styling mit hochwertigen Produkten
+26€
+
+Haarschnitt + Waschen & Föhnen
+inkl. Styling mit hochwertigen Produkten
+29€
+
+Schüler Paket
+Haarschnitt + Styling
+24€
+
+Kurze Haare
+-
+25€
+
+Mittlere Haare
+-
+30€
+
+Lange Haare
+-
+35€
+
+Bart schneiden & Kontur
+inkl. Bartstyling, Bartöl & Aftershave
+19€
+
+Bart schneiden & färben
+inkl. Bartstyling, Bartöl & Aftershave
+30€
+
+Haarschnitt & Rasur
+-
+43€
+
+Haarschnitt, Waschen & Rasur
+-
+47€
+
+Gentleman Paket
+Haarschnitt, Bart, Styling, Augenbrauen & Waxing
+55€
+
+Haare färben + Styling
+-
+35€
+
+Traditionelles Hot Towel Ritual
+-
++4€
+
+Augenbrauen
+-
+3€
+
+Nase & Ohren
+-
+8€
+
+Waschen + Föhnen + Styling
+-
+15€
