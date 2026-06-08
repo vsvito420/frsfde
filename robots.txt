@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://freshfade-studio.de/sitemap.xml
