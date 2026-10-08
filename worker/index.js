@@ -2,7 +2,7 @@
 // Läuft als Pages Function (functions/api/[[path]].js) für alle /api/*-Anfragen.
 
 import { notifyAdmins } from './push.js';
-import { currentStaff, login, clearCookie, changePassword, createInvite, setupInfo, setupPassword, listStaff, saveStaff, publicStaff } from './auth.js';
+import { currentStaff, login, clearCookie, clearLegacyCookie, changePassword, createInvite, setupInfo, setupPassword, listStaff, saveStaff, publicStaff } from './auth.js';
 
 const SLOT_MINUTES = 25;
 const BOOKING_DAYS_AHEAD = 30;
@@ -539,7 +539,10 @@ export default {
         if (url.pathname.startsWith('/api/admin/')) {
             if (route === 'POST /api/admin/login') return login(request, env);
             if (route === 'POST /api/admin/logout') {
-                return new Response('{"ok":true}', { headers: { 'content-type': 'application/json', 'set-cookie': clearCookie() } });
+                const headers = new Headers({ 'content-type': 'application/json' });
+                headers.append('set-cookie', clearCookie());
+                headers.append('set-cookie', clearLegacyCookie());
+                return new Response('{"ok":true}', { headers });
             }
             const me = await currentStaff(request, env);
             if (!me) return json({ error: 'Nicht angemeldet.' }, 401);

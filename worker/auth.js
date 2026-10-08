@@ -66,19 +66,24 @@ async function sessionCookie(request, env, staff) {
 }
 
 export const clearCookie = () => `${SESSION_COOKIE}=; Path=/api; HttpOnly; SameSite=Strict; Max-Age=0`;
+// Altes Cookie aus der Zeit vor dem Team-Login (Pfad /api/admin) entfernen, sonst schickt der Browser beide
+export const clearLegacyCookie = () => `${SESSION_COOKIE}=; Path=/api/admin; HttpOnly; SameSite=Strict; Max-Age=0`;
 
 // Angemeldete Person aus dem Cookie (oder null)
+// Der Browser kann mehrere ff_session-Cookies schicken (z. B. ein altes mit anderem Pfad): jedes prüfen
 export async function currentStaff(request, env) {
     if (!env.SESSION_SECRET) return null;
-    const cookie = (request.headers.get('cookie') || '').split(';').map(c => c.trim()).find(c => c.startsWith(`${SESSION_COOKIE}=`));
-    if (!cookie) return null;
-    const parts = decodeURIComponent(cookie.slice(SESSION_COOKIE.length + 1)).split('|');
-    if (parts.length !== 4) return null;
-    const [id, version, expires, signature] = parts;
-    if (Number(expires) < Date.now()) return null;
-    if (!sameBytes(encoder.encode(signature), encoder.encode(await sign(env, `${id}|${version}|${expires}`)))) return null;
-    const staff = await env.DB.prepare('SELECT * FROM staff WHERE id = ? AND active = 1').bind(Number(id)).first();
-    return staff && String(staff.pw_version) === version ? staff : null;
+    const cookies = (request.headers.get('cookie') || '').split(';').map(c => c.trim()).filter(c => c.startsWith(`${SESSION_COOKIE}=`));
+    for (const cookie of cookies) {
+        const parts = decodeURIComponent(cookie.slice(SESSION_COOKIE.length + 1)).split('|');
+        if (parts.length !== 4) continue;
+        const [id, version, expires, signature] = parts;
+        if (Number(expires) < Date.now()) continue;
+        if (!sameBytes(encoder.encode(signature), encoder.encode(await sign(env, `${id}|${version}|${expires}`)))) continue;
+        const staff = await env.DB.prepare('SELECT * FROM staff WHERE id = ? AND active = 1').bind(Number(id)).first();
+        if (staff && String(staff.pw_version) === version) return staff;
+    }
+    return null;
 }
 
 // Einmalig: bestehende Zugänge aus dem Secret ADMIN_USERS ins Team übernehmen
@@ -116,7 +121,14 @@ export async function login(request, env) {
         await new Promise(resolve => setTimeout(resolve, 800));
         return json({ error: 'Benutzername oder Passwort falsch.' }, 401);
     }
-    return json({ user: publicStaff(staff) }, 200, { 'set-cookie': await sessionCookie(request, env, staff) });
+    return withCookies({ user: publicStaff(staff) }, [await sessionCookie(request, env, staff), clearLegacyCookie()]);
+}
+
+// Mehrere Set-Cookie-Header in einer Antwort
+function withCookies(data, cookies) {
+    const headers = new Headers({ 'content-type': 'application/json; charset=utf-8' });
+    for (const c of cookies) headers.append('set-cookie', c);
+    return new Response(JSON.stringify(data), { headers });
 }
 
 const PASSWORD_HINT = 'Das Passwort braucht mindestens 8 Zeichen.';
@@ -165,7 +177,7 @@ export async function setupPassword(request, env) {
     await env.DB.prepare('UPDATE staff SET password_hash = ?, pw_version = pw_version + 1, setup_hash = NULL, setup_expires = NULL WHERE id = ?')
         .bind(await hashPassword(body.password), staff.id).run();
     const updated = await env.DB.prepare('SELECT * FROM staff WHERE id = ?').bind(staff.id).first();
-    return json({ user: publicStaff(updated) }, 200, { 'set-cookie': await sessionCookie(request, env, updated) });
+    return withCookies({ user: publicStaff(updated) }, [await sessionCookie(request, env, updated), clearLegacyCookie()]);
 }
 
 // Team verwalten (nur Admin)
