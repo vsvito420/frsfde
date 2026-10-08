@@ -494,6 +494,20 @@
             transform: translateX(-50%);
         }
 
+        /* PUSH */
+        .push-box {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .push-box.on {
+            border-left-color: #2ecc71;
+        }
+
         /* GALERIE */
         .gallery-admin {
             display: grid;
@@ -805,6 +819,15 @@
         </section>
 
         <div id="admin-content" hidden>
+            <!-- BENACHRICHTIGUNGEN -->
+            <section class="admin-box push-box" id="push-box" hidden>
+                <div>
+                    <strong id="push-title">🔔 Benachrichtigungen</strong>
+                    <p class="admin-msg" id="push-text" style="margin-top:4px;"></p>
+                </div>
+                <div class="admin-row" id="push-actions"></div>
+            </section>
+
             <!-- HEUTE -->
             <section class="admin-box">
                 <div class="today-grid">
@@ -1624,11 +1647,99 @@
             if (e.key === 'ArrowRight') openPreview(previewIndex + 1);
         });
 
+        // PUSH-BENACHRICHTIGUNGEN (nur diese Admin-App)
+        const pushBox = $('push-box');
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+        function urlKey(base64) {
+            const raw = atob(base64.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(base64.length / 4) * 4, '='));
+            return Uint8Array.from(raw, c => c.charCodeAt(0));
+        }
+
+        function showPush(state, text, buttons = '') {
+            pushBox.hidden = false;
+            pushBox.classList.toggle('on', state === 'on');
+            $('push-title').textContent = state === 'on' ? '🔔 Benachrichtigungen an' : '🔕 Benachrichtigungen aus';
+            $('push-text').textContent = text;
+            $('push-actions').innerHTML = buttons;
+        }
+
+        async function renderPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+                return showPush('off', isIOS && !isStandalone
+                    ? 'Am iPhone zuerst über Teilen → „Zum Home-Bildschirm“ installieren und die App von dort öffnen.'
+                    : 'Dieser Browser unterstützt keine Benachrichtigungen.');
+            }
+            if (Notification.permission === 'denied') {
+                return showPush('off', 'Benachrichtigungen sind blockiert. In den Handy-Einstellungen für diese App erlauben.');
+            }
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                return showPush('on', 'Du bekommst bei jeder neuen Online-Buchung eine Nachricht auf dieses Gerät.',
+                    '<button type="button" class="small-btn" id="push-test">Test senden</button><button type="button" class="small-btn" id="push-off">Ausschalten</button>');
+            }
+            showPush('off', 'Bei jeder neuen Online-Buchung eine Nachricht aufs Handy bekommen.',
+                '<button type="button" class="btn" id="push-on">Aktivieren</button>');
+        }
+
+        async function enablePush() {
+            try {
+                if (await Notification.requestPermission() !== 'granted') return renderPush();
+                const { key } = await api('/api/admin/push/key');
+                if (!key) return toast('Push ist auf dem Server noch nicht eingerichtet');
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlKey(key) });
+                await post('/api/admin/push/subscribe', subscription.toJSON());
+                toast('Benachrichtigungen aktiviert');
+            } catch (error) {
+                toast(`Aktivieren fehlgeschlagen: ${error.message}`);
+            }
+            renderPush();
+        }
+
+        async function disablePush() {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                await post('/api/admin/push/unsubscribe', { endpoint: subscription.endpoint });
+                await subscription.unsubscribe();
+            }
+            toast('Benachrichtigungen aus');
+            renderPush();
+        }
+
+        $('push-actions').addEventListener('click', async e => {
+            const id = e.target.closest('button')?.id;
+            if (id === 'push-on') enablePush();
+            if (id === 'push-off') disablePush();
+            if (id === 'push-test') {
+                const result = await post('/api/admin/push/test', {});
+                toast(result.sent ? `Test an ${result.sent} Gerät(e) gesendet` : 'Kein Gerät erreicht');
+            }
+        });
+
+        // Aus einer Benachrichtigung geöffnet (#datum-JJJJ-MM-TT): passende Woche und Tag zeigen
+        function openFromHash() {
+            const match = location.hash.match(/^#datum-(\d{4}-\d{2}-\d{2})$/);
+            if (!match) return false;
+            const target = new Date(`${match[1]}T12:00:00`);
+            const monday = d => { const m = new Date(d); m.setHours(12, 0, 0, 0); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m; };
+            weekOffset = Math.round((monday(target) - monday(new Date())) / (7 * 24 * 3600 * 1000));
+            dayIndex = Math.min((target.getDay() + 6) % 7, 5);
+            history.replaceState(null, '', '/admin');
+            return true;
+        }
+        window.addEventListener('hashchange', () => { if (openFromHash()) refresh(); });
+
         // LOGIN
         async function start() {
             const { user } = await api('/api/admin/me');
             $('admin-user').textContent = user;
+            openFromHash();
             await refresh();
+            renderPush().catch(() => { });
             loadGallery().catch(() => { });
         }
 

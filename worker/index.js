@@ -1,6 +1,8 @@
 // Fresh Fade Terminbuchung: freie Zeitslots, Buchung und Admin-Übersicht.
 // Läuft als Pages Function (functions/api/[[path]].js) für alle /api/*-Anfragen.
 
+import { notifyAdmins } from './push.js';
+
 const SLOT_MINUTES = 25;
 const BOOKING_DAYS_AHEAD = 30;
 const TIMEZONE = 'Europe/Berlin';
@@ -223,7 +225,7 @@ async function getSlots(url, env) {
     return json({ date, slots });
 }
 
-async function book(request, env) {
+async function book(request, env, ctx) {
     const body = await readJson(request);
     if (!body) return json({ error: 'Ungültige Anfrage.' }, 400);
 
@@ -257,7 +259,36 @@ async function book(request, env) {
         }
         throw error;
     }
+    // Push an den Friseur, ohne die Antwort an den Kunden aufzuhalten
+    const weekday = new Date(`${date}T12:00:00Z`).toLocaleDateString('de-DE', { weekday: 'short', timeZone: 'UTC' });
+    const [, month, day] = date.split('-');
+    const push = notifyAdmins(env, {
+        title: `💈 Neuer Termin: ${name}`,
+        body: `${weekday}, ${Number(day)}.${Number(month)}. um ${time} Uhr · ${service}`,
+        url: `/admin#datum-${date}`,
+        tag: `termin-${date}-${time}`
+    }).catch(() => { });
+    if (ctx?.waitUntil) ctx.waitUntil(push);
+
     return json({ ok: true, date, time, service });
+}
+
+async function pushSubscribe(request, env, user) {
+    const body = await readJson(request);
+    const endpoint = String(body?.endpoint || '');
+    const p256dh = String(body?.keys?.p256dh || '');
+    const auth = String(body?.keys?.auth || '');
+    if (!endpoint.startsWith('https://') || !p256dh || !auth) return json({ error: 'Ungültiges Abo.' }, 400);
+    await env.DB.prepare(
+        'INSERT INTO push_subscriptions (endpoint, p256dh, auth, user) VALUES (?, ?, ?, ?) ON CONFLICT (endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth, user = excluded.user'
+    ).bind(endpoint, p256dh, auth, user).run();
+    return json({ ok: true });
+}
+
+async function pushUnsubscribe(request, env) {
+    const body = await readJson(request);
+    await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(String(body?.endpoint || '')).run();
+    return json({ ok: true });
 }
 
 async function adminBookings(url, env) {
@@ -424,7 +455,7 @@ async function adminBlock(request, env) {
 }
 
 export default {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
         const url = new URL(request.url);
         const route = `${request.method} ${url.pathname}`;
 
@@ -433,7 +464,7 @@ export default {
         const imageMatch = url.pathname.match(/^\/api\/gallery\/(\d+)$/);
         if (request.method === 'GET' && imageMatch) return galleryImage(Number(imageMatch[1]), env);
         if (route === 'GET /api/slots') return getSlots(url, env);
-        if (route === 'POST /api/book') return book(request, env);
+        if (route === 'POST /api/book') return book(request, env, ctx);
 
         if (url.pathname.startsWith('/api/admin/')) {
             if (route === 'POST /api/admin/login') return login(request, env);
@@ -446,6 +477,12 @@ export default {
             if (route === 'POST /api/admin/block') return adminBlock(request, env);
             if (route === 'POST /api/admin/update') return adminUpdate(request, env);
             if (route === 'POST /api/admin/create') return adminCreate(request, env);
+            if (route === 'GET /api/admin/push/key') return json({ key: env.VAPID_PUBLIC_KEY || null });
+            if (route === 'POST /api/admin/push/subscribe') return pushSubscribe(request, env, user);
+            if (route === 'POST /api/admin/push/unsubscribe') return pushUnsubscribe(request, env);
+            if (route === 'POST /api/admin/push/test') {
+                return json(await notifyAdmins(env, { title: '💈 Test von Fresh Fade', body: 'Benachrichtigungen funktionieren!', url: '/admin', tag: 'test' }));
+            }
             if (route === 'POST /api/admin/gallery') return galleryUpload(request, url, env);
             if (route === 'POST /api/admin/gallery/order') return galleryOrder(request, env);
             if (route === 'POST /api/admin/gallery/delete') return galleryDelete(request, env);

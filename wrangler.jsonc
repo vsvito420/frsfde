@@ -11,7 +11,11 @@
             "database_id": "f1dbe2ad-54f7-4c8e-92e1-85d28c396b68",
             "migrations_dir": "migrations"
         }
-    ]
+    ],
+    "vars": {
+        // Öffentlicher Schlüssel für Push-Benachrichtigungen (privater Teil: Secret VAPID_PRIVATE_JWK)
+        "VAPID_PUBLIC_KEY": "BPYm4ELXBh75RqublIb4zFKMELty-T58VgmeCVLmcPNNMhRCNTS1I32rEPGFz3TnyC6Z9fSV9gmoxNuXHOKeG74"
+    }
     // Admin-Login: Secrets ADMIN_USERS ("name:passwort,name2:passwort2") und SESSION_SECRET
     // per "wrangler pages secret put" setzen. Später optional Cloudflare Access (GitHub) über
     // die Variablen ACCESS_TEAM_DOMAIN, ACCESS_AUD und ADMIN_EMAILS.
