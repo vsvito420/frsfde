@@ -1,515 +1,1333 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="auto">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FF Termine" />
+    <title>Termine | Fresh Fade</title>
     <link rel="manifest" href="/admin.webmanifest" />
     <link rel="apple-touch-icon" href="/assets/app/apple-touch-icon.png" />
     <link rel="icon" type="image/png" href="/assets/app/favicon-48.png" />
-    <meta name="robots" content="noindex, nofollow" />
-    <title>Termine | Fresh Fade Studio</title>
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./fonts/fonts.css" />
     <style>
+        /* ===== DESIGN-TOKENS (Dunkel = Standard, Hell über data-theme) ===== */
+        :root {
+            --p-bg: #000;
+            --p-bg2: #0a0a0a;
+            --p-card: #111;
+            --p-card2: #181818;
+            --p-ink: #fff;
+            --p-muted: #9a9a9a;
+            --p-line: rgba(255, 255, 255, 0.1);
+            --p-hover: rgba(255, 255, 255, 0.06);
+            --p-acc: #d30000;
+            --p-acc-bg: rgba(211, 0, 0, 0.18);
+            --p-ok: #2ecc71;
+            --p-ok-bg: rgba(46, 204, 113, 0.16);
+            --p-warn: #f39c12;
+            --p-warn-bg: rgba(243, 156, 18, 0.16);
+            --p-off: #777;
+            --p-gold: #e8b75a;
+            --p-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            color-scheme: dark;
+        }
+
+        :root[data-theme="light"] {
+            --p-bg: #f4f4f5;
+            --p-bg2: #ececee;
+            --p-card: #fff;
+            --p-card2: #f6f6f7;
+            --p-ink: #111;
+            --p-muted: #666;
+            --p-line: rgba(0, 0, 0, 0.1);
+            --p-hover: rgba(0, 0, 0, 0.05);
+            --p-acc-bg: rgba(211, 0, 0, 0.1);
+            --p-ok: #1e9e55;
+            --p-ok-bg: rgba(30, 158, 85, 0.12);
+            --p-warn: #c27a00;
+            --p-warn-bg: rgba(194, 122, 0, 0.12);
+            --p-off: #999;
+            --p-gold: #a8741a;
+            --p-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            /* Variablen der Webseite für die Galerie-Vorschau */
+            --bg-color: #fff;
+            --surface-color: #fff;
+            --text-main: #111;
+            --text-muted: #666;
+            color-scheme: light;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root[data-theme="auto"] {
+                --p-bg: #f4f4f5;
+                --p-bg2: #ececee;
+                --p-card: #fff;
+                --p-card2: #f6f6f7;
+                --p-ink: #111;
+                --p-muted: #666;
+                --p-line: rgba(0, 0, 0, 0.1);
+                --p-hover: rgba(0, 0, 0, 0.05);
+                --p-acc-bg: rgba(211, 0, 0, 0.1);
+                --p-ok: #1e9e55;
+                --p-ok-bg: rgba(30, 158, 85, 0.12);
+                --p-warn: #c27a00;
+                --p-warn-bg: rgba(194, 122, 0, 0.12);
+                --p-off: #999;
+                --p-gold: #a8741a;
+                --p-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+                --bg-color: #fff;
+                --surface-color: #fff;
+                --text-main: #111;
+                --text-muted: #666;
+                color-scheme: light;
+            }
+        }
+
         body {
-            padding: calc(20px + env(safe-area-inset-top)) 16px calc(64px + env(safe-area-inset-bottom));
+            background: var(--p-bg);
+            color: var(--p-ink);
             -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        .admin {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .admin-header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .admin-header h1 {
-            font-size: 2.4rem;
-        }
-
-        .admin-header p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .admin-header a {
-            color: var(--text-muted);
-        }
-
-        .admin-box {
-            padding: 20px;
-            margin-bottom: 20px;
-            background: var(--surface-color);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .admin-box h2 {
-            font-size: 1.6rem;
-            margin-bottom: 12px;
-        }
-
-        .admin input,
-        .admin select,
-        .admin textarea,
-        dialog input,
-        dialog select,
-        dialog textarea {
-            width: 100%;
-            padding: 10px 12px;
-            background: #000;
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
+        button,
+        input,
+        select,
+        textarea {
             font-family: var(--font-body);
-            font-size: 0.95rem;
+            color: inherit;
         }
 
-        .admin-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
+        [hidden] {
+            display: none !important;
         }
 
-        .admin-row > input,
-        .admin-row > select {
-            width: auto;
-            flex: 1 1 140px;
+        .muted {
+            color: var(--p-muted);
         }
 
-        .admin .btn,
-        dialog .btn {
-            padding: 10px 18px;
-            font-size: 1.15rem;
+        .wrap {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 16px;
         }
 
-        .small-btn {
+        /* ===== KNÖPFE / FELDER ===== */
+        .b {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            padding: 8px 12px;
-            background: #000;
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 6px;
+            min-height: 40px;
+            padding: 8px 14px;
+            background: var(--p-card2);
+            color: var(--p-ink);
+            border: 1px solid var(--p-line);
+            border-radius: 8px;
             cursor: pointer;
-            font-family: var(--font-body);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-decoration: none;
             white-space: nowrap;
         }
 
-        .small-btn:hover {
-            border-color: var(--accent-red);
+        .b:hover {
+            border-color: var(--p-acc);
         }
 
-        .small-btn.active {
-            background: var(--accent-red);
-            border-color: var(--accent-red);
+        .b.primary {
+            background: var(--p-acc);
+            border-color: var(--p-acc);
+            color: #fff;
+            font-weight: 600;
         }
 
-        .admin-msg {
-            color: var(--text-muted);
+        .b.ok {
+            background: var(--p-ok);
+            border-color: var(--p-ok);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .b.big {
+            min-height: 48px;
+            font-size: 1rem;
+        }
+
+        .b.icon {
+            width: 40px;
+            padding: 0;
+        }
+
+        .b.on {
+            background: var(--p-acc);
+            border-color: var(--p-acc);
+            color: #fff;
+        }
+
+        .seg {
+            display: inline-flex;
+            border: 1px solid var(--p-line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .seg button {
+            padding: 8px 14px;
+            background: var(--p-card2);
+            border: none;
+            cursor: pointer;
             font-size: 0.85rem;
-            margin-top: 10px;
         }
 
-        /* HEUTE */
-        .today-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        .seg button + button {
+            border-left: 1px solid var(--p-line);
+        }
+
+        .seg button.on {
+            background: var(--p-acc);
+            color: #fff;
+        }
+
+        .field {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--p-card2);
+            border: 1px solid var(--p-line);
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: var(--p-acc);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 9px;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            background: var(--p-hover);
+            white-space: nowrap;
+        }
+
+        .chip.ok {
+            background: var(--p-ok-bg);
+            color: var(--p-ok);
+        }
+
+        .chip.warn {
+            background: var(--p-warn-bg);
+            color: var(--p-warn);
+        }
+
+        .chip.off {
+            color: var(--p-off);
+        }
+
+        .chip.acc {
+            background: var(--p-acc-bg);
+            color: var(--p-acc);
+        }
+
+        .chip.gold {
+            background: rgba(212, 162, 76, 0.18);
+            color: var(--p-gold);
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chips button {
+            padding: 7px 12px;
+            border-radius: 99px;
+            background: var(--p-card2);
+            border: 1px solid var(--p-line);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .chips button.on {
+            background: var(--p-acc);
+            border-color: var(--p-acc);
+            color: #fff;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--p-warn);
+            flex-shrink: 0;
+        }
+
+        .box {
+            background: var(--p-card);
+            border: 1px solid var(--p-line);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .box h3,
+        .h3 {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* ===== KOPFLEISTE ===== */
+        .top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: color-mix(in srgb, var(--p-bg) 88%, transparent);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--p-line);
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .top-inner {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
             gap: 14px;
         }
 
-        .stat {
-            padding: 14px;
-            background: #000;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .brand h1 {
+            font-size: 1.7rem;
+            line-height: 1;
+        }
+
+        .brand small {
+            color: var(--p-muted);
+            font-size: 0.72rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .tabs button {
+            position: relative;
+            padding: 9px 14px;
+            background: none;
+            border: none;
             border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.92rem;
+            color: var(--p-muted);
         }
 
-        .stat small {
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .tabs button:hover {
+            background: var(--p-hover);
+        }
+
+        .tabs button.on {
+            color: var(--p-ink);
+            background: var(--p-hover);
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            min-width: 18px;
+            padding: 0 5px;
+            margin-left: 4px;
+            border-radius: 99px;
+            background: var(--p-warn);
+            color: #000;
             font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
         }
 
-        .stat strong {
-            display: block;
-            font-family: var(--font-display);
-            font-size: 2.2rem;
-            font-weight: 400;
-            line-height: 1.1;
+        .top-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+            align-items: center;
         }
 
-        .stat.next {
-            grid-column: span 2;
-            border-left: 3px solid var(--accent-red);
+        /* Handy: Navigation unten */
+        .bottom-nav {
+            display: none;
+        }
+
+        /* ===== ÜBERSICHT ===== */
+        .ov {
+            display: grid;
+            gap: 16px;
+        }
+
+        .ov-side {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ov-side .minis {
+            display: grid;
+            gap: 16px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .stat {
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--p-card2);
             cursor: pointer;
         }
 
-        .stat.next strong {
-            font-size: 1.6rem;
-        }
-
-        @media (max-width: 600px) {
-            .stat.next {
-                grid-column: auto;
-            }
-        }
-
-        /* WOCHENPLAN */
-        .week-label {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .week-scroll {
-            overflow-x: auto;
-            margin-top: 14px;
-        }
-
-        .week {
-            width: 100%;
-            min-width: 680px;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 0.8rem;
-        }
-
-        .week th,
-        .week td {
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 0;
-            height: 40px;
-            vertical-align: top;
-        }
-
-        .week thead th {
-            height: auto;
-            padding: 8px 4px;
+        .stat b {
+            display: block;
             font-family: var(--font-display);
-            font-size: 1.1rem;
+            font-size: 2rem;
             font-weight: 400;
+            line-height: 1;
+        }
+
+        .stat small {
+            color: var(--p-muted);
+            font-size: 0.72rem;
+        }
+
+        .cards {
+            display: grid;
+            gap: 12px;
+        }
+
+        .tcard {
+            background: var(--p-card);
+            border: 1px solid var(--p-line);
+            border-left: 4px solid var(--p-acc);
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+        }
+
+        .tcard:hover {
+            border-color: var(--p-acc);
+        }
+
+        .tcard.erschienen {
+            border-left-color: var(--p-ok);
+        }
+
+        .tcard.nicht_erschienen {
+            border-left-color: var(--p-warn);
+        }
+
+        .tcard.abgesagt {
+            border-left-color: var(--p-off);
+            opacity: 0.6;
+        }
+
+        .tcard.neu {
+            border-left-color: var(--p-warn);
+            background: linear-gradient(90deg, var(--p-warn-bg), var(--p-card) 40%);
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-head .name {
+            font-size: 1.05rem;
+        }
+
+        .tcard.neu .name {
+            font-weight: 800;
+        }
+
+        .card-head .in {
+            margin-left: auto;
+            color: var(--p-muted);
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .tcard .when {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            letter-spacing: 0.5px;
+            margin: 4px 0 2px;
+        }
+
+        .tcard .what {
+            color: var(--p-muted);
+            font-size: 0.9rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .card-actions .grow {
+            flex: 1;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0 2px;
+            color: var(--p-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.75rem;
+        }
+
+        .empty {
+            padding: 30px 10px;
+            text-align: center;
+            color: var(--p-muted);
+        }
+
+        /* Agenda (Nächste 7 Tage) */
+        .agenda-day {
+            margin-top: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .agenda-day.today {
+            color: var(--p-acc);
+        }
+
+        .agenda-item {
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+            padding: 7px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .agenda-item:hover {
+            background: var(--p-hover);
+        }
+
+        .agenda-item time {
+            font-variant-numeric: tabular-nums;
+            color: var(--p-muted);
+            min-width: 44px;
+        }
+
+        .agenda-item.running {
+            background: var(--p-acc-bg);
+        }
+
+        .agenda-item.running time {
+            color: var(--p-acc);
+            font-weight: 700;
+        }
+
+        .agenda-item.abgesagt {
+            text-decoration: line-through;
+            color: var(--p-off);
+        }
+
+        .now-sep {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+            color: var(--p-acc);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .now-sep::before,
+        .now-sep::after {
+            content: "";
+            flex: 1;
+            height: 2px;
+            background: var(--p-acc);
+        }
+
+        /* ===== MINI-MONAT ===== */
+        .mini-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .mini-head b {
+            font-family: var(--font-display);
+            font-weight: 400;
+            font-size: 1.2rem;
             letter-spacing: 1px;
         }
 
-        .week thead th small {
+        .mini-nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .mini {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .mini .wd {
+            color: var(--p-muted);
+            font-size: 0.68rem;
+            padding: 2px 0;
+        }
+
+        .mini button {
+            position: relative;
+            aspect-ratio: 1;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            background: none;
+            cursor: pointer;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .mini button:hover {
+            background: var(--p-hover);
+        }
+
+        .mini button.other {
+            visibility: hidden;
+        }
+
+        .mini button.past {
+            opacity: 0.4;
+        }
+
+        .mini button.closed {
+            color: var(--p-off);
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .mini button.has {
+            background: var(--p-ok-bg);
+            color: var(--p-ok);
+            font-weight: 700;
+        }
+
+        .mini button.today {
+            border-color: var(--p-acc);
+        }
+
+        .mini button.new::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--p-warn);
+        }
+
+        /* ===== KALENDER ===== */
+        .cal-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .cal-title {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            margin-right: auto;
+        }
+
+        /* Tag */
+        .day-rows {
+            border: 1px solid var(--p-line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--p-card);
+        }
+
+        .day-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 74px 1fr;
+            min-height: 56px;
+            border-top: 1px solid var(--p-line);
+        }
+
+        .day-row:first-child {
+            border-top: none;
+        }
+
+        .day-row.past {
+            background: repeating-linear-gradient(-45deg, transparent 0 7px, var(--p-hover) 7px 14px);
+        }
+
+        .day-time {
+            padding: 8px 10px;
+            color: var(--p-muted);
+            font-size: 0.85rem;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
+
+        .day-time b {
             display: block;
-            color: var(--text-muted);
+            color: var(--p-ink);
+            font-size: 1rem;
+        }
+
+        .day-slot {
+            padding: 6px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .ev {
+            flex: 1;
+            min-width: 0;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--p-acc);
+            background: var(--p-acc-bg);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .ev b {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ev span {
+            display: block;
+            color: var(--p-muted);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ev.erschienen {
+            border-left-color: var(--p-ok);
+            background: var(--p-ok-bg);
+        }
+
+        .ev.nicht_erschienen {
+            border-left-color: var(--p-warn);
+            background: var(--p-warn-bg);
+        }
+
+        .ev.blocked {
+            border-left-color: var(--p-off);
+            background: var(--p-hover);
+            color: var(--p-muted);
+        }
+
+        .ev.neu b::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: var(--p-warn);
+        }
+
+        .free-btn {
+            flex: 1;
+            border: 1px dashed var(--p-line);
+            border-radius: 8px;
+            background: none;
+            color: var(--p-muted);
+            cursor: pointer;
+            text-align: left;
+            padding: 0 12px;
+        }
+
+        .free-btn:hover {
+            border-color: var(--p-acc);
+            color: var(--p-ink);
+        }
+
+        .now-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--p-acc);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .now-line::before {
+            content: "";
+            position: absolute;
+            left: -1px;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--p-acc);
+        }
+
+        .now-line span {
+            position: absolute;
+            left: 12px;
+            top: -9px;
+            padding: 0 5px;
+            border-radius: 4px;
+            background: var(--p-acc);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            line-height: 16px;
+        }
+
+        /* Woche (PC) */
+        .week {
+            display: grid;
+            grid-template-columns: 64px repeat(6, 1fr);
+            gap: 1px;
+            background: var(--p-line);
+            border: 1px solid var(--p-line);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .week > div {
+            background: var(--p-card);
+            min-height: 40px;
+            position: relative;
+        }
+
+        .week .wh {
+            padding: 8px 4px;
+            text-align: center;
+            font-family: var(--font-display);
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        .week .wh small {
+            display: block;
+            color: var(--p-muted);
             font-family: var(--font-body);
             font-size: 0.7rem;
+            letter-spacing: 0;
         }
 
-        .week thead th.today {
-            color: var(--accent-red);
+        .week .wh.today {
+            color: var(--p-acc);
         }
 
-        .week .week-time {
-            width: 52px;
-            padding: 4px;
-            color: var(--text-muted);
+        .week .wt {
+            padding: 4px 6px;
+            color: var(--p-muted);
+            font-size: 0.75rem;
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
 
-        .week td.free {
+        .week .wc.free {
             cursor: pointer;
         }
 
-        .week td.free:hover,
-        .week td.drop-target {
-            background: rgba(255, 255, 255, 0.07);
+        .week .wc.free:hover,
+        .week .wc.drop {
+            background: var(--p-hover);
         }
 
-        .week td.drop-target {
-            outline: 2px dashed var(--accent-red);
+        .week .wc.drop {
+            outline: 2px dashed var(--p-acc);
             outline-offset: -2px;
         }
 
-        .week td.closed,
-        .week td.past {
-            background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(255, 255, 255, 0.03) 6px 12px);
+        .week .wc.closed,
+        .week .wc.past {
+            background: repeating-linear-gradient(-45deg, var(--p-card) 0 6px, var(--p-bg2) 6px 12px);
         }
 
-        .week tr.now td {
-            border-top: 2px solid var(--accent-red);
-        }
-
-        .slot {
-            height: 100%;
+        .week .ev {
+            position: absolute;
+            inset: 1px;
             padding: 3px 6px;
-            overflow: hidden;
-            border-left: 3px solid var(--accent-red);
-            background: rgba(211, 0, 0, 0.2);
-            line-height: 1.25;
-            cursor: pointer;
+            font-size: 0.78rem;
+            border-radius: 4px;
         }
 
-        .slot[draggable="true"] {
+        .week .ev[draggable="true"] {
             cursor: grab;
         }
 
-        .slot strong {
-            display: block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        /* Woche (Handy) als Liste */
+        .wlist-day {
+            margin-bottom: 12px;
         }
 
-        .slot span {
-            display: block;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .slot.erschienen {
-            border-left-color: #2ecc71;
-            background: rgba(46, 204, 113, 0.15);
-        }
-
-        .slot.nicht_erschienen {
-            border-left-color: #f39c12;
-            background: rgba(243, 156, 18, 0.15);
-        }
-
-        .slot.blocked {
-            border-left-color: rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-muted);
-        }
-
-        .legend {
+        .wlist-head {
             display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-top: 10px;
-            color: var(--text-muted);
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--p-card2);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .wlist-head.today {
+            color: var(--p-acc);
+        }
+
+        /* Monat */
+        .month {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--p-line);
+            border: 1px solid var(--p-line);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .month .mh {
+            background: var(--p-card2);
+            padding: 8px;
+            text-align: center;
+            color: var(--p-muted);
             font-size: 0.8rem;
         }
 
-        .legend i {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            margin-right: 5px;
-            border-radius: 2px;
+        .month .md {
+            background: var(--p-card);
+            min-height: 104px;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 0.78rem;
         }
 
-        /* LISTE */
-        .list-item {
-            display: flex;
-            gap: 14px;
+        .month .md:hover {
+            background: var(--p-hover);
+        }
+
+        .month .md.other {
+            opacity: 0.35;
+        }
+
+        .month .md.closed {
+            background: repeating-linear-gradient(-45deg, var(--p-card) 0 6px, var(--p-bg2) 6px 12px);
+            cursor: default;
+        }
+
+        .month .md b {
+            font-size: 1rem;
+        }
+
+        .month .md.today b {
+            display: inline-flex;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--p-acc);
+            color: #fff;
+        }
+
+        .bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--p-hover);
+            overflow: hidden;
+            margin-top: auto;
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            background: var(--p-ok);
+        }
+
+        /* ===== LISTE ===== */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .filters .field {
+            width: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--p-card);
+            border: 1px solid var(--p-line);
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+
+        .table th {
+            position: sticky;
+            top: 0;
+            background: var(--p-card2);
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--p-muted);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table td {
+            padding: 10px 12px;
+            border-top: 1px solid var(--p-line);
+            vertical-align: top;
+        }
+
+        .table tr.row {
             cursor: pointer;
         }
 
-        .list-item:hover {
-            background: rgba(255, 255, 255, 0.03);
+        .table tr.row:hover td {
+            background: var(--p-hover);
         }
 
-        .list-item time {
-            min-width: 64px;
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            color: var(--accent-red);
+        .table tr.abgesagt td {
+            color: var(--p-off);
         }
 
-        .list-item small {
-            color: var(--text-muted);
-        }
-
-        .list-item div {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .list-item.abgesagt {
-            opacity: 0.45;
-        }
-
-        .list-item.abgesagt strong {
+        .table tr.abgesagt .name {
             text-decoration: line-through;
         }
 
-        .list-day {
-            margin-top: 20px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid var(--accent-red);
-            font-size: 1.4rem;
+        .table .neu .name {
+            font-weight: 800;
         }
 
-        .chip {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 99px;
-            font-size: 0.7rem;
-            background: rgba(255, 255, 255, 0.1);
-            white-space: nowrap;
+        .list-cards {
+            display: none;
         }
 
-        .chip.erschienen {
-            background: rgba(46, 204, 113, 0.25);
-        }
-
-        .chip.nicht_erschienen {
-            background: rgba(243, 156, 18, 0.25);
-        }
-
-        .chip.abgesagt {
-            background: rgba(211, 0, 0, 0.3);
-        }
-
-        .chip.loyal {
-            background: rgba(212, 162, 76, 0.25);
-            color: #e8b75a;
-        }
-
-        /* DIALOG */
-        dialog {
-            width: min(520px, calc(100% - 24px));
-            max-height: calc(100% - 24px);
-            margin: auto;
+        /* ===== BLÄTTER (Detail / Neu / Hilfe) ===== */
+        dialog.sheet {
+            margin: 0 0 0 auto;
+            width: min(560px, 100%);
+            max-width: none;
+            height: 100%;
+            max-height: none;
             padding: 0;
-            background: var(--surface-color);
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-top: 3px solid var(--accent-red);
-            border-radius: 10px;
+            background: var(--p-bg);
+            color: var(--p-ink);
+            border: none;
+            border-left: 1px solid var(--p-line);
+            box-shadow: var(--p-shadow);
+        }
+
+        dialog.sheet[open] {
+            animation: sheet-in 0.22s ease-out;
+        }
+
+        @keyframes sheet-in {
+            from {
+                transform: translateX(40px);
+                opacity: 0;
+            }
         }
 
         dialog::backdrop {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.55);
         }
 
-        .dialog-body {
+        .sheet-wrap {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sheet-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+            border-bottom: 1px solid var(--p-line);
+        }
+
+        .sheet-head h2 {
+            font-size: 1.6rem;
+            line-height: 1.1;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sheet-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sheet-foot {
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+            border-top: 1px solid var(--p-line);
+            background: var(--p-card);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .termin-box {
+            padding: 16px;
+            border-radius: 12px;
+            background: var(--p-card);
+            border: 1px solid var(--p-line);
+            border-left: 4px solid var(--p-acc);
+        }
+
+        .termin-box.erschienen {
+            border-left-color: var(--p-ok);
+        }
+
+        .termin-box.nicht_erschienen {
+            border-left-color: var(--p-warn);
+        }
+
+        .termin-box.abgesagt {
+            border-left-color: var(--p-off);
+        }
+
+        .termin-box .tb-when {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            line-height: 1.05;
+        }
+
+        .row-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .row-btns .b {
+            flex: 1;
+        }
+
+        .label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+            color: var(--p-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.72rem;
+        }
+
+        .label button {
+            background: none;
+            border: none;
+            color: var(--p-acc);
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.85rem;
+        }
+
+        .contact-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+        }
+
+        .contact-line a {
+            color: var(--p-ink);
+            font-size: 1.05rem;
+        }
+
+        .contact-line .copy {
+            margin-left: auto;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .save-state {
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .meta {
+            font-size: 0.8rem;
+            color: var(--p-muted);
+            line-height: 1.7;
+        }
+
+        .danger {
+            background: none;
+            border: none;
+            color: var(--p-muted);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .danger:hover {
+            color: var(--p-acc);
+        }
+
+        .err {
+            color: #ff5a5a;
+            font-size: 0.9rem;
+        }
+
+        /* Neuer Termin */
+        .day-pick {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .day-pick .field {
+            flex: 1;
+            text-align: center;
+        }
+
+        .times {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 6px;
+        }
+
+        .times button {
+            padding: 8px 4px;
+            border-radius: 8px;
+            border: 1px solid var(--p-line);
+            background: var(--p-card2);
+            cursor: pointer;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
+
+        .times button small {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--p-ok);
+        }
+
+        .times button.full {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .times button.full small {
+            color: var(--p-muted);
+        }
+
+        .times button.on {
+            background: var(--p-acc);
+            border-color: var(--p-acc);
+            color: #fff;
+        }
+
+        .times button.on small {
+            color: #fff;
+        }
+
+        /* Hilfe / Popover */
+        dialog.pop {
+            margin: auto;
+            width: min(460px, calc(100% - 24px));
+            padding: 0;
+            background: var(--p-card);
+            color: var(--p-ink);
+            border: 1px solid var(--p-line);
+            border-radius: 14px;
+            box-shadow: var(--p-shadow);
+        }
+
+        .pop-body {
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-        }
-
-        .dialog-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .dialog-head h3 {
-            font-size: 1.8rem;
-            line-height: 1.1;
-        }
-
-        .dialog-head p {
-            color: var(--text-muted);
-        }
-
-        .dialog-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.6rem;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .dialog-section small {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.7rem;
-        }
-
-        .dialog-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .dialog-actions {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .danger-link {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            text-decoration: underline;
-            font-family: var(--font-body);
-        }
-
-        .danger-link:hover {
-            color: var(--accent-red);
-        }
-
-        .dialog-error {
-            color: #ff5a5a;
-            min-height: 1.2em;
-        }
-
-        .toast {
-            position: fixed;
-            left: 50%;
-            bottom: 24px;
-            transform: translateX(-50%) translateY(20px);
-            padding: 10px 18px;
-            background: var(--text-main);
-            color: #000;
-            border-radius: 99px;
-            font-weight: 600;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.25s ease;
-            z-index: 10;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%);
-        }
-
-        /* PUSH */
-        .push-box {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
             gap: 12px;
-            border-left: 3px solid var(--accent-red);
         }
 
-        .push-box.on {
-            border-left-color: #2ecc71;
+        .keys {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 6px 14px;
+            font-size: 0.9rem;
         }
 
-        /* GALERIE */
+        kbd {
+            display: inline-block;
+            min-width: 24px;
+            padding: 1px 6px;
+            border: 1px solid var(--p-line);
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            background: var(--p-card2);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        /* Galerie */
         .gallery-admin {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -518,9 +1336,9 @@
         }
 
         .g-card {
-            background: #000;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            background: var(--p-card2);
+            border: 1px solid var(--p-line);
+            border-radius: 10px;
             overflow: hidden;
         }
 
@@ -529,7 +1347,7 @@
         }
 
         .g-card.drop-target {
-            outline: 2px dashed var(--accent-red);
+            outline: 2px dashed var(--p-acc);
         }
 
         .g-card img {
@@ -542,7 +1360,6 @@
 
         .g-tools {
             display: flex;
-            justify-content: space-between;
             padding: 4px;
         }
 
@@ -551,19 +1368,17 @@
             min-height: 36px;
             background: none;
             border: none;
-            color: var(--text-main);
             cursor: pointer;
             font-size: 1rem;
             border-radius: 4px;
         }
 
         .g-tools button:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--p-hover);
         }
 
         .g-tools button:disabled {
             opacity: 0.25;
-            cursor: default;
         }
 
         .g-pos {
@@ -573,23 +1388,32 @@
             padding: 1px 7px;
             border-radius: 99px;
             background: rgba(0, 0, 0, 0.75);
+            color: #fff;
             font-size: 0.75rem;
-        }
-
-        .upload-label {
-            cursor: pointer;
         }
 
         .upload-label input {
             display: none;
         }
 
-        .preview-dialog {
-            width: min(900px, calc(100% - 24px));
-            background: #000;
+        .g-preview-frame {
+            margin-top: 12px;
+            padding: 28px 20px;
+            background: var(--bg-color);
+            border: 1px solid var(--p-line);
+            border-radius: 10px;
         }
 
-        .preview-dialog img {
+        dialog.preview {
+            margin: auto;
+            width: min(900px, calc(100% - 24px));
+            padding: 0;
+            background: #000;
+            border: none;
+            border-radius: 12px;
+        }
+
+        dialog.preview img {
             display: block;
             width: 100%;
             max-height: 75vh;
@@ -600,460 +1424,588 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
             padding: 10px;
-            gap: 10px;
+            color: #fff;
         }
 
-        .g-preview {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        /* Login */
+        .login {
+            max-width: 420px;
+            margin: 12vh auto 0;
         }
 
-        .g-preview h3 {
-            font-size: 1.3rem;
-        }
-
-        .g-preview-frame {
-            margin-top: 12px;
-            padding: 28px 20px;
-            background: var(--bg-color);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-        }
-
-        .g-preview-frame .gallery-item img {
-            cursor: zoom-in;
-        }
-
-        /* TAGES-TABS (nur Handy) */
-        .day-tabs {
-            display: none;
-            gap: 6px;
-            margin-top: 14px;
-        }
-
-        .day-tab {
-            flex: 1;
+        .login form {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 8px 0;
-            background: #000;
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            font-family: var(--font-body);
-            cursor: pointer;
-            position: relative;
+            gap: 10px;
+            margin-top: 16px;
         }
 
-        .day-tab b {
-            font-family: var(--font-display);
-            font-size: 1.3rem;
-            font-weight: 400;
-        }
-
-        .day-tab small {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-
-        .day-tab.today b {
-            color: var(--accent-red);
-        }
-
-        .day-tab.active {
-            background: var(--accent-red);
-            border-color: var(--accent-red);
-        }
-
-        .day-tab.active b,
-        .day-tab.active small {
-            color: var(--text-main);
-        }
-
-        .day-tab i {
-            position: absolute;
-            top: -7px;
-            right: -5px;
-            min-width: 18px;
-            padding: 0 4px;
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(90px + env(safe-area-inset-bottom));
+            transform: translateX(-50%) translateY(20px);
+            padding: 10px 18px;
+            background: var(--p-ink);
+            color: var(--p-bg);
             border-radius: 99px;
-            background: var(--text-main);
-            color: #000;
-            font-style: normal;
-            font-size: 0.65rem;
-            font-weight: 700;
-            line-height: 16px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.25s ease;
+            z-index: 100;
+            max-width: calc(100% - 32px);
+            text-align: center;
         }
 
-        .day-tab.active i {
-            background: #000;
-            color: var(--text-main);
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%);
         }
 
-        /* HANDY-APP */
-        @media (max-width: 700px) {
-            body {
-                padding-left: 10px;
-                padding-right: 10px;
+        /* ===== BREITEN ===== */
+        @media (min-width: 1024px) {
+            .ov {
+                grid-template-columns: 320px 1fr;
+                align-items: start;
             }
 
-            .admin-header {
+            .ov-side {
                 position: sticky;
-                top: 0;
-                z-index: 5;
-                margin: calc(-20px - env(safe-area-inset-top)) -10px 14px;
-                padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
-                background: rgba(0, 0, 0, 0.92);
-                backdrop-filter: blur(10px);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                top: 84px;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .ov {
+                grid-template-columns: 320px 1fr 360px;
             }
 
-            .admin-header h1 {
-                font-size: 1.8rem;
+            .ov-agenda {
+                position: sticky;
+                top: 84px;
+                max-height: calc(100vh - 100px);
+                overflow-y: auto;
             }
+        }
 
-            .admin-box {
-                padding: 14px;
-                margin-bottom: 14px;
+        @media (max-width: 1279px) {
+            .ov-agenda {
+                display: none;
             }
+        }
 
-            .today-grid {
+        @media (min-width: 1536px) {
+            .cards {
                 grid-template-columns: 1fr 1fr;
-                gap: 10px;
             }
+        }
 
-            .stat.next {
-                grid-column: 1 / -1;
-            }
-
-            .day-tabs {
-                display: flex;
-            }
-
-            .week {
-                min-width: 0;
-                font-size: 0.95rem;
-            }
-
-            .week thead {
+        @media (max-width: 1023px) {
+            .ov-side .minis > :nth-child(2) {
                 display: none;
             }
 
-            .week th,
-            .week td {
-                height: 52px;
+            .tabs,
+            .top-actions .desk {
+                display: none;
             }
 
-            .slot {
-                padding: 6px 10px;
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 30;
+                padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+                background: color-mix(in srgb, var(--p-card) 94%, transparent);
+                backdrop-filter: blur(12px);
+                border-top: 1px solid var(--p-line);
             }
 
-            .small-btn {
-                min-height: 44px;
-                padding: 10px 14px;
-                font-size: 0.95rem;
-            }
-
-            .admin input,
-            .admin select,
-            dialog input,
-            dialog select,
-            dialog textarea {
-                font-size: 16px; /* verhindert Zoom beim Tippen auf iPhone */
-                min-height: 44px;
-            }
-
-            .list-item {
-                padding: 14px 4px;
-            }
-
-            /* Dialoge als Bottom-Sheet */
-            dialog {
-                width: 100%;
-                max-width: none;
-                max-height: 92vh;
-                margin: auto 0 0;
-                border-radius: 16px 16px 0 0;
-                border-left: none;
-                border-right: none;
-                border-bottom: none;
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-
-            .dialog-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .dialog-actions .admin-row {
-                width: 100%;
-            }
-
-            .dialog-actions .admin-row > * {
+            .bottom-nav button {
                 flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                padding: 6px 0;
+                background: none;
+                border: none;
+                color: var(--p-muted);
+                font-size: 0.7rem;
+                cursor: pointer;
+                position: relative;
             }
 
-            .toast {
-                bottom: calc(24px + env(safe-area-inset-bottom));
+            .bottom-nav button span {
+                font-size: 1.3rem;
+                line-height: 1;
             }
+
+            .bottom-nav button.on {
+                color: var(--p-acc);
+                font-weight: 700;
+            }
+
+            .bottom-nav .badge {
+                position: absolute;
+                top: 0;
+                left: 54%;
+            }
+
+            .bottom-nav .plus span {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                margin-top: -4px;
+                border-radius: 50%;
+                background: var(--p-acc);
+                color: #fff;
+            }
+
+            main.wrap {
+                padding-bottom: calc(100px + env(safe-area-inset-bottom));
+            }
+        }
+
+        @media (max-width: 700px) {
+            .wrap {
+                padding: 12px;
+            }
+
+            .brand h1 {
+                font-size: 1.4rem;
+            }
+
+            .table {
+                display: none;
+            }
+
+            .list-cards {
+                display: grid;
+                gap: 10px;
+            }
+
+            .filters .field {
+                flex: 1 1 100%;
+            }
+
+            .filters .opt {
+                display: none;
+            }
+
+            .filters.open .opt {
+                display: flex;
+            }
+
+            .filter-toggle {
+                display: inline-flex !important;
+            }
+
+            dialog.sheet {
+                width: 100%;
+                border-left: none;
+            }
+
+            .day-row {
+                grid-template-columns: 62px 1fr;
+            }
+
+            .month .md {
+                min-height: 64px;
+                padding: 4px;
+                font-size: 0.68rem;
+            }
+
+            .month .md .mtxt {
+                display: none;
+            }
+
+            .cal-title {
+                font-size: 1.3rem;
+                width: 100%;
+                order: -1;
+            }
+        }
+
+        .filter-toggle {
+            display: none !important;
         }
     </style>
 </head>
 
 <body>
-    <main class="admin">
-        <header class="admin-header">
-            <h1>Termine <span style="color:var(--accent-red);">Fresh Fade</span></h1>
-            <p id="admin-meta" hidden>Angemeldet als <span id="admin-user"></span> · <a href="#" id="logout">Abmelden</a></p>
+    <!-- LOGIN -->
+    <section class="wrap login" id="login-box" hidden>
+        <div class="box">
+            <h1 style="font-size:2.2rem;">Termine <span style="color:var(--p-acc);">Fresh Fade</span></h1>
+            <form id="login-form">
+                <input class="field" type="text" id="login-user" placeholder="Benutzername" autocomplete="username" required>
+                <input class="field" type="password" id="login-password" placeholder="Passwort" autocomplete="current-password" required>
+                <button class="b primary big" type="submit">Anmelden</button>
+                <p class="err" id="login-msg"></p>
+            </form>
+        </div>
+    </section>
+
+    <div id="app" hidden>
+        <!-- KOPFLEISTE -->
+        <header class="top">
+            <div class="top-inner">
+                <div class="brand">
+                    <h1>Termine <span style="color:var(--p-acc);">FF</span></h1>
+                    <small id="stand">Stand –</small>
+                </div>
+                <div class="tabs" id="tabs">
+                    <button data-view="overview">Übersicht <span class="badge" data-newcount hidden></span></button>
+                    <button data-view="calendar">Kalender</button>
+                    <button data-view="list">Liste</button>
+                    <button data-view="gallery">Galerie</button>
+                </div>
+                <div class="top-actions">
+                    <button class="b icon" id="btn-refresh" title="Aktualisieren">↻</button>
+                    <button class="b icon" id="btn-theme" title="Hell / Dunkel / Auto">🌓</button>
+                    <button class="b icon" id="btn-bell" title="Benachrichtigungen">🔔</button>
+                    <button class="b icon desk" id="btn-help" title="Tastenkürzel (?)">?</button>
+                    <button class="b primary desk" id="btn-new">+ Termin</button>
+                </div>
+            </div>
         </header>
 
-        <section class="admin-box" id="login-box">
-            <h2>Anmelden</h2>
-            <form class="admin-row" id="login-form">
-                <input type="text" id="login-user" placeholder="Benutzername" autocomplete="username" required>
-                <input type="password" id="login-password" placeholder="Passwort" autocomplete="current-password" required>
-                <button class="btn" type="submit">Anmelden</button>
-            </form>
-            <p class="admin-msg" id="login-msg"></p>
-        </section>
-
-        <div id="admin-content" hidden>
-            <!-- BENACHRICHTIGUNGEN -->
-            <section class="admin-box push-box" id="push-box" hidden>
+        <main class="wrap">
+            <!-- ÜBERSICHT -->
+            <section data-panel="overview" class="ov">
+                <aside class="ov-side">
+                    <div class="box">
+                        <div class="stats">
+                            <div class="stat" data-goto="new"><b id="st-new">0</b><small>Neu</small></div>
+                            <div class="stat" data-goto="today"><b id="st-today">0</b><small>Heute</small></div>
+                            <div class="stat" data-goto="week"><b id="st-week">0</b><small>Bis Samstag</small></div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="minis" id="ov-minis"></div>
+                    </div>
+                </aside>
                 <div>
-                    <strong id="push-title">🔔 Benachrichtigungen</strong>
-                    <p class="admin-msg" id="push-text" style="margin-top:4px;"></p>
+                    <div class="cards" id="ov-cards"></div>
                 </div>
-                <div class="admin-row" id="push-actions"></div>
+                <aside class="ov-agenda box">
+                    <h3>Nächste 7 Tage</h3>
+                    <div id="ov-agenda"></div>
+                </aside>
             </section>
 
-            <!-- HEUTE -->
-            <section class="admin-box">
-                <div class="today-grid">
-                    <div class="stat"><small>Heute</small><strong id="stat-today">–</strong></div>
-                    <div class="stat"><small>Diese Woche</small><strong id="stat-week">–</strong></div>
-                    <div class="stat next" id="stat-next"><small>Nächster Kunde</small><strong id="stat-next-name">–</strong><span class="admin-msg" id="stat-next-info"></span></div>
-                </div>
-            </section>
-
-            <!-- WOCHENPLAN -->
-            <section class="admin-box">
-                <div class="admin-row" style="justify-content:space-between;">
-                    <h2 style="margin:0;">Wochenplan <span class="week-label" id="week-label"></span></h2>
-                    <div class="admin-row">
-                        <button class="small-btn" id="week-prev" aria-label="Vorige Woche">‹</button>
-                        <button class="small-btn" id="week-today">Heute</button>
-                        <button class="small-btn" id="week-next" aria-label="Nächste Woche">›</button>
+            <!-- KALENDER -->
+            <section data-panel="calendar" hidden>
+                <div class="cal-bar">
+                    <div class="cal-title" id="cal-title"></div>
+                    <button class="b icon" id="cal-prev" title="Zurück (←)">‹</button>
+                    <button class="b" id="cal-today">Heute</button>
+                    <button class="b icon" id="cal-next" title="Weiter (→)">›</button>
+                    <div class="seg" id="cal-mode">
+                        <button data-mode="day">Tag</button>
+                        <button data-mode="week">Woche</button>
+                        <button data-mode="month">Monat</button>
                     </div>
                 </div>
-                <div class="day-tabs" id="day-tabs"></div>
-                <div class="week-scroll">
-                    <table class="week" id="week"></table>
-                </div>
-                <div class="legend">
-                    <span><i style="background:var(--accent-red)"></i>Gebucht</span>
-                    <span><i style="background:#2ecc71"></i>Erschienen</span>
-                    <span><i style="background:#f39c12"></i>Nicht erschienen</span>
-                    <span><i style="background:rgba(255,255,255,.4)"></i>Blockiert</span>
-                </div>
-                <p class="admin-msg">Termin antippen für Details · am PC Termin ziehen zum Verschieben · freies Feld antippen für neuen Termin oder Pause.</p>
-            </section>
-
-            <!-- ZEITRAUM BLOCKIEREN -->
-            <section class="admin-box">
-                <h2>Zeitraum blockieren (Pause, Urlaub, …)</h2>
-                <form class="admin-row" id="block-form">
-                    <input type="date" id="block-date" required>
-                    <input type="time" id="block-from" step="1500" value="12:00" required>
-                    <span>bis</span>
-                    <input type="time" id="block-to" step="1500" value="12:25" required>
-                    <button class="btn" type="submit">Blockieren</button>
-                </form>
-                <p class="admin-msg">Ganzen Tag sperren: 09:30 bis 19:30 eintragen.</p>
+                <div id="cal-body"></div>
             </section>
 
             <!-- LISTE -->
-            <section class="admin-box">
-                <div class="admin-row" style="justify-content:space-between;">
-                    <h2 style="margin:0;">Alle kommenden Termine</h2>
-                    <input type="search" id="search" placeholder="Name oder Telefon suchen …" style="max-width:280px;">
+            <section data-panel="list" hidden>
+                <div class="filters" id="filters">
+                    <input class="field" type="search" id="f-search" placeholder="Suchen: Name, Telefon …  ( / )" style="flex:1 1 240px;">
+                    <button class="b filter-toggle" id="f-toggle">Filter</button>
+                    <select class="field opt" id="f-range">
+                        <option value="upcoming">Kommende</option>
+                        <option value="today">Heute</option>
+                        <option value="week">Diese Woche</option>
+                        <option value="month">Dieser Monat</option>
+                        <option value="past">Vergangene (30 Tage)</option>
+                        <option value="all">Alle</option>
+                    </select>
+                    <div class="chips opt" id="f-status">
+                        <button data-status="neu">Neu</button>
+                        <button data-status="gebucht">Gebucht</button>
+                        <button data-status="erschienen">Erschienen</button>
+                        <button data-status="nicht_erschienen">Nicht erschienen</button>
+                        <button data-status="abgesagt">Abgesagt</button>
+                    </div>
+                    <select class="field opt" id="f-service">
+                        <option value="">Alle Leistungen</option>
+                    </select>
                 </div>
-                <div id="bookings"></div>
+                <table class="table">
+                    <thead>
+                        <tr><th>Termin</th><th>Name</th><th>Leistung</th><th>Kontakt</th><th>Status</th><th>Eingang</th></tr>
+                    </thead>
+                    <tbody id="list-table"></tbody>
+                </table>
+                <div class="list-cards" id="list-cards"></div>
             </section>
 
             <!-- GALERIE -->
-            <section class="admin-box">
-                <div class="admin-row" style="justify-content:space-between;">
-                    <h2 style="margin:0;">Galerie auf der Webseite</h2>
-                    <label class="btn upload-label">+ Bilder hochladen
-                        <input type="file" id="gallery-upload" accept="image/*" multiple>
-                    </label>
+            <section data-panel="gallery" hidden>
+                <div class="box">
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+                        <h3 style="margin:0;">Galerie auf der Webseite</h3>
+                        <label class="b primary upload-label">+ Bilder hochladen
+                            <input type="file" id="gallery-upload" accept="image/*" multiple>
+                        </label>
+                    </div>
+                    <p class="muted" id="gallery-status" style="margin-top:8px;"></p>
+                    <div class="gallery-admin" id="gallery-admin"></div>
+                    <p class="muted" style="margin-top:12px; font-size:0.85rem;">Bild antippen zum Ansehen · ‹ › Reihenfolge (am PC auch ziehen) · ⇄ tauschen · 🗑 löschen. Änderungen sind sofort auf der Webseite.</p>
                 </div>
-                <p class="admin-msg" id="gallery-status"></p>
-                <div class="gallery-admin" id="gallery-admin"></div>
-                <div class="g-preview">
-                    <div class="admin-row" style="justify-content:space-between;">
-                        <h3>So sieht es auf der Webseite aus</h3>
-                        <a class="small-btn" href="/#gallery" target="_blank" rel="noopener">Auf Webseite öffnen ↗</a>
+                <div class="box" style="margin-top:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <h3 style="margin:0;">So sieht es auf der Webseite aus</h3>
+                        <a class="b" href="/#gallery" target="_blank" rel="noopener">Auf Webseite öffnen ↗</a>
                     </div>
                     <div class="g-preview-frame">
-                        <h2 style="text-align:center; font-size:2.4rem;"> Stay <span style="color:var(--accent-red);">Fresh</span> </h2>
-                        <p style="text-align:center; color:var(--text-muted); margin:6px 0 24px;"> Stay Cool. </p>
+                        <h2 style="text-align:center; font-size:2.4rem;"> Stay <span style="color:var(--p-acc);">Fresh</span> </h2>
+                        <p style="text-align:center; color:var(--p-muted); margin:6px 0 24px;"> Stay Cool. </p>
                         <div class="gallery-grid" id="gallery-preview"></div>
                     </div>
                 </div>
-                <p class="admin-msg">Bild antippen zum Ansehen · ‹ › Reihenfolge ändern (am PC auch ziehen) · ⇄ Bild tauschen · 🗑 löschen. Änderungen sind sofort auf der Webseite.</p>
             </section>
+        </main>
+
+        <!-- HANDY-NAVIGATION -->
+        <div class="bottom-nav" id="bottom-nav">
+            <button data-view="overview"><span>🏠</span>Übersicht<i class="badge" data-newcount hidden></i></button>
+            <button data-view="calendar"><span>📆</span>Kalender</button>
+            <button class="plus" id="nav-new"><span>+</span>Neu</button>
+            <button data-view="list"><span>☰</span>Liste</button>
+            <button data-view="gallery"><span>🖼</span>Galerie</button>
         </div>
-    </main>
+    </div>
 
-    <!-- DIALOG: TERMIN -->
-    <dialog id="booking-dialog">
-        <form class="dialog-body" id="booking-dialog-form" method="dialog">
-            <div class="dialog-head">
+    <!-- DETAIL-BLATT -->
+    <dialog class="sheet" id="detail">
+        <div class="sheet-wrap">
+            <div class="sheet-head">
+                <button class="b icon" data-close title="Schließen (Esc)">←</button>
+                <h2 id="d-name"></h2>
+            </div>
+            <div class="sheet-body" id="d-body"></div>
+        </div>
+    </dialog>
+
+    <!-- NEUER TERMIN -->
+    <dialog class="sheet" id="newsheet">
+        <form class="sheet-wrap" id="new-form">
+            <div class="sheet-head">
+                <button type="button" class="b icon" data-close title="Schließen (Esc)">←</button>
+                <h2>Neu</h2>
+                <div class="seg" id="new-mode">
+                    <button type="button" data-mode="termin" class="on">Termin</button>
+                    <button type="button" data-mode="pause">Pause / Urlaub</button>
+                </div>
+            </div>
+            <div class="sheet-body">
                 <div>
-                    <h3 id="bd-title"></h3>
-                    <p id="bd-sub"></p>
+                    <div class="label">Tag</div>
+                    <div class="day-pick">
+                        <button type="button" class="b icon" id="n-prev">‹</button>
+                        <input class="field" type="date" id="n-date">
+                        <button type="button" class="b icon" id="n-next">›</button>
+                    </div>
+                    <p class="muted" id="n-daytext" style="text-align:center; margin-top:6px;"></p>
                 </div>
-                <button type="button" class="dialog-close" data-close aria-label="Schließen">×</button>
-            </div>
-
-            <div class="dialog-section" id="bd-contact">
-                <small>Kontakt</small>
-                <div class="admin-row" id="bd-contact-buttons"></div>
-            </div>
-
-            <div class="dialog-section" id="bd-status-section">
-                <small>Status</small>
-                <div class="admin-row" id="bd-status">
-                    <button type="button" class="small-btn" data-status="gebucht">Gebucht</button>
-                    <button type="button" class="small-btn" data-status="erschienen">✓ Erschienen</button>
-                    <button type="button" class="small-btn" data-status="nicht_erschienen">Nicht erschienen</button>
-                    <button type="button" class="small-btn" data-status="abgesagt">✕ Abgesagt</button>
+                <div data-new="termin">
+                    <div class="label">Uhrzeit</div>
+                    <div class="times" id="n-times"></div>
                 </div>
-            </div>
-
-            <div class="dialog-section">
-                <small>Termin (verschieben)</small>
-                <div class="dialog-grid">
-                    <input type="date" id="bd-date" required>
-                    <select id="bd-time"></select>
+                <div data-new="pause" hidden>
+                    <div class="label">Zeitraum</div>
+                    <div class="grid2">
+                        <label class="muted">von <input class="field" type="time" id="p-from" value="12:00" step="1500"></label>
+                        <label class="muted">bis <input class="field" type="time" id="p-to" value="12:25" step="1500"></label>
+                    </div>
+                    <div class="chips" style="margin-top:10px;">
+                        <button type="button" id="p-fullday">Ganzer Tag</button>
+                        <button type="button" id="p-lunch">Mittag 12:00–13:15</button>
+                    </div>
                 </div>
-            </div>
-
-            <div class="dialog-section" id="bd-details">
-                <small>Kunde</small>
-                <div class="dialog-grid">
-                    <input type="text" id="bd-name" placeholder="Name">
-                    <input type="tel" id="bd-phone" placeholder="Telefon">
-                    <input type="email" id="bd-email" placeholder="E-Mail (optional)">
-                    <select id="bd-service"></select>
+                <div data-new="termin">
+                    <div class="label">Kunde</div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <input class="field" type="text" id="n-name" placeholder="Name *">
+                        <div class="grid2">
+                            <input class="field" type="tel" id="n-phone" placeholder="Telefon">
+                            <input class="field" type="email" id="n-email" placeholder="E-Mail">
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="dialog-section" id="bd-note-section">
-                <small>Notiz</small>
-                <textarea id="bd-note" rows="2" placeholder="z. B. Skin Fade 0,5 mm, Bart kurz"></textarea>
-            </div>
-
-            <p class="dialog-error" id="bd-error"></p>
-
-            <div class="dialog-actions">
-                <button type="button" class="danger-link" id="bd-delete">Löschen</button>
-                <div class="admin-row">
-                    <button type="button" class="small-btn" data-close>Abbrechen</button>
-                    <button type="submit" class="btn">Speichern</button>
+                <div data-new="termin">
+                    <div class="label">Leistung</div>
+                    <div class="chips" id="n-services"></div>
                 </div>
+                <div data-new="termin">
+                    <div class="label">Notiz</div>
+                    <textarea class="field" id="n-note" rows="2" placeholder="optional"></textarea>
+                </div>
+                <p class="err" id="n-error"></p>
+            </div>
+            <div class="sheet-foot">
+                <div style="flex:1; min-width:0;">
+                    <b id="n-summary" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></b>
+                    <small class="muted" id="n-summary2"></small>
+                </div>
+                <button type="submit" class="b primary big" id="n-submit">Termin eintragen</button>
             </div>
         </form>
     </dialog>
 
-    <!-- DIALOG: FREIES FELD -->
-    <dialog id="new-dialog">
-        <form class="dialog-body" id="new-dialog-form" method="dialog">
-            <div class="dialog-head">
-                <div>
-                    <h3>Neuer Termin</h3>
-                    <p id="nd-sub"></p>
-                </div>
-                <button type="button" class="dialog-close" data-close aria-label="Schließen">×</button>
+    <!-- HILFE -->
+    <dialog class="pop" id="help">
+        <div class="pop-body">
+            <h3 class="h3" style="margin:0;">Tastenkürzel</h3>
+            <div class="keys">
+                <span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span><span>Übersicht · Kalender · Liste · Galerie</span>
+                <span><kbd>n</kbd></span><span>Neuer Termin</span>
+                <span><kbd>/</kbd></span><span>Suchen</span>
+                <span><kbd>d</kbd> <kbd>w</kbd> <kbd>m</kbd></span><span>Tag · Woche · Monat</span>
+                <span><kbd>←</kbd> <kbd>→</kbd> / <kbd>j</kbd> <kbd>k</kbd></span><span>Blättern</span>
+                <span><kbd>t</kbd></span><span>Heute</span>
+                <span><kbd>r</kbd></span><span>Aktualisieren</span>
+                <span><kbd>Esc</kbd></span><span>Schließen</span>
             </div>
-            <div class="dialog-grid">
-                <input type="text" id="nd-name" placeholder="Name">
-                <input type="tel" id="nd-phone" placeholder="Telefon">
-                <input type="email" id="nd-email" placeholder="E-Mail (optional)">
-                <select id="nd-service"></select>
-            </div>
-            <textarea id="nd-note" rows="2" placeholder="Notiz (optional)"></textarea>
-            <p class="dialog-error" id="nd-error"></p>
-            <div class="dialog-actions">
-                <button type="button" class="small-btn" id="nd-block">Nur blockieren (Pause)</button>
-                <button type="submit" class="btn">Termin eintragen</button>
-            </div>
-        </form>
+            <button class="b" data-close>Schließen</button>
+        </div>
     </dialog>
 
-    <!-- DIALOG: BILD ANSEHEN -->
-    <dialog class="preview-dialog" id="preview-dialog">
+    <!-- BENACHRICHTIGUNGEN -->
+    <dialog class="pop" id="bell">
+        <div class="pop-body">
+            <h3 class="h3" style="margin:0;" id="push-title">🔔 Benachrichtigungen</h3>
+            <p class="muted" id="push-text"></p>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;" id="push-actions"></div>
+            <hr style="border:none; border-top:1px solid var(--p-line);">
+            <p class="muted" style="font-size:0.85rem;">Angemeldet als <b id="admin-user"></b></p>
+            <button class="b" id="logout">Abmelden</button>
+            <button class="b" data-close>Schließen</button>
+        </div>
+    </dialog>
+
+    <!-- BILD-VORSCHAU -->
+    <dialog class="preview" id="preview-dialog">
         <img id="preview-img" alt="Galerie-Bild">
         <div class="preview-nav">
-            <button type="button" class="small-btn" id="preview-prev">‹ Zurück</button>
-            <span class="admin-msg" style="margin:0;" id="preview-count"></span>
-            <button type="button" class="small-btn" id="preview-next">Weiter ›</button>
-            <button type="button" class="small-btn" data-close>Schließen</button>
+            <button type="button" class="b" id="preview-prev">‹ Zurück</button>
+            <span id="preview-count"></span>
+            <button type="button" class="b" id="preview-next">Weiter ›</button>
+            <button type="button" class="b" data-close>Schließen</button>
         </div>
     </dialog>
 
     <input type="file" id="gallery-replace" accept="image/*" hidden>
-
     <div class="toast" id="toast"></div>
 
     <script>
+        // ================= REGELN =================
         const SLOT_MINUTES = 25;
         const OPENING_HOURS = { 1: ['09:30', '19:30'], 2: ['09:30', '19:30'], 3: ['09:30', '19:30'], 4: ['09:30', '19:30'], 5: ['09:30', '19:30'], 6: ['09:30', '17:30'] };
-        const STATUS_LABELS = { gebucht: 'Gebucht', erschienen: 'Erschienen', nicht_erschienen: 'Nicht erschienen', abgesagt: 'Abgesagt' };
+        const DELETE_AFTER_DAYS = 30;
         const LOYALTY_VISITS = 10;
+        const REFRESH_MS = 30000;
+        const STATUS = {
+            gebucht: { label: 'Gebucht', cls: 'acc' },
+            erschienen: { label: 'Erschienen', cls: 'ok' },
+            nicht_erschienen: { label: 'Nicht erschienen', cls: 'warn' },
+            abgesagt: { label: 'Abgesagt', cls: 'off' }
+        };
+        const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        const WD_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+        const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
+        // ================= HELFER =================
         const $ = id => document.getElementById(id);
-        const loginBox = $('login-box');
-        const content = $('admin-content');
-        const weekEl = $('week');
-        const bookingsEl = $('bookings');
-
-        let services = [];
-        let weekBookings = [];
-        let allBookings = [];
-        let weekOffset = 0;
-        let dayIndex = Math.min(Math.max((new Date().getDay() + 6) % 7, 0), 5);   // Handy: gezeigter Tag (0 = Mo)
-        const mobile = window.matchMedia('(max-width: 700px)');
-        let current = null;      // Termin im Detail-Dialog
-        let newSlot = null;      // freies Feld im Neu-Dialog
-
-        const toMin = v => Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5));
-        const toTime = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-        const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const escapeHtml = text => String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        const formatDate = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
-        const formatShort = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
+        const store = {
+            get: (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+            set: (k, v) => { try { localStorage.setItem(k, v); } catch { } }
+        };
+        const pad = n => String(n).padStart(2, '0');
+        const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const parse = s => new Date(`${s}T12:00:00`);
+        const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+        const todayISO = () => iso(new Date());
+        const toMin = t => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+        const toTime = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+        const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+        const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const isOpen = s => Boolean(OPENING_HOURS[parse(s).getDay()]);
+        const mondayOf = s => addDays(s, -((parse(s).getDay() + 6) % 7));
         const hasPhone = b => b.phone && b.phone !== '-';
-        const whatsappNumber = phone => phone.replace(/[^\d+]/g, '').replace(/^00/, '+').replace(/^0/, '+49').replace('+', '');
+        const waNumber = p => p.replace(/[^\d+]/g, '').replace(/^00/, '+').replace(/^0/, '+49').replace('+', '');
 
-        function slotsFor(date) {
-            const hours = OPENING_HOURS[new Date(`${date}T12:00:00`).getDay()];
-            if (!hours) return [];
-            const slots = [];
-            for (let t = toMin(hours[0]); t + SLOT_MINUTES <= toMin(hours[1]); t += SLOT_MINUTES) slots.push(toTime(t));
-            return slots;
+        function slotsFor(s) {
+            const h = OPENING_HOURS[parse(s).getDay()];
+            if (!h) return [];
+            const out = [];
+            for (let t = toMin(h[0]); t + SLOT_MINUTES <= toMin(h[1]); t += SLOT_MINUTES) out.push(toTime(t));
+            return out;
         }
+
+        function nextOpen(s, dir) {
+            let d = s;
+            for (let i = 0; i < 14; i++) {
+                d = addDays(d, dir);
+                if (isOpen(d)) return d;
+            }
+            return d;
+        }
+
+        const fmtDate = s => { const d = parse(s); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`; };
+        const fmtLong = s => { const d = parse(s); return `${WD_LONG[d.getDay()]}, ${fmtDate(s)}${d.getFullYear()}`; };
+        const fmtShort = s => `${WD[parse(s).getDay()]} ${fmtDate(s)}`;
+
+        function relDay(s) {
+            const t = todayISO();
+            if (s === t) return 'heute';
+            if (s === addDays(t, 1)) return 'morgen';
+            if (s === addDays(t, 2)) return 'übermorgen';
+            if (s === addDays(t, -1)) return 'gestern';
+            return fmtShort(s);
+        }
+
+        // created_at kommt als UTC "JJJJ-MM-TT HH:MM:SS"
+        const createdDate = b => new Date(`${b.created_at.replace(' ', 'T')}Z`);
+
+        function eingang(b) {
+            if (!b.created_at) return '';
+            const d = createdDate(b);
+            return `Eingang ${relDay(iso(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function ago(b) {
+            const min = Math.round((Date.now() - createdDate(b)) / 60000);
+            if (min < 1) return 'gerade eben';
+            if (min < 60) return `vor ${min} Min.`;
+            if (min < 48 * 60) return `vor ${Math.round(min / 60)} Std.`;
+            return `vor ${Math.round(min / 1440)} Tagen`;
+        }
+
+        const isNew = b => !b.blocked && !b.seen;
+        const isActive = b => !b.blocked && b.status !== 'abgesagt';
+        const isRunning = b => b.date === todayISO() && nowMin() >= toMin(b.time) && nowMin() < toMin(b.time) + SLOT_MINUTES;
+        const isPast = b => b.date < todayISO() || (b.date === todayISO() && toMin(b.time) + SLOT_MINUTES <= nowMin());
+        const whenText = b => `${relDay(b.date)} · ${b.time}–${toTime(toMin(b.time) + SLOT_MINUTES)} Uhr`;
 
         function toast(text) {
             const el = $('toast');
             el.textContent = text;
             el.classList.add('show');
-            clearTimeout(toast.timer);
-            toast.timer = setTimeout(() => el.classList.remove('show'), 1800);
+            clearTimeout(toast.t);
+            toast.t = setTimeout(() => el.classList.remove('show'), 2000);
         }
 
         async function copy(text, label) {
@@ -1061,698 +2013,1089 @@
                 await navigator.clipboard.writeText(text);
                 toast(`${label} kopiert`);
             } catch {
-                toast(`Kopieren nicht möglich: ${text}`);
+                toast(text);
             }
         }
 
+        // ================= API =================
         async function api(path, options = {}) {
-            const response = await fetch(path, { ...options, headers: { 'content-type': 'application/json' } });
-            const data = await response.json();
-            if (response.status === 401) {
+            const res = await fetch(path, { ...options, headers: { 'content-type': 'application/json' } });
+            const data = await res.json();
+            if (res.status === 401) {
                 showLogin();
                 throw new Error('unauthorized');
             }
-            if (!response.ok) throw new Error(data.error || 'Fehler');
+            if (!res.ok) throw new Error(data.error || 'Fehler');
             return data;
         }
-
         const post = (path, body) => api(path, { method: 'POST', body: JSON.stringify(body) });
 
-        function showLogin() {
-            loginBox.hidden = false;
-            content.hidden = true;
-            $('admin-meta').hidden = true;
+        // ================= ZUSTAND =================
+        const mq = { mobile: matchMedia('(max-width: 700px)'), narrow: matchMedia('(max-width: 1023px)') };
+        const S = {
+            view: store.get('ff-view', 'overview'),
+            mode: store.get('ff-mode', mq.mobile.matches ? 'day' : 'week'),
+            cursor: isOpen(todayISO()) ? todayISO() : nextOpen(todayISO(), 1),
+            miniMonth: todayISO().slice(0, 8) + '01',
+            bookings: [],
+            services: [],
+            filter: { q: '', range: 'upcoming', status: new Set(), service: '' }
+        };
+
+        const byId = id => S.bookings.find(b => b.id === id);
+        const onDay = s => S.bookings.filter(b => b.date === s).sort((a, b) => a.time.localeCompare(b.time));
+
+        // Benötigter Zeitraum: alles was Übersicht, Kalender und Liste gerade zeigen
+        function neededRange() {
+            const t = todayISO();
+            const monthStart = mondayOf(S.cursor.slice(0, 8) + '01');
+            const miniStart = mondayOf(S.miniMonth);
+            let from = [t, monthStart, miniStart, addDays(t, -1)].sort()[0];
+            let to = [addDays(t, 60), addDays(monthStart, 42), addDays(miniStart, 75)].sort().at(-1);
+            if (S.view === 'list') {
+                if (S.filter.range === 'past') from = addDays(t, -30);
+                if (S.filter.range === 'all') { from = '2000-01-01'; to = '9999-12-31'; }
+            }
+            return { from: [from, addDays(t, -7)].sort()[0], to };
         }
 
-        // DATEN LADEN
-        function weekDays() {
-            const monday = new Date();
-            monday.setHours(12, 0, 0, 0);
-            monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + weekOffset * 7);
-            return Array.from({ length: 6 }, (_, i) => {
-                const d = new Date(monday);
-                d.setDate(monday.getDate() + i);
-                return d;
-            });
+        async function load() {
+            const { from, to } = neededRange();
+            const data = await api(`/api/admin/bookings?from=${from}&to=${to}`);
+            S.bookings = data.bookings;
+            S.services = data.services;
+            const d = new Date();
+            $('stand').textContent = `Stand ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            render();
         }
 
         async function refresh() {
-            const days = weekDays();
-            const today = isoDate(new Date());
-            const [week, upcoming] = await Promise.all([
-                api(`/api/admin/bookings?from=${isoDate(days[0])}&to=${isoDate(days[5])}`),
-                api(`/api/admin/bookings?from=${today}`)
-            ]);
-            services = week.services;
-            weekBookings = week.bookings;
-            allBookings = upcoming.bookings;
-            loginBox.hidden = true;
-            content.hidden = false;
-            $('admin-meta').hidden = false;
-            renderStats();
-            renderWeek();
-            renderList();
-        }
-
-        const customers = list => list.filter(b => !b.blocked && b.status !== 'abgesagt');
-
-        function renderStats() {
-            const today = isoDate(new Date());
-            const now = new Date();
-            const nowMin = now.getHours() * 60 + now.getMinutes();
-            $('stat-today').textContent = customers(allBookings).filter(b => b.date === today).length;
-            $('stat-week').textContent = customers(weekBookings).length;
-
-            const next = customers(allBookings).find(b => b.status === 'gebucht' && (b.date > today || toMin(b.time) + SLOT_MINUTES > nowMin));
-            if (next) {
-                $('stat-next-name').textContent = next.name;
-                $('stat-next-info').textContent = `${next.date === today ? 'Heute' : formatShort(next.date)} · ${next.time} Uhr · ${next.service}`;
-                $('stat-next').onclick = () => openBooking(next);
-            } else {
-                $('stat-next-name').textContent = 'Keiner';
-                $('stat-next-info').textContent = '';
-                $('stat-next').onclick = null;
+            try {
+                await load();
+            } catch (e) {
+                if (e.message !== 'unauthorized') toast('Aktualisieren fehlgeschlagen');
             }
         }
 
-        function renderWeek() {
-            const days = weekDays();
-            const today = isoDate(new Date());
-            const now = new Date();
-            const nowMin = now.getHours() * 60 + now.getMinutes();
-            const byKey = new Map(weekBookings.filter(b => b.status !== 'abgesagt').map(b => [`${b.date} ${b.time}`, b]));
+        // ================= ANSICHTEN =================
+        function setView(v) {
+            S.view = v;
+            store.set('ff-view', v);
+            document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== v);
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+            if (v === 'gallery') loadGallery().catch(() => { });
+            render();
+            window.scrollTo({ top: 0 });
+        }
 
-            $('week-label').textContent =
-                `${days[0].toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })} – ${days[5].toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+        function render() {
+            const n = S.bookings.filter(b => isNew(b) && b.date >= todayISO()).length;
+            document.querySelectorAll('[data-newcount]').forEach(el => { el.hidden = !n; el.textContent = n; });
+            document.title = `${n ? `(${n}) ` : ''}Termine | Fresh Fade`;
+            if (S.view === 'overview') renderOverview();
+            if (S.view === 'calendar') renderCalendar();
+            if (S.view === 'list') renderList();
+        }
 
-            // Handy: Tages-Tabs mit Anzahl Termine, Tabelle nur für den gewählten Tag
-            $('day-tabs').innerHTML = days.map((d, i) => {
-                const count = customers(weekBookings).filter(b => b.date === isoDate(d)).length;
-                return `<button type="button" class="day-tab${i === dayIndex ? ' active' : ''}${isoDate(d) === today ? ' today' : ''}" data-day="${i}">`
-                    + `<small>${d.toLocaleDateString('de-DE', { weekday: 'short' })}</small><b>${d.getDate()}</b>${count ? `<i>${count}</i>` : ''}</button>`;
-            }).join('');
-            const shown = mobile.matches ? [days[dayIndex]] : days;
+        // ----- Übersicht -----
+        function renderOverview() {
+            const t = todayISO();
+            const sat = addDays(mondayOf(t), 5);
+            const upcoming = S.bookings.filter(b => isActive(b) && (b.date > t || (b.date === t && toMin(b.time) + SLOT_MINUTES > nowMin())));
+            $('st-new').textContent = S.bookings.filter(b => isNew(b) && b.date >= t).length;
+            $('st-today').textContent = S.bookings.filter(b => isActive(b) && b.date === t).length;
+            $('st-week').textContent = S.bookings.filter(b => isActive(b) && b.date >= t && b.date <= sat).length;
 
-            let html = '<thead><tr><th class="week-time"></th>' + shown.map(d =>
-                `<th class="${isoDate(d) === today ? 'today' : ''}">${d.toLocaleDateString('de-DE', { weekday: 'short' })}<small>${d.getDate()}.${d.getMonth() + 1}.</small></th>`
-            ).join('') + '</tr></thead><tbody>';
+            const minis = $('ov-minis');
+            minis.innerHTML = miniMonth(S.miniMonth, true) + miniMonth(addDays(S.miniMonth, 32).slice(0, 8) + '01', false);
 
-            for (const time of slotsFor(isoDate(days[0]))) {
-                const t = toMin(time);
-                const isNowRow = weekOffset === 0 && nowMin >= t && nowMin < t + SLOT_MINUTES;
-                html += `<tr class="${isNowRow ? 'now' : ''}"><td class="week-time">${time}</td>`;
-                for (const d of shown) {
-                    const date = isoDate(d);
-                    const b = byKey.get(`${date} ${time}`);
-                    const past = date < today || (date === today && t + SLOT_MINUTES <= nowMin);
-                    if (b) {
-                        const title = b.blocked ? 'Blockiert' : `${b.name} · ${b.service}${hasPhone(b) ? ' · ' + b.phone : ''}${b.note ? ' · ' + b.note : ''}`;
-                        html += `<td data-date="${date}" data-time="${time}"><div class="slot ${b.blocked ? 'blocked' : b.status}" data-id="${b.id}" draggable="true" title="${escapeHtml(title)}">`
-                            + `<strong>${b.blocked ? 'Blockiert' : escapeHtml(b.name)}</strong>${b.blocked ? '' : `<span>${escapeHtml(b.service)}</span>`}</div></td>`;
-                    } else if (!slotsFor(date).includes(time)) {
-                        html += '<td class="closed"></td>';
-                    } else {
-                        html += `<td class="${past ? 'past' : 'free'}" data-date="${date}" data-time="${time}"></td>`;
+            // Karten: neue zuerst, danach chronologisch die nächsten 14 Tage
+            const cards = upcoming.filter(b => b.date <= addDays(t, 14) || isNew(b))
+                .sort((a, b) => (isNew(b) - isNew(a)) || (a.date + a.time).localeCompare(b.date + b.time));
+            const fresh = cards.filter(isNew);
+            const rest = cards.filter(b => !isNew(b));
+            let html = '';
+            if (fresh.length) html += `<div class="section-title"><span class="dot"></span> Neue Online-Buchungen</div>` + fresh.map(card).join('');
+            if (rest.length) html += `<div class="section-title">Nächste Termine</div>` + rest.map(card).join('');
+            $('ov-cards').innerHTML = html || '<div class="box empty">Keine anstehenden Termine. ✂️</div>';
+
+            $('ov-agenda').innerHTML = agenda(t, 7);
+        }
+
+        function card(b) {
+            const visits = b.visits % LOYALTY_VISITS;
+            const primary = isNew(b)
+                ? `<button class="b ok big grow" data-act="seen" data-id="${b.id}">✓ Gesehen</button>`
+                : (b.date === todayISO() && b.status === 'gebucht'
+                    ? `<button class="b ok big grow" data-act="erschienen" data-id="${b.id}">✓ Erschienen</button>`
+                    : (hasPhone(b) ? `<a class="b big grow" href="tel:${esc(b.phone)}" data-stop>📞 Anrufen</a>` : `<span class="grow"></span>`));
+            return `
+                <article class="tcard ${b.status}${isNew(b) ? ' neu' : ''}" data-open="${b.id}">
+                    <div class="card-head">
+                        ${isNew(b) ? '<span class="dot"></span>' : ''}
+                        <span class="name">${esc(b.name)}</span>
+                        ${b.source === 'team' ? '<span class="chip">Team</span>' : ''}
+                        ${b.visits ? `<span class="chip gold">${visits}/${LOYALTY_VISITS}</span>` : ''}
+                        <span class="in">${eingang(b)}</span>
+                    </div>
+                    <div class="when">${whenText(b)}</div>
+                    <div class="what">${esc(b.service)}${b.note ? ' · ' + esc(b.note) : ''}</div>
+                    <div class="card-actions">
+                        ${primary}
+                        <button class="b big" data-act="abgesagt" data-id="${b.id}" title="Absagen">✕</button>
+                        <button class="b big" data-open="${b.id}" title="Details">…</button>
+                    </div>
+                </article>`;
+        }
+
+        function agenda(start, days) {
+            let html = '';
+            let nowShown = false;
+            for (let i = 0, d = start; i < days; i++, d = addDays(d, 1)) {
+                if (!isOpen(d)) continue;
+                const items = onDay(d).filter(b => !b.blocked);
+                const label = d === todayISO() ? 'Heute' : relDay(d);
+                html += `<div class="agenda-day${d === todayISO() ? ' today' : ''}">${label}${label === fmtShort(d) ? '' : ` <span class="muted">· ${fmtShort(d)}</span>`}</div>`;
+                if (!items.length) html += '<div class="agenda-item muted">frei</div>';
+                for (const b of items) {
+                    if (d === todayISO() && !nowShown && toMin(b.time) + SLOT_MINUTES > nowMin() && !isRunning(b)) {
+                        html += nowSep();
+                        nowShown = true;
                     }
+                    html += `<div class="agenda-item ${b.status}${isRunning(b) ? ' running' : ''}" data-open="${b.id}">
+                        <time>${b.time}</time><span>${isNew(b) ? '<span class="dot"></span> ' : ''}${esc(b.name)} <span class="muted">· ${esc(b.service)}</span></span></div>`;
+                    if (isRunning(b)) nowShown = true;
                 }
-                html += '</tr>';
+                if (d === todayISO() && !nowShown && insideOpening(d)) {
+                    html += nowSep();
+                    nowShown = true;
+                }
             }
-            weekEl.innerHTML = html + '</tbody>';
+            return html;
+        }
+
+        const nowSep = () => `<div class="now-sep">jetzt ${toTime(nowMin())}</div>`;
+        function insideOpening(s) {
+            const h = OPENING_HOURS[parse(s).getDay()];
+            return h && nowMin() >= toMin(h[0]) && nowMin() < toMin(h[1]);
+        }
+
+        function miniMonth(first, withNav) {
+            const d0 = parse(first);
+            const t = todayISO();
+            let html = `<div><div class="mini-head"><b>${MONTHS[d0.getMonth()]} ${d0.getFullYear()}</b>`
+                + (withNav ? `<div class="mini-nav"><button class="b icon" data-mini="-1">‹</button><button class="b icon" data-mini="1">›</button></div>` : '')
+                + `</div><div class="mini">` + ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(w => `<div class="wd">${w}</div>`).join('');
+            let d = mondayOf(first);
+            for (let i = 0; i < 42; i++, d = addDays(d, 1)) {
+                if (i === 35 && d.slice(5, 7) !== first.slice(5, 7)) break;
+                const day = onDay(d).filter(isActive);
+                const cls = [
+                    d.slice(5, 7) !== first.slice(5, 7) ? 'other' : '',
+                    !isOpen(d) ? 'closed' : '',
+                    d < t ? 'past' : '',
+                    d === t ? 'today' : '',
+                    day.length ? 'has' : '',
+                    day.some(isNew) ? 'new' : ''
+                ].join(' ');
+                html += `<button class="${cls}" data-day="${d}" title="${day.length} Termine">${parse(d).getDate()}</button>`;
+            }
+            return html + '</div></div>';
+        }
+
+        // ----- Kalender -----
+        function renderCalendar() {
+            document.querySelectorAll('#cal-mode button').forEach(b => b.classList.toggle('on', b.dataset.mode === S.mode));
+            const body = $('cal-body');
+            if (S.mode === 'day') {
+                $('cal-title').textContent = fmtLong(S.cursor);
+                body.innerHTML = dayView(S.cursor);
+            } else if (S.mode === 'week') {
+                const mon = mondayOf(S.cursor);
+                $('cal-title').textContent = `${fmtDate(mon)} – ${fmtDate(addDays(mon, 5))}${parse(mon).getFullYear()}`;
+                body.innerHTML = mq.mobile.matches ? weekList(mon) : weekGrid(mon);
+            } else {
+                const d = parse(S.cursor);
+                $('cal-title').textContent = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+                body.innerHTML = monthView(S.cursor.slice(0, 8) + '01');
+            }
+        }
+
+        function nowLineIn(s, from, to) {
+            if (s !== todayISO()) return '';
+            const n = nowMin();
+            if (n < from || n >= to) return '';
+            return `<div class="now-line" style="top:${((n - from) / (to - from)) * 100}%"><span>${toTime(n)}</span></div>`;
+        }
+
+        function dayView(s) {
+            if (!isOpen(s)) return '<div class="box empty">Geschlossen</div>';
+            const items = onDay(s).filter(b => b.status !== 'abgesagt');
+            const cancelled = onDay(s).filter(b => b.status === 'abgesagt' && !b.blocked);
+            let html = '<div class="day-rows">';
+            for (const time of slotsFor(s)) {
+                const from = toMin(time);
+                const b = items.find(x => x.time === time);
+                const past = s < todayISO() || (s === todayISO() && from + SLOT_MINUTES <= nowMin());
+                html += `<div class="day-row${past && !b ? ' past' : ''}">
+                    <div class="day-time"><b>${time}</b>–${toTime(from + SLOT_MINUTES)}</div>
+                    <div class="day-slot">${b ? ev(b) : (past ? '' : `<button class="free-btn" data-new="${s}|${time}">+ frei</button>`)}</div>
+                    ${nowLineIn(s, from, from + SLOT_MINUTES)}
+                </div>`;
+            }
+            html += '</div>';
+            if (cancelled.length) {
+                html += `<div class="section-title" style="margin-top:14px;">Abgesagt</div>` + cancelled.map(b =>
+                    `<div class="agenda-item abgesagt" data-open="${b.id}"><time>${b.time}</time><span>${esc(b.name)}</span></div>`).join('');
+            }
+            return html;
+        }
+
+        function ev(b, draggable = false) {
+            if (b.blocked) return `<div class="ev blocked" data-open="${b.id}" ${draggable ? 'draggable="true"' : ''}><b>Pause</b></div>`;
+            return `<div class="ev ${b.status}${isNew(b) ? ' neu' : ''}" data-open="${b.id}" ${draggable && !isPast(b) ? 'draggable="true"' : ''} title="${esc(b.name)} · ${esc(b.service)}">
+                <b>${esc(b.name)}</b><span>${esc(b.service)}</span></div>`;
+        }
+
+        function weekGrid(mon) {
+            const days = [0, 1, 2, 3, 4, 5].map(i => addDays(mon, i));
+            const times = slotsFor(mon).length ? slotsFor(mon) : slotsFor(addDays(mon, 1));
+            let html = '<div class="week"><div></div>' + days.map(d =>
+                `<div class="wh${d === todayISO() ? ' today' : ''}" data-day="${d}">${WD[parse(d).getDay()]}<small>${fmtDate(d)}</small></div>`).join('');
+            for (const time of times) {
+                const from = toMin(time);
+                html += `<div class="wt">${time}</div>`;
+                for (const d of days) {
+                    const b = onDay(d).find(x => x.time === time && x.status !== 'abgesagt');
+                    const past = d < todayISO() || (d === todayISO() && from + SLOT_MINUTES <= nowMin());
+                    const line = nowLineIn(d, from, from + SLOT_MINUTES);
+                    if (b) html += `<div class="wc" data-date="${d}" data-time="${time}">${ev(b, true)}${line}</div>`;
+                    else if (!slotsFor(d).includes(time)) html += '<div class="wc closed"></div>';
+                    else html += `<div class="wc ${past ? 'past' : 'free'}" data-date="${d}" data-time="${time}" ${past ? '' : `data-new="${d}|${time}"`}>${line}</div>`;
+                }
+            }
+            return html + '</div><p class="muted" style="margin-top:10px; font-size:0.85rem;">Termin ziehen zum Verschieben · freies Feld anklicken für neuen Termin.</p>';
+        }
+
+        function weekList(mon) {
+            let html = '';
+            for (let i = 0; i < 6; i++) {
+                const d = addDays(mon, i);
+                const items = onDay(d).filter(b => b.status !== 'abgesagt');
+                const free = slotsFor(d).filter(t => !items.some(b => b.time === t) && !(d === todayISO() && toMin(t) + SLOT_MINUTES <= nowMin()) && d >= todayISO()).length;
+                html += `<div class="wlist-day"><div class="wlist-head${d === todayISO() ? ' today' : ''}" data-day="${d}">
+                    <span>${fmtShort(d)}</span><span class="muted" style="font-weight:400;">${d < todayISO() ? `${items.filter(b => !b.blocked).length} Termine` : `${free} frei`} ›</span></div>`;
+                let nowShown = false;
+                for (const b of items) {
+                    if (d === todayISO() && !nowShown && toMin(b.time) >= nowMin()) { html += nowSep(); nowShown = true; }
+                    html += `<div class="agenda-item ${b.status}${isRunning(b) ? ' running' : ''}" data-open="${b.id}"><time>${b.time}</time><span>${b.blocked ? 'Pause' : esc(b.name) + ` <span class="muted">· ${esc(b.service)}</span>`}</span></div>`;
+                }
+                html += '</div>';
+            }
+            return html;
+        }
+
+        function monthView(first) {
+            const t = todayISO();
+            let html = '<div class="month">' + ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(w => `<div class="mh">${w}</div>`).join('');
+            let d = mondayOf(first);
+            for (let i = 0; i < 42; i++, d = addDays(d, 1)) {
+                if (i === 35 && d.slice(5, 7) !== first.slice(5, 7)) break;
+                const other = d.slice(5, 7) !== first.slice(5, 7);
+                if (!isOpen(d)) {
+                    html += `<div class="md closed${other ? ' other' : ''}"><b>${parse(d).getDate()}</b></div>`;
+                    continue;
+                }
+                const items = onDay(d);
+                const booked = items.filter(isActive);
+                const neu = booked.filter(isNew).length;
+                const taken = items.filter(b => b.status !== 'abgesagt').length;
+                const total = slotsFor(d).length;
+                html += `<div class="md${other ? ' other' : ''}${d === t ? ' today' : ''}" data-day="${d}">
+                    <b>${parse(d).getDate()}</b>
+                    ${booked.length ? `<span class="chip ok">${booked.length}<span class="mtxt">&nbsp;Termine</span></span>` : ''}
+                    ${neu ? `<span class="chip warn">${neu}<span class="mtxt">&nbsp;neu</span></span>` : ''}
+                    ${d >= t ? `<span class="muted mtxt">${total - taken}/${total} frei</span>` : ''}
+                    <div class="bar"><i style="width:${(taken / total) * 100}%"></i></div>
+                </div>`;
+            }
+            return html + '</div>';
+        }
+
+        function calStep(dir) {
+            if (S.mode === 'day') S.cursor = nextOpen(S.cursor, dir);
+            else if (S.mode === 'week') S.cursor = addDays(mondayOf(S.cursor), dir * 7);
+            else {
+                const d = parse(S.cursor);
+                d.setDate(1);
+                d.setMonth(d.getMonth() + dir);
+                S.cursor = iso(d);
+            }
+            load().catch(() => { });
+            renderCalendar();
+        }
+
+        function goDay(s) {
+            S.cursor = s;
+            S.mode = 'day';
+            store.set('ff-mode', 'day');
+            setView('calendar');
+            load().catch(() => { });
+        }
+
+        // ----- Liste -----
+        function listItems() {
+            const t = todayISO();
+            const f = S.filter;
+            const mon = mondayOf(t);
+            const q = f.q.trim().toLowerCase();
+            const compact = v => v.replace(/\s/g, '');
+            return S.bookings.filter(b => {
+                if (b.blocked) return false;
+                if (f.range === 'upcoming' && b.date < t) return false;
+                if (f.range === 'today' && b.date !== t) return false;
+                if (f.range === 'week' && (b.date < mon || b.date > addDays(mon, 6))) return false;
+                if (f.range === 'month' && b.date.slice(0, 7) !== t.slice(0, 7)) return false;
+                if (f.range === 'past' && (b.date >= t || b.date < addDays(t, -30))) return false;
+                if (f.status.size) {
+                    const match = [...f.status].some(s => s === 'neu' ? isNew(b) : b.status === s);
+                    if (!match) return false;
+                }
+                if (f.service && b.service !== f.service) return false;
+                if (q && !b.name.toLowerCase().includes(q) && !compact(b.phone).includes(compact(q)) && !(b.email || '').toLowerCase().includes(q) && !(b.note || '').toLowerCase().includes(q)) return false;
+                return true;
+            }).sort((a, b) => f.range === 'past' ? (b.date + b.time).localeCompare(a.date + a.time) : (a.date + a.time).localeCompare(b.date + b.time));
         }
 
         function renderList() {
-            const query = $('search').value.trim().toLowerCase();
-            const compact = v => v.replace(/\s/g, '');
-            const list = allBookings.filter(b => !b.blocked && (!query || b.name.toLowerCase().includes(query) || compact(b.phone).includes(compact(query))));
-            if (list.length === 0) {
-                bookingsEl.innerHTML = `<p class="admin-msg">${query ? 'Nichts gefunden.' : 'Keine kommenden Termine.'}</p>`;
+            const sel = $('f-service');
+            if (sel.options.length <= 1) sel.innerHTML += S.services.map(s => `<option>${esc(s)}</option>`).join('');
+            const items = listItems();
+            document.querySelectorAll('#f-status button').forEach(b => b.classList.toggle('on', S.filter.status.has(b.dataset.status)));
+            const active = S.filter.status.size + (S.filter.service ? 1 : 0) + (S.filter.range !== 'upcoming' ? 1 : 0);
+            $('f-toggle').textContent = active ? `Filter • ${active}` : 'Filter';
+
+            const t = todayISO();
+            let nowDone = false;
+            const sepRow = cols => cols ? `<tr><td colspan="6">${nowSep()}</td></tr>` : nowSep();
+            let rows = '';
+            let cards = '';
+            for (const b of items) {
+                if (!nowDone && S.filter.range !== 'past' && (b.date > t || (b.date === t && toMin(b.time) + SLOT_MINUTES > nowMin())) && items.some(x => x.date <= t)) {
+                    rows += sepRow(true);
+                    cards += sepRow(false);
+                    nowDone = true;
+                }
+                const st = STATUS[b.status];
+                rows += `<tr class="row ${b.status}${isNew(b) ? ' neu' : ''}" data-open="${b.id}">
+                    <td><b>${relDay(b.date)}</b> ${b.time}<br><small class="muted">${fmtShort(b.date)}</small></td>
+                    <td class="name">${isNew(b) ? '<span class="dot"></span> ' : ''}${esc(b.name)} ${b.visits ? `<span class="chip gold">${b.visits % LOYALTY_VISITS}/${LOYALTY_VISITS}</span>` : ''}</td>
+                    <td>${esc(b.service)}${b.note ? `<br><small class="muted">${esc(b.note)}</small>` : ''}</td>
+                    <td>${hasPhone(b) ? `<a href="tel:${esc(b.phone)}" data-stop style="color:inherit;">${esc(b.phone)}</a>` : ''}${b.email ? `<br><small class="muted">${esc(b.email)}</small>` : ''}</td>
+                    <td><span class="chip ${st.cls}">${st.label}</span></td>
+                    <td class="muted" style="font-size:0.8rem;">${b.source === 'team' ? 'Team' : eingang(b).replace('Eingang ', '')}</td>
+                </tr>`;
+                cards += card(b);
+            }
+            $('list-table').innerHTML = rows || '<tr><td colspan="6" class="empty">Keine Termine gefunden.</td></tr>';
+            $('list-cards').innerHTML = cards || '<div class="box empty">Keine Termine gefunden.</div>';
+        }
+
+        // ================= DETAIL-BLATT =================
+        let detailId = null;
+        let editing = false;
+        let noteTimer = null;
+
+        function messageFor(b) {
+            const when = `${fmtLong(b.date)} um ${b.time} Uhr`;
+            if (b.status === 'abgesagt') return `Hallo ${b.name}, dein Termin bei Fresh Fade Studio am ${when} ist leider abgesagt. Melde dich gern für einen neuen Termin: 0174 4891087.`;
+            if (b.status === 'gebucht') return `Hallo ${b.name}, dein Termin bei Fresh Fade Studio ist bestätigt: ${when} (${b.service}). Adresse: Donaustraße 16, 88046 Friedrichshafen. Bis bald!`;
+            return `Hallo ${b.name}, kurze Info von Fresh Fade Studio zu deinem Termin am ${when}: `;
+        }
+
+        async function openDetail(id) {
+            const b = byId(id);
+            if (!b) return;
+            detailId = id;
+            editing = false;
+            renderDetail();
+            if (!$('detail').open) $('detail').showModal();
+            if (isNew(b)) {
+                b.seen = 1;
+                render();
+                post('/api/admin/update', { id, seen: 1 }).catch(() => { b.seen = 0; render(); });
+            }
+        }
+
+        function renderDetail() {
+            const b = byId(detailId);
+            if (!b) return $('detail').close();
+            $('d-name').textContent = b.blocked ? 'Pause' : b.name;
+            const st = STATUS[b.status];
+            const msg = encodeURIComponent(messageFor(b));
+            const subject = encodeURIComponent('Dein Termin bei Fresh Fade Studio');
+            const visits = b.visits % LOYALTY_VISITS;
+            const deleteOn = fmtLong(addDays(b.date, DELETE_AFTER_DAYS));
+
+            let actions = '';
+            if (b.blocked) actions = '';
+            else if (b.status === 'gebucht') actions = `<button class="b ok big" data-status="erschienen">✓ Erschienen</button><button class="b big" data-status="nicht_erschienen">Nicht erschienen</button><button class="b big" data-status="abgesagt">✕ Absagen</button>`;
+            else actions = `<button class="b big" data-status="gebucht">↺ Wieder öffnen</button>`;
+
+            $('d-body').innerHTML = `
+                <div class="termin-box ${b.blocked ? '' : b.status}">
+                    <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;">
+                        <div class="tb-when">${relDay(b.date)}<br>${b.time}–${toTime(toMin(b.time) + SLOT_MINUTES)} Uhr</div>
+                        ${b.blocked ? '<span class="chip">Pause</span>' : `<span class="chip ${st.cls}">${st.label}</span>`}
+                    </div>
+                    <div class="muted" style="margin-top:4px;">${fmtLong(b.date)}</div>
+                    <div class="row-btns">${actions}<button class="b big" id="d-move-toggle">↔ Verschieben</button></div>
+                    <div id="d-move" hidden style="margin-top:12px;">
+                        <div class="grid2">
+                            <input class="field" type="date" id="d-date" value="${b.date}">
+                            <select class="field" id="d-time"></select>
+                        </div>
+                        <button class="b primary big" id="d-move-save" style="width:100%; margin-top:8px;">Verschieben</button>
+                    </div>
+                </div>
+                ${b.blocked ? '' : `
+                <div class="box">
+                    <div class="label">Kontakt <button id="d-edit">${editing ? 'fertig' : 'bearbeiten'}</button></div>
+                    ${editing ? `
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <input class="field" id="e-name" value="${esc(b.name)}" placeholder="Name">
+                            <input class="field" id="e-phone" type="tel" value="${hasPhone(b) ? esc(b.phone) : ''}" placeholder="Telefon">
+                            <input class="field" id="e-email" type="email" value="${esc(b.email || '')}" placeholder="E-Mail">
+                            <select class="field" id="e-service">${[...new Set([b.service, ...S.services])].map(s => `<option ${s === b.service ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+                            <button class="b primary big" id="e-save">Speichern</button>
+                        </div>` : `
+                        ${hasPhone(b) ? `<div class="contact-line">📞 <a href="tel:${esc(b.phone)}">${esc(b.phone)}</a><button class="b copy" data-copy="${esc(b.phone)}" data-label="Nummer">Kopieren</button></div>` : ''}
+                        ${b.email ? `<div class="contact-line">✉️ <a href="mailto:${esc(b.email)}">${esc(b.email)}</a><button class="b copy" data-copy="${esc(b.email)}" data-label="E-Mail">Kopieren</button></div>` : ''}
+                        ${!hasPhone(b) && !b.email ? '<p class="muted">Keine Kontaktdaten.</p>' : ''}
+                        <div class="row-btns">
+                            ${hasPhone(b) ? `<a class="b big" href="tel:${esc(b.phone)}">📞 Anrufen</a><a class="b big" href="https://wa.me/${waNumber(b.phone)}?text=${msg}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="b big" href="sms:${esc(b.phone)}?body=${msg}">✉ SMS</a>` : ''}
+                            ${b.email ? `<a class="b big" href="mailto:${esc(b.email)}?subject=${subject}&body=${msg}">✉️ E-Mail</a>` : ''}
+                        </div>
+                        <p class="muted" style="font-size:0.78rem; margin-top:6px;">Nachrichten sind vorformuliert passend zum Status.</p>`}
+                </div>
+                <div class="box">
+                    <div class="label">Leistung</div>
+                    <div>${esc(b.service)}</div>
+                    ${b.visits ? `<div style="margin-top:8px;"><span class="chip gold">Treuekarte ${visits}/${LOYALTY_VISITS}${visits === LOYALTY_VISITS - 1 ? ' – dieser Besuch 20 % Rabatt!' : ''}</span></div>` : ''}
+                </div>
+                <div class="box">
+                    <div class="label">Interne Notiz <span class="save-state" id="d-note-state"></span></div>
+                    <textarea class="field" id="d-note" rows="3" placeholder="z. B. Skin Fade 0,5 mm, Bart kurz">${esc(b.note || '')}</textarea>
+                </div>`}
+                <div class="meta">
+                    Quelle: ${b.source === 'team' ? 'Team (im Admin eingetragen)' : 'Website'}<br>
+                    ${b.created_at ? `${eingang(b)} · ${ago(b)}<br>` : ''}
+                    Automatische Löschung: ${deleteOn}<br>
+                    <button class="danger" id="d-delete">${b.blocked ? 'Pause entfernen' : 'Termin endgültig löschen'}</button>
+                </div>`;
+            fillTimes($('d-time'), b.date, b.time, b.id);
+        }
+
+        function fillTimes(select, s, selected, ignoreId) {
+            const taken = new Set(onDay(s).filter(b => b.status !== 'abgesagt' && b.id !== ignoreId).map(b => b.time));
+            const times = slotsFor(s);
+            select.innerHTML = times.length ? times.map(t => `<option ${t === selected ? 'selected' : ''} ${taken.has(t) ? 'disabled' : ''}>${t}${taken.has(t) ? ' – belegt' : ''}</option>`).join('') : '<option value="">Geschlossen</option>';
+        }
+
+        // Optimistisch: sofort anzeigen, bei Fehler zurücknehmen
+        async function patch(id, changes, success) {
+            const b = byId(id);
+            const before = { ...b };
+            Object.assign(b, changes);
+            render();
+            if ($('detail').open && detailId === id) renderDetail();
+            try {
+                await post('/api/admin/update', { id, ...changes });
+                if (success) toast(success);
+            } catch (e) {
+                Object.assign(b, before);
+                render();
+                if ($('detail').open && detailId === id) renderDetail();
+                toast(e.message);
+            }
+        }
+
+        $('d-body').addEventListener('click', async e => {
+            const b = byId(detailId);
+            const t = e.target;
+            const statusBtn = t.closest('[data-status]');
+            if (statusBtn) return patch(b.id, { status: statusBtn.dataset.status }, STATUS[statusBtn.dataset.status].label);
+            if (t.closest('[data-copy]')) return copy(t.closest('[data-copy]').dataset.copy, t.closest('[data-copy]').dataset.label);
+            if (t.id === 'd-move-toggle') return $('d-move').hidden = !$('d-move').hidden;
+            if (t.id === 'd-move-save') {
+                const date = $('d-date').value;
+                const time = $('d-time').value;
+                if (!time) return toast('An diesem Tag geschlossen');
+                try {
+                    await post('/api/admin/update', { id: b.id, date, time });
+                    toast(`Verschoben auf ${fmtShort(date)} ${time}`);
+                    await load();
+                    renderDetail();
+                } catch (err) {
+                    toast(err.message);
+                }
                 return;
             }
-            let html = '';
-            let lastDate = '';
-            for (const b of list) {
-                if (b.date !== lastDate) {
-                    html += `<h3 class="list-day">${formatDate(b.date)}</h3>`;
-                    lastDate = b.date;
+            if (t.id === 'd-edit') {
+                editing = !editing;
+                return renderDetail();
+            }
+            if (t.id === 'e-save') {
+                editing = false;
+                return patch(b.id, { name: $('e-name').value, phone: $('e-phone').value || '-', email: $('e-email').value || null, service: $('e-service').value }, 'Gespeichert');
+            }
+            if (t.id === 'd-delete') {
+                if (!b.blocked && !confirm('Termin endgültig löschen? Zum Absagen lieber „Absagen“ nutzen.')) return;
+                await post('/api/admin/delete', { id: b.id });
+                $('detail').close();
+                toast('Gelöscht');
+                refresh();
+            }
+        });
+
+        $('d-body').addEventListener('change', e => {
+            if (e.target.id === 'd-date') fillTimes($('d-time'), e.target.value, '', detailId);
+        });
+
+        // Notiz speichert 700 ms nach der letzten Eingabe
+        $('d-body').addEventListener('input', e => {
+            if (e.target.id !== 'd-note') return;
+            const id = detailId;
+            const value = e.target.value;
+            $('d-note-state').textContent = 'speichert …';
+            clearTimeout(noteTimer);
+            noteTimer = setTimeout(async () => {
+                try {
+                    await post('/api/admin/update', { id, note: value || null });
+                    const b = byId(id);
+                    if (b) b.note = value || null;
+                    if (detailId === id && $('d-note-state')) $('d-note-state').textContent = 'gespeichert ✓';
+                    render();
+                } catch {
+                    if ($('d-note-state')) $('d-note-state').textContent = 'nicht gespeichert!';
                 }
-                html += `
-                    <div class="list-item ${b.status}" data-id="${b.id}">
-                        <time>${b.time}</time>
-                        <div>
-                            <strong>${escapeHtml(b.name)}</strong>
-                            ${b.status !== 'gebucht' ? `<span class="chip ${b.status}">${STATUS_LABELS[b.status]}</span>` : ''}
-                            ${b.visits > 0 ? `<span class="chip loyal">${b.visits % LOYALTY_VISITS}/${LOYALTY_VISITS} Besuche</span>` : ''}<br>
-                            <small>${escapeHtml(b.service)}${hasPhone(b) ? ' · ' + escapeHtml(b.phone) : ''}${b.note ? ' · ' + escapeHtml(b.note) : ''}</small>
-                        </div>
-                        ${hasPhone(b) ? `<a class="small-btn" href="tel:${escapeHtml(b.phone)}" data-stop>📞</a>` : ''}
-                    </div>`;
-            }
-            bookingsEl.innerHTML = html;
-        }
-
-        const findBooking = id => weekBookings.find(b => b.id === id) || allBookings.find(b => b.id === id);
-
-        // DETAIL-DIALOG
-        function fillTimes(select, date, selected) {
-            const times = slotsFor(date);
-            select.innerHTML = times.length
-                ? times.map(t => `<option ${t === selected ? 'selected' : ''}>${t}</option>`).join('')
-                : '<option value="">Geschlossen</option>';
-        }
-
-        function fillServices(select, selected) {
-            const list = !selected || services.includes(selected) ? services : [selected, ...services];
-            select.innerHTML = list.map(s => `<option ${s === selected ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
-        }
-
-        function setStatus(status) {
-            $('bd-status').dataset.value = status;
-            $('bd-status').querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.status === status));
-        }
-
-        function contactButtons(b) {
-            const subject = encodeURIComponent('Dein Termin bei Fresh Fade Studio');
-            const body = encodeURIComponent(`Hallo ${b.name},\n\ndein Termin bei Fresh Fade Studio: ${formatDate(b.date)} um ${b.time} Uhr (${b.service}).\n\nBis bald!\nFresh Fade Studio · Donaustraße 16 · 88046 Friedrichshafen · 0174 4891087`);
-            const wa = encodeURIComponent(`Hallo ${b.name}, kurze Info zu deinem Termin bei Fresh Fade Studio am ${formatDate(b.date)} um ${b.time} Uhr: `);
-            let html = '';
-            if (hasPhone(b)) {
-                html += `<a class="small-btn" href="tel:${escapeHtml(b.phone)}">📞 Anrufen</a>`;
-                html += `<button type="button" class="small-btn" data-copy="${escapeHtml(b.phone)}" data-label="Nummer">📋 Nummer kopieren</button>`;
-                html += `<a class="small-btn" href="https://wa.me/${whatsappNumber(b.phone)}?text=${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`;
-            }
-            if (b.email) {
-                html += `<a class="small-btn" href="mailto:${escapeHtml(b.email)}?subject=${subject}&body=${body}">✉️ E-Mail schreiben</a>`;
-                html += `<button type="button" class="small-btn" data-copy="${escapeHtml(b.email)}" data-label="E-Mail">📋 E-Mail kopieren</button>`;
-            }
-            if (b.visits > 0) {
-                const stamps = b.visits % LOYALTY_VISITS;
-                html += `<span class="chip loyal">Treuekarte: ${stamps}/${LOYALTY_VISITS}${stamps === LOYALTY_VISITS - 1 ? ' – dieser Besuch 20 % Rabatt!' : ''}</span>`;
-            }
-            return html || '<span class="admin-msg" style="margin:0;">Keine Kontaktdaten hinterlegt.</span>';
-        }
-
-        function openBooking(b) {
-            if (!b) return;
-            current = b;
-            $('bd-error').textContent = '';
-            $('bd-title').textContent = b.blocked ? 'Blockiert' : b.name;
-            $('bd-sub').textContent = `${formatDate(b.date)} · ${b.time} Uhr${b.blocked ? '' : ' · ' + b.service}`;
-            $('bd-date').value = b.date;
-            fillTimes($('bd-time'), b.date, b.time);
-            $('bd-name').value = b.name;
-            $('bd-phone').value = hasPhone(b) ? b.phone : '';
-            $('bd-email').value = b.email || '';
-            fillServices($('bd-service'), b.service);
-            $('bd-note').value = b.note || '';
-            setStatus(b.status);
-            for (const id of ['bd-contact', 'bd-status-section', 'bd-details', 'bd-note-section']) $(id).hidden = Boolean(b.blocked);
-            $('bd-delete').textContent = b.blocked ? 'Zeit freigeben' : 'Termin löschen';
-            $('bd-contact-buttons').innerHTML = contactButtons(b);
-            $('booking-dialog').showModal();
-        }
-
-        $('bd-date').addEventListener('change', () => fillTimes($('bd-time'), $('bd-date').value, $('bd-time').value));
-        $('bd-status').addEventListener('click', e => {
-            const btn = e.target.closest('[data-status]');
-            if (btn) setStatus(btn.dataset.status);
-        });
-        $('bd-contact-buttons').addEventListener('click', e => {
-            const btn = e.target.closest('[data-copy]');
-            if (btn) copy(btn.dataset.copy, btn.dataset.label);
+            }, 700);
         });
 
-        $('booking-dialog-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const update = { id: current.id, date: $('bd-date').value, time: $('bd-time').value };
-            if (!current.blocked) {
-                Object.assign(update, {
-                    status: $('bd-status').dataset.value,
-                    name: $('bd-name').value,
-                    phone: $('bd-phone').value || '-',
-                    email: $('bd-email').value || null,
-                    service: $('bd-service').value,
-                    note: $('bd-note').value || null
-                });
-            }
-            try {
-                await post('/api/admin/update', update);
-                $('booking-dialog').close();
-                toast('Gespeichert');
-                refresh();
-            } catch (error) {
-                $('bd-error').textContent = error.message;
-            }
-        });
+        // ================= NEUER TERMIN =================
+        const N = { date: '', time: '', service: '', mode: 'termin' };
 
-        $('bd-delete').addEventListener('click', async () => {
-            if (!current.blocked && !confirm('Termin endgültig löschen? Zum Absagen lieber Status „Abgesagt“ wählen.')) return;
-            await post('/api/admin/delete', { id: current.id });
-            $('booking-dialog').close();
-            toast(current.blocked ? 'Freigegeben' : 'Gelöscht');
-            refresh();
-        });
-
-        // NEU-DIALOG
         function openNew(date, time) {
-            newSlot = { date, time };
-            $('nd-sub').textContent = `${formatDate(date)} · ${time} Uhr`;
-            for (const id of ['nd-name', 'nd-phone', 'nd-email', 'nd-note']) $(id).value = '';
-            fillServices($('nd-service'), services[0]);
-            $('nd-error').textContent = '';
-            $('new-dialog').showModal();
-            $('nd-name').focus();
+            N.mode = 'termin';
+            N.date = date && isOpen(date) ? date : (isOpen(todayISO()) ? todayISO() : nextOpen(todayISO(), 1));
+            N.time = time || '';
+            N.service = S.services[0] || '';
+            for (const id of ['n-name', 'n-phone', 'n-email', 'n-note']) $(id).value = '';
+            $('n-error').textContent = '';
+            renderNew();
+            $('newsheet').showModal();
+            if (!mq.mobile.matches) setTimeout(() => $(time ? 'n-name' : 'n-date').focus(), 50);
         }
 
-        $('new-dialog-form').addEventListener('submit', async e => {
+        function renderNew() {
+            document.querySelectorAll('#new-mode button').forEach(b => b.classList.toggle('on', b.dataset.mode === N.mode));
+            document.querySelectorAll('[data-new]').forEach(el => { if (el.tagName === 'DIV' && el.closest('#newsheet')) el.hidden = el.dataset.new !== N.mode; });
+            $('n-date').value = N.date;
+            $('n-daytext').textContent = isOpen(N.date) ? fmtLong(N.date) : `${fmtLong(N.date)} – geschlossen`;
+            const taken = new Set(onDay(N.date).filter(b => b.status !== 'abgesagt').map(b => b.time));
+            const pastLimit = N.date === todayISO() ? nowMin() : -1;
+            $('n-times').innerHTML = slotsFor(N.date).map(t => {
+                const full = taken.has(t) || toMin(t) + SLOT_MINUTES <= pastLimit;
+                return `<button type="button" class="${full ? 'full' : ''}${t === N.time ? ' on' : ''}" data-time="${t}" ${full ? 'disabled' : ''}>${t}<small>${taken.has(t) ? 'belegt' : (full ? 'vorbei' : 'frei')}</small></button>`;
+            }).join('') || '<p class="muted">Geschlossen</p>';
+            $('n-services').innerHTML = S.services.map(s => `<button type="button" class="${s === N.service ? 'on' : ''}" data-service="${esc(s)}">${esc(s)}</button>`).join('');
+            if (N.mode === 'termin') {
+                $('n-summary').textContent = N.time ? `${fmtShort(N.date)} · ${N.time} Uhr` : 'Uhrzeit wählen';
+                $('n-summary2').textContent = [$('n-name').value, N.service].filter(Boolean).join(' · ');
+                $('n-submit').textContent = 'Termin eintragen';
+            } else {
+                $('n-summary').textContent = `${fmtShort(N.date)} · ${$('p-from').value}–${$('p-to').value}`;
+                $('n-summary2').textContent = 'Zeit wird für Online-Buchungen gesperrt';
+                $('n-submit').textContent = 'Blockieren';
+            }
+        }
+
+        $('new-mode').addEventListener('click', e => {
+            const b = e.target.closest('[data-mode]');
+            if (!b) return;
+            N.mode = b.dataset.mode;
+            renderNew();
+        });
+        $('n-prev').addEventListener('click', () => { N.date = nextOpen(N.date, -1); N.time = ''; renderNew(); });
+        $('n-next').addEventListener('click', () => { N.date = nextOpen(N.date, 1); N.time = ''; renderNew(); });
+        $('n-date').addEventListener('change', e => { N.date = e.target.value; N.time = ''; renderNew(); });
+        $('n-times').addEventListener('click', e => {
+            const b = e.target.closest('[data-time]');
+            if (!b || b.disabled) return;
+            N.time = b.dataset.time;
+            renderNew();
+        });
+        $('n-services').addEventListener('click', e => {
+            const b = e.target.closest('[data-service]');
+            if (!b) return;
+            N.service = b.dataset.service;
+            renderNew();
+        });
+        $('n-name').addEventListener('input', renderNew);
+        $('p-from').addEventListener('input', renderNew);
+        $('p-to').addEventListener('input', renderNew);
+        $('p-fullday').addEventListener('click', () => {
+            const h = OPENING_HOURS[parse(N.date).getDay()];
+            if (!h) return;
+            $('p-from').value = h[0];
+            $('p-to').value = h[1];
+            renderNew();
+        });
+        $('p-lunch').addEventListener('click', () => { $('p-from').value = '12:00'; $('p-to').value = '13:15'; renderNew(); });
+
+        $('new-form').addEventListener('submit', async e => {
             e.preventDefault();
+            $('n-error').textContent = '';
             try {
-                await post('/api/admin/create', {
-                    ...newSlot,
-                    name: $('nd-name').value,
-                    phone: $('nd-phone').value,
-                    email: $('nd-email').value,
-                    service: $('nd-service').value,
-                    note: $('nd-note').value
-                });
-                $('new-dialog').close();
-                toast('Termin eingetragen');
+                if (N.mode === 'pause') {
+                    const from = toMin($('p-from').value);
+                    const to = toMin($('p-to').value);
+                    const times = slotsFor(N.date).filter(t => toMin(t) + SLOT_MINUTES > from && toMin(t) < to);
+                    if (!times.length) throw new Error('Kein Zeitraum innerhalb der Öffnungszeit.');
+                    await post('/api/admin/block', { date: N.date, times });
+                    toast('Blockiert');
+                } else {
+                    if (!N.time) throw new Error('Bitte eine Uhrzeit wählen.');
+                    if ($('n-name').value.trim().length < 2) throw new Error('Bitte einen Namen eingeben.');
+                    await post('/api/admin/create', {
+                        date: N.date, time: N.time, name: $('n-name').value, phone: $('n-phone').value,
+                        email: $('n-email').value, service: N.service, note: $('n-note').value
+                    });
+                    toast('Termin eingetragen');
+                }
+                $('newsheet').close();
                 refresh();
-            } catch (error) {
-                $('nd-error').textContent = error.message;
+            } catch (err) {
+                $('n-error').textContent = err.message;
+                if (err.message.includes('schon')) { await load(); renderNew(); }
             }
         });
 
-        $('nd-block').addEventListener('click', async () => {
-            await post('/api/admin/block', { date: newSlot.date, times: [newSlot.time] });
-            $('new-dialog').close();
-            toast('Blockiert');
-            refresh();
+        // ================= KLICKS (global) =================
+        document.addEventListener('click', e => {
+            if (e.target.closest('[data-stop]')) return;
+            const close = e.target.closest('[data-close]');
+            if (close) return close.closest('dialog').close();
+
+            const view = e.target.closest('[data-view]');
+            if (view) return setView(view.dataset.view);
+
+            const act = e.target.closest('[data-act]');
+            if (act) {
+                e.stopPropagation();
+                const id = Number(act.dataset.id);
+                if (act.dataset.act === 'seen') return patch(id, { seen: 1 }, 'Als gesehen markiert');
+                return patch(id, { status: act.dataset.act }, STATUS[act.dataset.act].label);
+            }
+
+            const open = e.target.closest('[data-open]');
+            if (open && !e.target.closest('dialog')) return openDetail(Number(open.dataset.open));
+            if (open && e.target.closest('#detail') === null) return openDetail(Number(open.dataset.open));
+
+            const nw = e.target.closest('[data-new]');
+            if (nw && nw.dataset.new.includes('|')) {
+                const [d, t] = nw.dataset.new.split('|');
+                return openNew(d, t);
+            }
+
+            const day = e.target.closest('[data-day]');
+            if (day && !day.classList.contains('closed')) return goDay(day.dataset.day);
+
+            const mini = e.target.closest('[data-mini]');
+            if (mini) {
+                const d = parse(S.miniMonth);
+                d.setMonth(d.getMonth() + Number(mini.dataset.mini));
+                S.miniMonth = iso(d);
+                load().catch(() => { });
+                return renderOverview();
+            }
+
+            const stat = e.target.closest('[data-goto]');
+            if (stat) {
+                S.filter.status = new Set(stat.dataset.goto === 'new' ? ['neu'] : []);
+                S.filter.range = stat.dataset.goto === 'today' ? 'today' : stat.dataset.goto === 'week' ? 'week' : 'upcoming';
+                $('f-range').value = S.filter.range;
+                return setView('list');
+            }
         });
 
-        document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => btn.closest('dialog').close()));
+        $('btn-new').addEventListener('click', () => openNew(S.view === 'calendar' ? S.cursor : ''));
+        $('nav-new').addEventListener('click', () => openNew(S.view === 'calendar' ? S.cursor : ''));
+        $('btn-refresh').addEventListener('click', () => refresh().then(() => toast('Aktualisiert')));
+        $('btn-help').addEventListener('click', () => $('help').showModal());
+        $('btn-bell').addEventListener('click', () => { renderPush().catch(() => { }); $('bell').showModal(); });
 
-        // WOCHENPLAN: KLICK + DRAG & DROP
-        weekEl.addEventListener('click', e => {
-            const slot = e.target.closest('.slot');
-            if (slot) return openBooking(findBooking(Number(slot.dataset.id)));
-            const cell = e.target.closest('td.free');
-            if (cell) openNew(cell.dataset.date, cell.dataset.time);
+        // Kalender-Bedienung
+        $('cal-prev').addEventListener('click', () => calStep(-1));
+        $('cal-next').addEventListener('click', () => calStep(1));
+        $('cal-today').addEventListener('click', () => { S.cursor = isOpen(todayISO()) || S.mode !== 'day' ? todayISO() : nextOpen(todayISO(), 1); load().catch(() => { }); renderCalendar(); });
+        $('cal-mode').addEventListener('click', e => {
+            const b = e.target.closest('[data-mode]');
+            if (!b) return;
+            S.mode = b.dataset.mode;
+            store.set('ff-mode', S.mode);
+            if (S.mode === 'day' && !isOpen(S.cursor)) S.cursor = nextOpen(S.cursor, 1);
+            load().catch(() => { });
+            renderCalendar();
         });
 
+        // Wischen im Kalender (> 70 px)
+        let touch = null;
+        $('cal-body').addEventListener('touchstart', e => { touch = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
+        $('cal-body').addEventListener('touchend', e => {
+            if (!touch) return;
+            const dx = e.changedTouches[0].clientX - touch.x;
+            const dy = e.changedTouches[0].clientY - touch.y;
+            touch = null;
+            if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy)) calStep(dx < 0 ? 1 : -1);
+        });
+
+        // Drag & Drop in der Wochenansicht (PC)
         let dragId = null;
-        const clearDropTargets = () => weekEl.querySelectorAll('.drop-target').forEach(c => c.classList.remove('drop-target'));
-
-        weekEl.addEventListener('dragstart', e => {
-            const slot = e.target.closest('.slot');
-            if (!slot) return;
-            dragId = Number(slot.dataset.id);
+        const clearDrop = () => document.querySelectorAll('.wc.drop').forEach(c => c.classList.remove('drop'));
+        $('cal-body').addEventListener('dragstart', e => {
+            const evEl = e.target.closest('.ev[data-open]');
+            if (!evEl) return;
+            dragId = Number(evEl.dataset.open);
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', String(dragId));
         });
-        weekEl.addEventListener('dragover', e => {
-            const cell = e.target.closest('td.free');
+        $('cal-body').addEventListener('dragover', e => {
+            const cell = e.target.closest('.wc.free');
             if (!cell || dragId === null) return;
             e.preventDefault();
-            if (!cell.classList.contains('drop-target')) {
-                clearDropTargets();
-                cell.classList.add('drop-target');
-            }
+            if (!cell.classList.contains('drop')) { clearDrop(); cell.classList.add('drop'); }
         });
-        weekEl.addEventListener('dragend', () => {
-            dragId = null;
-            clearDropTargets();
-        });
-        weekEl.addEventListener('drop', async e => {
-            const cell = e.target.closest('td.free');
+        $('cal-body').addEventListener('dragend', () => { dragId = null; clearDrop(); });
+        $('cal-body').addEventListener('drop', async e => {
+            const cell = e.target.closest('.wc.free');
             if (!cell || dragId === null) return;
             e.preventDefault();
-            const b = findBooking(dragId);
+            const b = byId(dragId);
             try {
                 await post('/api/admin/update', { id: dragId, date: cell.dataset.date, time: cell.dataset.time });
-                toast(`${b.blocked ? 'Blockierung' : b.name} → ${formatShort(cell.dataset.date)}, ${cell.dataset.time} Uhr`);
-            } catch (error) {
-                toast(error.message);
+                toast(`${b.blocked ? 'Pause' : b.name} → ${fmtShort(cell.dataset.date)} ${cell.dataset.time}`);
+            } catch (err) {
+                toast(err.message);
             }
+            dragId = null;
             refresh();
         });
 
-        // Am Handy blättern die Pfeile tageweise, am PC wochenweise
-        function step(direction) {
-            if (!mobile.matches) {
-                weekOffset += direction;
-                return refresh();
-            }
-            dayIndex += direction;
-            if (dayIndex < 0 || dayIndex > 5) {
-                weekOffset += direction;
-                dayIndex = direction > 0 ? 0 : 5;
-                return refresh();
-            }
-            renderWeek();
+        // Liste: Filter
+        $('f-search').addEventListener('input', e => { S.filter.q = e.target.value; renderList(); });
+        $('f-range').addEventListener('change', e => { S.filter.range = e.target.value; load().catch(() => { }); });
+        $('f-service').addEventListener('change', e => { S.filter.service = e.target.value; renderList(); });
+        $('f-status').addEventListener('click', e => {
+            const b = e.target.closest('[data-status]');
+            if (!b) return;
+            const s = b.dataset.status;
+            S.filter.status.has(s) ? S.filter.status.delete(s) : S.filter.status.add(s);
+            renderList();
+        });
+        $('f-toggle').addEventListener('click', () => $('filters').classList.toggle('open'));
+
+        // ================= HELL / DUNKEL =================
+        const THEMES = ['auto', 'light', 'dark'];
+        const THEME_LABEL = { auto: 'Auto', light: 'Hell', dark: 'Dunkel' };
+        function applyTheme(t) {
+            document.documentElement.dataset.theme = t;
+            $('btn-theme').textContent = { auto: '🌓', light: '☀️', dark: '🌙' }[t];
+            $('btn-theme').title = `Darstellung: ${THEME_LABEL[t]}`;
+            store.set('ff-theme', t);
         }
-
-        $('week-prev').addEventListener('click', () => step(-1));
-        $('week-next').addEventListener('click', () => step(1));
-        $('week-today').addEventListener('click', () => {
-            weekOffset = 0;
-            dayIndex = Math.min((new Date().getDay() + 6) % 7, 5);
-            refresh();
+        $('btn-theme').addEventListener('click', () => {
+            const next = THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length];
+            applyTheme(next);
+            toast(`Darstellung: ${THEME_LABEL[next]}`);
         });
-        $('day-tabs').addEventListener('click', e => {
-            const tab = e.target.closest('[data-day]');
-            if (!tab) return;
-            dayIndex = Number(tab.dataset.day);
-            renderWeek();
-        });
-        mobile.addEventListener('change', renderWeek);
+        applyTheme(store.get('ff-theme', 'auto'));
 
-        // Wischen links/rechts im Tagesplan wechselt den Tag
-        let touchX = null;
-        weekEl.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
-        weekEl.addEventListener('touchend', e => {
-            if (touchX === null || !mobile.matches) return;
-            const dx = e.changedTouches[0].clientX - touchX;
-            touchX = null;
-            if (Math.abs(dx) > 60) step(dx < 0 ? 1 : -1);
-        });
-
-        // LISTE
-        $('search').addEventListener('input', renderList);
-        bookingsEl.addEventListener('click', e => {
-            if (e.target.closest('[data-stop]')) return;
-            const item = e.target.closest('.list-item');
-            if (item) openBooking(findBooking(Number(item.dataset.id)));
-        });
-
-        // ZEITRAUM BLOCKIEREN
-        $('block-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const from = toMin($('block-from').value);
-            const to = toMin($('block-to').value);
-            const date = $('block-date').value;
-            const times = slotsFor(date).filter(t => toMin(t) + SLOT_MINUTES > from && toMin(t) < to);
-            try {
-                await post('/api/admin/block', { date, times });
-                toast('Blockiert');
-                refresh();
-            } catch (error) {
-                if (error.message !== 'unauthorized') toast(error.message);
-            }
-        });
-
-        // GALERIE
-        const galleryEl = $('gallery-admin');
-        const galleryStatus = $('gallery-status');
-        const DEFAULT_GALLERY = ['test.JPG.webp', 'test-1.JPG.webp', 'test-2.JPG.webp', 'test-3.JPG.webp', 'test-4.JPG.webp', 'test-5.JPG.webp']
-            .map(name => `/assets/beispiele/${name}`);
-        let galleryImages = [];
-        let previewIndex = 0;
-        let replaceId = null;
-
-        async function loadGallery() {
-            const data = await (await fetch('/api/gallery')).json();
-            galleryImages = data.images;
-            renderGallery();
-        }
-
-        function renderPreview() {
-            const urls = galleryImages.length ? galleryImages.map(img => `/api/gallery/${img.id}`) : DEFAULT_GALLERY;
-            $('gallery-preview').innerHTML = urls.map((src, i) =>
-                `<div class="gallery-item"><img src="${src}" alt="Vorschau ${i + 1}" loading="lazy" data-site-preview="${i}"></div>`
-            ).join('');
-        }
-
-        function renderGallery() {
-            renderPreview();
-            if (galleryImages.length === 0) {
-                galleryEl.innerHTML = '';
-                galleryStatus.innerHTML = 'Noch keine eigenen Bilder – die Webseite zeigt die 6 Standardbilder. '
-                    + '<button type="button" class="small-btn" id="gallery-import">Standardbilder übernehmen</button>';
-                $('gallery-import').addEventListener('click', importDefaults);
+        // ================= TASTENKÜRZEL =================
+        document.addEventListener('keydown', e => {
+            if (e.metaKey || e.ctrlKey || e.altKey) return;
+            const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+            if (typing) {
+                if (e.key === 'Escape') document.activeElement.blur();
                 return;
             }
-            galleryStatus.textContent = `${galleryImages.length} Bilder auf der Webseite`;
-            galleryEl.innerHTML = galleryImages.map((img, i) => `
-                <div class="g-card" draggable="true" data-index="${i}">
-                    <div style="position:relative;">
-                        <img src="/api/gallery/${img.id}" alt="Bild ${i + 1}" loading="lazy" data-preview="${i}">
-                        <span class="g-pos">${i + 1}</span>
-                    </div>
-                    <div class="g-tools">
-                        <button type="button" data-move="-1" title="Nach vorne" ${i === 0 ? 'disabled' : ''}>‹</button>
-                        <button type="button" data-replace="${img.id}" title="Bild tauschen">⇄</button>
-                        <button type="button" data-delete="${img.id}" title="Löschen">🗑</button>
-                        <button type="button" data-move="1" title="Nach hinten" ${i === galleryImages.length - 1 ? 'disabled' : ''}>›</button>
-                    </div>
-                </div>`).join('');
-        }
-
-        // Im Browser verkleinern: max. 1600 px, WebP (Safari kann kein WebP erzeugen, dann JPEG)
-        async function shrink(file) {
-            const bitmap = await createImageBitmap(file);
-            const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(bitmap.width * scale);
-            canvas.height = Math.round(bitmap.height * scale);
-            canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-            const encode = (type, quality) => new Promise(resolve => canvas.toBlob(resolve, type, quality));
-            let blob = await encode('image/webp', 0.82);
-            if (!blob || blob.type !== 'image/webp') blob = await encode('image/jpeg', 0.85);
-            for (let quality = 0.7; blob.size > 1.7 * 1024 * 1024 && quality > 0.3; quality -= 0.15) {
-                blob = await encode(blob.type, quality);
+            if (document.querySelector('dialog[open]')) {
+                if (e.key === 'ArrowLeft' && $('preview-dialog').open) openPreview(previewIndex - 1);
+                if (e.key === 'ArrowRight' && $('preview-dialog').open) openPreview(previewIndex + 1);
+                return;
             }
-            return { blob, width: canvas.width, height: canvas.height };
-        }
-
-        async function upload(file, replace = null) {
-            const { blob, width, height } = await shrink(file);
-            const params = new URLSearchParams({ w: width, h: height });
-            if (replace) params.set('replace', replace);
-            const response = await fetch(`/api/admin/gallery?${params}`, { method: 'POST', headers: { 'content-type': blob.type }, body: blob });
-            if (!response.ok) throw new Error((await response.json()).error || 'Upload fehlgeschlagen');
-        }
-
-        async function uploadFiles(files, label = 'Lade hoch') {
-            const list = [...files];
-            try {
-                for (let i = 0; i < list.length; i++) {
-                    galleryStatus.textContent = `${label} … ${i + 1} von ${list.length}`;
-                    await upload(list[i]);
-                }
-                toast(list.length === 1 ? 'Bild hochgeladen' : `${list.length} Bilder hochgeladen`);
-            } catch (error) {
-                toast(error.message);
+            const k = e.key;
+            const map = { '1': 'overview', '2': 'calendar', '3': 'list', '4': 'gallery' };
+            if (map[k]) return setView(map[k]);
+            if (k === 'n') { e.preventDefault(); return openNew(S.view === 'calendar' ? S.cursor : ''); }
+            if (k === '/') { e.preventDefault(); setView('list'); return $('f-search').focus(); }
+            if (k === '?') return $('help').showModal();
+            if (k === 'r') return refresh().then(() => toast('Aktualisiert'));
+            if ('dwm'.includes(k) && k.length === 1) {
+                S.mode = { d: 'day', w: 'week', m: 'month' }[k];
+                store.set('ff-mode', S.mode);
+                if (S.mode === 'day' && !isOpen(S.cursor)) S.cursor = nextOpen(S.cursor, 1);
+                setView('calendar');
+                return load().catch(() => { });
             }
-            loadGallery();
-        }
-
-        async function importDefaults() {
-            const files = await Promise.all(DEFAULT_GALLERY.map(async url => new File([await (await fetch(url)).blob()], url.split('/').pop(), { type: 'image/webp' })));
-            uploadFiles(files, 'Übernehme Standardbilder');
-        }
-
-        async function saveOrder() {
-            await post('/api/admin/gallery/order', { ids: galleryImages.map(img => img.id) });
-            toast('Reihenfolge gespeichert');
-        }
-
-        $('gallery-upload').addEventListener('change', e => {
-            if (e.target.files.length) uploadFiles(e.target.files);
-            e.target.value = '';
+            if (k === 't') { S.cursor = isOpen(todayISO()) ? todayISO() : nextOpen(todayISO(), 1); setView('calendar'); return load().catch(() => { }); }
+            if (S.view === 'calendar' && (k === 'ArrowLeft' || k === 'j')) return calStep(-1);
+            if (S.view === 'calendar' && (k === 'ArrowRight' || k === 'k')) return calStep(1);
         });
 
-        $('gallery-replace').addEventListener('change', async e => {
-            const file = e.target.files[0];
-            e.target.value = '';
-            if (!file || !replaceId) return;
-            galleryStatus.textContent = 'Tausche Bild …';
-            try {
-                await upload(file, replaceId);
-                toast('Bild getauscht');
-            } catch (error) {
-                toast(error.message);
-            }
-            loadGallery();
-        });
-
-        galleryEl.addEventListener('click', async e => {
-            const target = e.target.closest('button, img');
-            if (!target) return;
-            const index = Number(target.closest('.g-card').dataset.index);
-            if (target.dataset.preview !== undefined) return openPreview(index);
-            if (target.dataset.replace) {
-                replaceId = Number(target.dataset.replace);
-                return $('gallery-replace').click();
-            }
-            if (target.dataset.delete) {
-                if (!confirm('Bild von der Webseite löschen?')) return;
-                await post('/api/admin/gallery/delete', { id: Number(target.dataset.delete) });
-                toast('Bild gelöscht');
-                return loadGallery();
-            }
-            if (target.dataset.move) {
-                const to = index + Number(target.dataset.move);
-                [galleryImages[index], galleryImages[to]] = [galleryImages[to], galleryImages[index]];
-                renderGallery();
-                saveOrder();
-            }
-        });
-
-        // Reihenfolge per Drag & Drop (PC)
-        let galleryDrag = null;
-        galleryEl.addEventListener('dragstart', e => {
-            const card = e.target.closest('.g-card');
-            if (!card) return;
-            galleryDrag = Number(card.dataset.index);
-            card.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', String(galleryDrag));
-        });
-        galleryEl.addEventListener('dragover', e => {
-            const card = e.target.closest('.g-card');
-            if (!card || galleryDrag === null) return;
-            e.preventDefault();
-            galleryEl.querySelectorAll('.drop-target').forEach(c => c !== card && c.classList.remove('drop-target'));
-            card.classList.add('drop-target');
-        });
-        galleryEl.addEventListener('dragend', () => {
-            galleryDrag = null;
-            galleryEl.querySelectorAll('.dragging, .drop-target').forEach(c => c.classList.remove('dragging', 'drop-target'));
-        });
-        galleryEl.addEventListener('drop', e => {
-            const card = e.target.closest('.g-card');
-            if (!card || galleryDrag === null) return;
-            e.preventDefault();
-            const [moved] = galleryImages.splice(galleryDrag, 1);
-            galleryImages.splice(Number(card.dataset.index), 0, moved);
-            galleryDrag = null;
-            renderGallery();
-            saveOrder();
-        });
-
-        // Vorschau mit Blättern
-        function openPreview(index) {
-            previewIndex = (index + galleryImages.length) % galleryImages.length;
-            $('preview-img').src = `/api/gallery/${galleryImages[previewIndex].id}`;
-            $('preview-count').textContent = `${previewIndex + 1} / ${galleryImages.length}`;
-            if (!$('preview-dialog').open) $('preview-dialog').showModal();
-        }
-        $('gallery-preview').addEventListener('click', e => {
-            const img = e.target.closest('[data-site-preview]');
-            if (img && galleryImages.length) openPreview(Number(img.dataset.sitePreview));
-        });
-        $('preview-prev').addEventListener('click', () => openPreview(previewIndex - 1));
-        $('preview-next').addEventListener('click', () => openPreview(previewIndex + 1));
-        $('preview-dialog').addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft') openPreview(previewIndex - 1);
-            if (e.key === 'ArrowRight') openPreview(previewIndex + 1);
-        });
-
-        // PUSH-BENACHRICHTIGUNGEN (nur diese Admin-App)
-        const pushBox = $('push-box');
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        // ================= PUSH =================
+        const isStandalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
         const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        const urlKey = b64 => Uint8Array.from(atob(b64.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(b64.length / 4) * 4, '=')), c => c.charCodeAt(0));
 
-        function urlKey(base64) {
-            const raw = atob(base64.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(base64.length / 4) * 4, '='));
-            return Uint8Array.from(raw, c => c.charCodeAt(0));
-        }
-
-        function showPush(state, text, buttons = '') {
-            pushBox.hidden = false;
-            pushBox.classList.toggle('on', state === 'on');
-            $('push-title').textContent = state === 'on' ? '🔔 Benachrichtigungen an' : '🔕 Benachrichtigungen aus';
+        function showPush(on, text, buttons = '') {
+            $('push-title').textContent = on ? '🔔 Benachrichtigungen an' : '🔕 Benachrichtigungen aus';
+            $('btn-bell').textContent = on ? '🔔' : '🔕';
             $('push-text').textContent = text;
             $('push-actions').innerHTML = buttons;
         }
 
         async function renderPush() {
             if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-                return showPush('off', isIOS && !isStandalone
+                return showPush(false, isIOS && !isStandalone
                     ? 'Am iPhone zuerst über Teilen → „Zum Home-Bildschirm“ installieren und die App von dort öffnen.'
                     : 'Dieser Browser unterstützt keine Benachrichtigungen.');
             }
-            if (Notification.permission === 'denied') {
-                return showPush('off', 'Benachrichtigungen sind blockiert. In den Handy-Einstellungen für diese App erlauben.');
-            }
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                return showPush('on', 'Du bekommst bei jeder neuen Online-Buchung eine Nachricht auf dieses Gerät.',
-                    '<button type="button" class="small-btn" id="push-test">Test senden</button><button type="button" class="small-btn" id="push-off">Ausschalten</button>');
-            }
-            showPush('off', 'Bei jeder neuen Online-Buchung eine Nachricht aufs Handy bekommen.',
-                '<button type="button" class="btn" id="push-on">Aktivieren</button>');
-        }
-
-        async function enablePush() {
-            try {
-                if (await Notification.requestPermission() !== 'granted') return renderPush();
-                const { key } = await api('/api/admin/push/key');
-                if (!key) return toast('Push ist auf dem Server noch nicht eingerichtet');
-                const registration = await navigator.serviceWorker.ready;
-                const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlKey(key) });
-                await post('/api/admin/push/subscribe', subscription.toJSON());
-                toast('Benachrichtigungen aktiviert');
-            } catch (error) {
-                toast(`Aktivieren fehlgeschlagen: ${error.message}`);
-            }
-            renderPush();
-        }
-
-        async function disablePush() {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                await post('/api/admin/push/unsubscribe', { endpoint: subscription.endpoint });
-                await subscription.unsubscribe();
-            }
-            toast('Benachrichtigungen aus');
-            renderPush();
+            if (Notification.permission === 'denied') return showPush(false, 'Blockiert. In den Handy-Einstellungen für diese App erlauben.');
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) return showPush(true, 'Bei jeder neuen Online-Buchung kommt eine Nachricht auf dieses Gerät.',
+                '<button class="b" id="push-test">Test senden</button><button class="b" id="push-off">Ausschalten</button>');
+            showPush(false, 'Bei jeder neuen Online-Buchung eine Nachricht aufs Handy bekommen.', '<button class="b primary" id="push-on">Aktivieren</button>');
         }
 
         $('push-actions').addEventListener('click', async e => {
             const id = e.target.closest('button')?.id;
-            if (id === 'push-on') enablePush();
-            if (id === 'push-off') disablePush();
-            if (id === 'push-test') {
-                const result = await post('/api/admin/push/test', {});
-                toast(result.sent ? `Test an ${result.sent} Gerät(e) gesendet` : 'Kein Gerät erreicht');
+            try {
+                if (id === 'push-on') {
+                    if (await Notification.requestPermission() !== 'granted') return renderPush();
+                    const { key } = await api('/api/admin/push/key');
+                    const reg = await navigator.serviceWorker.ready;
+                    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlKey(key) });
+                    await post('/api/admin/push/subscribe', sub.toJSON());
+                    toast('Benachrichtigungen aktiviert');
+                }
+                if (id === 'push-off') {
+                    const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+                    if (sub) {
+                        await post('/api/admin/push/unsubscribe', { endpoint: sub.endpoint });
+                        await sub.unsubscribe();
+                    }
+                    toast('Benachrichtigungen aus');
+                }
+                if (id === 'push-test') {
+                    const r = await post('/api/admin/push/test', {});
+                    toast(r.sent ? `Test an ${r.sent} Gerät(e) gesendet` : 'Kein Gerät erreicht');
+                }
+            } catch (err) {
+                toast(err.message);
+            }
+            renderPush();
+        });
+
+        // ================= GALERIE =================
+        const DEFAULT_GALLERY = ['test.JPG.webp', 'test-1.JPG.webp', 'test-2.JPG.webp', 'test-3.JPG.webp', 'test-4.JPG.webp', 'test-5.JPG.webp'].map(n => `/assets/beispiele/${n}`);
+        let galleryImages = [];
+        let previewIndex = 0;
+        let replaceId = null;
+
+        async function loadGallery() {
+            galleryImages = (await (await fetch('/api/gallery')).json()).images;
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const urls = galleryImages.length ? galleryImages.map(i => `/api/gallery/${i.id}`) : DEFAULT_GALLERY;
+            $('gallery-preview').innerHTML = urls.map((src, i) => `<div class="gallery-item"><img src="${src}" alt="Vorschau ${i + 1}" loading="lazy" data-preview="${i}"></div>`).join('');
+            if (!galleryImages.length) {
+                $('gallery-admin').innerHTML = '';
+                $('gallery-status').innerHTML = 'Noch keine eigenen Bilder – die Webseite zeigt die 6 Standardbilder. <button class="b" id="gallery-import">Standardbilder übernehmen</button>';
+                return;
+            }
+            $('gallery-status').textContent = `${galleryImages.length} Bilder auf der Webseite`;
+            $('gallery-admin').innerHTML = galleryImages.map((img, i) => `
+                <div class="g-card" draggable="true" data-index="${i}">
+                    <div style="position:relative;"><img src="/api/gallery/${img.id}" alt="Bild ${i + 1}" loading="lazy" data-preview="${i}"><span class="g-pos">${i + 1}</span></div>
+                    <div class="g-tools">
+                        <button data-move="-1" ${i === 0 ? 'disabled' : ''}>‹</button>
+                        <button data-replace="${img.id}" title="Tauschen">⇄</button>
+                        <button data-gdelete="${img.id}" title="Löschen">🗑</button>
+                        <button data-move="1" ${i === galleryImages.length - 1 ? 'disabled' : ''}>›</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        // Im Browser verkleinern: max. 1600 px, WebP (Safari: JPEG)
+        async function shrink(file) {
+            const bmp = await createImageBitmap(file);
+            const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+            const c = document.createElement('canvas');
+            c.width = Math.round(bmp.width * scale);
+            c.height = Math.round(bmp.height * scale);
+            c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+            const enc = (type, q) => new Promise(r => c.toBlob(r, type, q));
+            let blob = await enc('image/webp', 0.82);
+            if (!blob || blob.type !== 'image/webp') blob = await enc('image/jpeg', 0.85);
+            for (let q = 0.7; blob.size > 1.7 * 1024 * 1024 && q > 0.3; q -= 0.15) blob = await enc(blob.type, q);
+            return { blob, width: c.width, height: c.height };
+        }
+
+        async function upload(file, replace) {
+            const { blob, width, height } = await shrink(file);
+            const params = new URLSearchParams({ w: width, h: height });
+            if (replace) params.set('replace', replace);
+            const res = await fetch(`/api/admin/gallery?${params}`, { method: 'POST', headers: { 'content-type': blob.type }, body: blob });
+            if (!res.ok) throw new Error((await res.json()).error || 'Upload fehlgeschlagen');
+        }
+
+        async function uploadFiles(files, label = 'Lade hoch') {
+            const list = [...files];
+            try {
+                for (let i = 0; i < list.length; i++) {
+                    $('gallery-status').textContent = `${label} … ${i + 1} von ${list.length}`;
+                    await upload(list[i]);
+                }
+                toast(list.length === 1 ? 'Bild hochgeladen' : `${list.length} Bilder hochgeladen`);
+            } catch (e) {
+                toast(e.message);
+            }
+            loadGallery();
+        }
+
+        const saveOrder = () => post('/api/admin/gallery/order', { ids: galleryImages.map(i => i.id) }).then(() => toast('Reihenfolge gespeichert'));
+
+        $('gallery-upload').addEventListener('change', e => { if (e.target.files.length) uploadFiles(e.target.files); e.target.value = ''; });
+        $('gallery-replace').addEventListener('change', async e => {
+            const file = e.target.files[0];
+            e.target.value = '';
+            if (!file || !replaceId) return;
+            try {
+                await upload(file, replaceId);
+                toast('Bild getauscht');
+            } catch (err) {
+                toast(err.message);
+            }
+            loadGallery();
+        });
+
+        $('gallery-status').addEventListener('click', async e => {
+            if (e.target.id !== 'gallery-import') return;
+            const files = await Promise.all(DEFAULT_GALLERY.map(async u => new File([await (await fetch(u)).blob()], u.split('/').pop(), { type: 'image/webp' })));
+            uploadFiles(files, 'Übernehme Standardbilder');
+        });
+
+        document.querySelector('[data-panel="gallery"]').addEventListener('click', async e => {
+            const t = e.target.closest('button, img');
+            if (!t) return;
+            if (t.dataset.preview !== undefined) return galleryImages.length && openPreview(Number(t.dataset.preview));
+            const cardEl = t.closest('.g-card');
+            if (!cardEl) return;
+            const i = Number(cardEl.dataset.index);
+            if (t.dataset.replace) { replaceId = Number(t.dataset.replace); return $('gallery-replace').click(); }
+            if (t.dataset.gdelete) {
+                if (!confirm('Bild von der Webseite löschen?')) return;
+                await post('/api/admin/gallery/delete', { id: Number(t.dataset.gdelete) });
+                toast('Bild gelöscht');
+                return loadGallery();
+            }
+            if (t.dataset.move) {
+                const to = i + Number(t.dataset.move);
+                [galleryImages[i], galleryImages[to]] = [galleryImages[to], galleryImages[i]];
+                renderGallery();
+                saveOrder();
             }
         });
 
-        // Aus einer Benachrichtigung geöffnet (#datum-JJJJ-MM-TT): passende Woche und Tag zeigen
+        let gDrag = null;
+        const gEl = $('gallery-admin');
+        gEl.addEventListener('dragstart', e => {
+            const c = e.target.closest('.g-card');
+            if (!c) return;
+            gDrag = Number(c.dataset.index);
+            c.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', String(gDrag));
+        });
+        gEl.addEventListener('dragover', e => {
+            const c = e.target.closest('.g-card');
+            if (!c || gDrag === null) return;
+            e.preventDefault();
+            gEl.querySelectorAll('.drop-target').forEach(x => x !== c && x.classList.remove('drop-target'));
+            c.classList.add('drop-target');
+        });
+        gEl.addEventListener('dragend', () => { gDrag = null; gEl.querySelectorAll('.dragging, .drop-target').forEach(x => x.classList.remove('dragging', 'drop-target')); });
+        gEl.addEventListener('drop', e => {
+            const c = e.target.closest('.g-card');
+            if (!c || gDrag === null) return;
+            e.preventDefault();
+            const [m] = galleryImages.splice(gDrag, 1);
+            galleryImages.splice(Number(c.dataset.index), 0, m);
+            gDrag = null;
+            renderGallery();
+            saveOrder();
+        });
+
+        function openPreview(i) {
+            previewIndex = (i + galleryImages.length) % galleryImages.length;
+            $('preview-img').src = `/api/gallery/${galleryImages[previewIndex].id}`;
+            $('preview-count').textContent = `${previewIndex + 1} / ${galleryImages.length}`;
+            if (!$('preview-dialog').open) $('preview-dialog').showModal();
+        }
+        $('preview-prev').addEventListener('click', () => openPreview(previewIndex - 1));
+        $('preview-next').addEventListener('click', () => openPreview(previewIndex + 1));
+
+        // ================= LOGIN / START =================
+        function showLogin() {
+            $('login-box').hidden = false;
+            $('app').hidden = true;
+        }
+
+        // Aus einer Benachrichtigung geöffnet (#datum-JJJJ-MM-TT): Tagesansicht
         function openFromHash() {
-            const match = location.hash.match(/^#datum-(\d{4}-\d{2}-\d{2})$/);
-            if (!match) return false;
-            const target = new Date(`${match[1]}T12:00:00`);
-            const monday = d => { const m = new Date(d); m.setHours(12, 0, 0, 0); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m; };
-            weekOffset = Math.round((monday(target) - monday(new Date())) / (7 * 24 * 3600 * 1000));
-            dayIndex = Math.min((target.getDay() + 6) % 7, 5);
+            const m = location.hash.match(/^#datum-(\d{4}-\d{2}-\d{2})$/);
+            if (!m) return false;
             history.replaceState(null, '', '/admin');
+            S.cursor = m[1];
+            S.mode = 'day';
+            S.view = 'calendar';
             return true;
         }
-        window.addEventListener('hashchange', () => { if (openFromHash()) refresh(); });
+        window.addEventListener('hashchange', () => { if (openFromHash()) { setView('calendar'); load().catch(() => { }); } });
 
-        // LOGIN
         async function start() {
             const { user } = await api('/api/admin/me');
             $('admin-user').textContent = user;
             openFromHash();
-            await refresh();
+            $('login-box').hidden = true;
+            $('app').hidden = false;
+            await load();
+            setView(S.view);
             renderPush().catch(() => { });
-            loadGallery().catch(() => { });
         }
 
         $('login-form').addEventListener('submit', async e => {
             e.preventDefault();
-            const response = await fetch('/api/admin/login', {
+            const res = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ user: $('login-user').value, password: $('login-password').value })
             });
-            if (!response.ok) {
-                $('login-msg').textContent = (await response.json()).error || 'Anmeldung fehlgeschlagen.';
+            if (!res.ok) {
+                $('login-msg').textContent = (await res.json()).error || 'Anmeldung fehlgeschlagen.';
                 return;
             }
             $('login-password').value = '';
@@ -1760,20 +3103,22 @@
             start().catch(() => { });
         });
 
-        $('logout').addEventListener('click', async e => {
-            e.preventDefault();
+        $('logout').addEventListener('click', async () => {
             await fetch('/api/admin/logout', { method: 'POST' });
+            $('bell').close();
             showLogin();
         });
 
-        // Jede Minute neu laden, damit neue Online-Buchungen auftauchen
+        // Alle 30 Sekunden neu laden (nicht während ein Blatt offen ist), jede Minute Jetzt-Linie
         setInterval(() => {
-            if (!content.hidden && !document.querySelector('dialog[open]')) refresh().catch(() => { });
-        }, 60000);
+            if (!$('app').hidden && !document.querySelector('dialog[open]') && !document.hidden) refresh();
+        }, REFRESH_MS);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('app').hidden) refresh(); });
+        mq.mobile.addEventListener('change', render);
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin' }).catch(() => { });
 
-        start().catch(() => { });
+        start().catch(() => showLogin());
     </script>
 </body>
 

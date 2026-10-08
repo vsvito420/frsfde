@@ -251,7 +251,7 @@ async function book(request, env, ctx) {
     await env.DB.prepare('DELETE FROM bookings WHERE date < ?').bind(addDays(nowInBerlin().date, -30)).run();
 
     try {
-        await env.DB.prepare('INSERT INTO bookings (date, time, name, phone, email, service) VALUES (?, ?, ?, ?, ?, ?)')
+        await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, seen, source) VALUES (?, ?, ?, ?, ?, ?, 0, 'website')")
             .bind(date, time, name, phone, email || null, service).run();
     } catch (error) {
         if (String(error).includes('UNIQUE')) {
@@ -297,6 +297,7 @@ async function adminBookings(url, env) {
     // visits = bisherige Besuche (Status "erschienen") mit derselben Telefonnummer, für die Treuekarte
     const { results } = await env.DB.prepare(`
         SELECT b.id, b.date, b.time, b.name, b.phone, b.email, b.service, b.blocked, b.status, b.note,
+            b.seen, b.source, b.created_at,
             (SELECT count(*) FROM bookings v WHERE v.phone = b.phone AND v.status = 'erschienen' AND v.blocked = 0) AS visits
         FROM bookings b WHERE b.date >= ? AND b.date <= ? ORDER BY b.date, b.time
     `).bind(from, to).all();
@@ -316,6 +317,7 @@ async function adminUpdate(request, env) {
     for (const key of ['date', 'time', 'name', 'phone', 'email', 'service', 'status', 'note']) {
         if (body[key] !== undefined) next[key] = body[key] === null ? null : String(body[key]).trim();
     }
+    if (body.seen !== undefined) next.seen = body.seen ? 1 : 0;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(next.date) || !slotsForDate(next.date).includes(next.time)) {
         return json({ error: 'Zu dieser Zeit ist geöffnet nicht möglich.' }, 400);
     }
@@ -328,9 +330,9 @@ async function adminUpdate(request, env) {
 
     try {
         await env.DB.prepare(
-            'UPDATE bookings SET date = ?, time = ?, name = ?, phone = ?, email = ?, service = ?, status = ?, note = ? WHERE id = ?'
+            'UPDATE bookings SET date = ?, time = ?, name = ?, phone = ?, email = ?, service = ?, status = ?, note = ?, seen = ? WHERE id = ?'
         ).bind(next.date, next.time, next.name.slice(0, 80), next.phone.slice(0, 30), next.email ? next.email.slice(0, 120) : null,
-            next.service.slice(0, 80), next.status, next.note ? next.note.slice(0, 500) : null, current.id).run();
+            next.service.slice(0, 80), next.status, next.note ? next.note.slice(0, 500) : null, next.seen, current.id).run();
     } catch (error) {
         if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit ist schon ein Termin.' }, 409);
         throw error;
@@ -355,7 +357,7 @@ async function adminCreate(request, env) {
     if (email && !EMAIL_PATTERN.test(email)) return json({ error: 'Ungültige E-Mail-Adresse.' }, 400);
 
     try {
-        await env.DB.prepare('INSERT INTO bookings (date, time, name, phone, email, service, note) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, note, seen, source) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'team')")
             .bind(date, time, name, phone || '-', email || null, service, note || null).run();
     } catch (error) {
         if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit ist schon ein Termin.' }, 409);
@@ -448,7 +450,7 @@ async function adminBlock(request, env) {
         return json({ error: 'Ungültiges Datum oder Uhrzeit.' }, 400);
     }
     const insert = env.DB.prepare(
-        "INSERT OR IGNORE INTO bookings (date, time, name, phone, service, blocked) VALUES (?, ?, 'Blockiert', '-', 'Blockiert', 1)"
+        "INSERT OR IGNORE INTO bookings (date, time, name, phone, service, blocked, source) VALUES (?, ?, 'Blockiert', '-', 'Blockiert', 1, 'team')"
     );
     await env.DB.batch(validTimes.map(t => insert.bind(date, t)));
     return json({ ok: true });
