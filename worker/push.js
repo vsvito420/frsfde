@@ -60,10 +60,15 @@ async function vapidHeader(endpoint, env) {
     return `vapid t=${header}.${claims}.${base64UrlEncode(signature)}, k=${env.VAPID_PUBLIC_KEY}`;
 }
 
-// Schickt eine Nachricht an alle registrierten Admin-Geräte; abgelaufene Abos werden entfernt
-export async function notifyAdmins(env, message) {
+// Schickt eine Nachricht an registrierte Team-Geräte; abgelaufene Abos werden entfernt
+// usernames: nur an diese Personen schicken (null = an alle)
+export async function notifyAdmins(env, message, usernames = null) {
     if (!env.VAPID_PRIVATE_JWK || !env.VAPID_PUBLIC_KEY) return { sent: 0, failed: 0 };
-    const { results } = await env.DB.prepare('SELECT endpoint, p256dh, auth FROM push_subscriptions').all();
+    let { results } = await env.DB.prepare('SELECT endpoint, p256dh, auth, user FROM push_subscriptions').all();
+    if (usernames) {
+        const wanted = new Set(usernames.map(u => String(u).toLowerCase()));
+        results = results.filter(r => wanted.has(String(r.user || '').toLowerCase()));
+    }
     let sent = 0;
     let failed = 0;
 

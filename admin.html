@@ -64,6 +64,32 @@
             color-scheme: light;
         }
 
+        /* Ruhig: gedämpftes Blau-Grau, weder hell noch dunkel */
+        :root[data-theme="calm"] {
+            --p-bg: #3b4250;
+            --p-bg2: #343a47;
+            --p-card: #464e5d;
+            --p-card2: #505969;
+            --p-ink: #f1ede6;
+            --p-muted: #bfc5cf;
+            --p-line: rgba(241, 237, 230, 0.14);
+            --p-hover: rgba(241, 237, 230, 0.08);
+            --p-acc: #e0574f;
+            --p-acc-bg: rgba(224, 87, 79, 0.22);
+            --p-ok: #7fd1a0;
+            --p-ok-bg: rgba(127, 209, 160, 0.18);
+            --p-warn: #f2b867;
+            --p-warn-bg: rgba(242, 184, 103, 0.18);
+            --p-off: #9aa1ad;
+            --p-gold: #f0c77a;
+            --p-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+            --bg-color: #3b4250;
+            --surface-color: #464e5d;
+            --text-main: #f1ede6;
+            --text-muted: #bfc5cf;
+            color-scheme: dark;
+        }
+
         @media (prefers-color-scheme: light) {
             :root[data-theme="auto"] {
                 --p-bg: #f4f4f5;
@@ -1503,6 +1529,12 @@
             }
         }
 
+        @media (min-width: 1024px) {
+            .more-links {
+                display: none;
+            }
+        }
+
         @media (max-width: 1023px) {
             .ov-side .minis > :nth-child(2) {
                 display: none;
@@ -1637,6 +1669,128 @@
         .filter-toggle {
             display: none !important;
         }
+
+        .brand h1 {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .staff-switch {
+                max-width: 110px;
+            }
+
+            .top-inner {
+                gap: 8px;
+                padding: 10px 12px;
+            }
+        }
+
+        .staff-switch {
+            width: auto;
+            min-height: 40px;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .check input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--p-acc);
+        }
+
+        .more-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .team-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .person {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 10px;
+            background: var(--p-card2);
+            border: 1px solid var(--p-line);
+        }
+
+        .person.inactive {
+            opacity: 0.5;
+        }
+
+        .avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            color: #fff;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .person .who {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .person .who small {
+            color: var(--p-muted);
+        }
+
+        .person .acts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .staff-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: var(--p-muted);
+            white-space: nowrap;
+        }
+
+        .staff-tag i {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .slot-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 2px;
+            height: 100%;
+        }
+
+        .week .slot-stack .ev {
+            position: static;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .week .wc.free.busy {
+            background: var(--p-card);
+        }
     </style>
 </head>
 
@@ -1654,6 +1808,20 @@
         </div>
     </section>
 
+    <!-- PASSWORT SETZEN (Einladungslink) -->
+    <section class="wrap login" id="setup-box" hidden>
+        <div class="box">
+            <h1 style="font-size:2rem;">Willkommen <span style="color:var(--p-acc);" id="setup-name"></span></h1>
+            <p class="muted" id="setup-sub" style="margin-top:6px;"></p>
+            <form id="setup-form" style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
+                <input class="field" type="password" id="setup-pw" placeholder="Neues Passwort (mind. 8 Zeichen)" autocomplete="new-password" minlength="8" required>
+                <input class="field" type="password" id="setup-pw2" placeholder="Passwort wiederholen" autocomplete="new-password" minlength="8" required>
+                <button class="b primary big" type="submit">Passwort speichern & anmelden</button>
+                <p class="err" id="setup-msg"></p>
+            </form>
+        </div>
+    </section>
+
     <div id="app" hidden>
         <!-- KOPFLEISTE -->
         <header class="top">
@@ -1666,11 +1834,13 @@
                     <button data-view="overview">Übersicht <span class="badge" data-newcount hidden></span></button>
                     <button data-view="calendar">Kalender</button>
                     <button data-view="list">Liste</button>
-                    <button data-view="gallery">Galerie</button>
+                    <button data-view="gallery" data-admin>Galerie</button>
+                    <button data-view="team" data-admin>Team</button>
                 </div>
                 <div class="top-actions">
+                    <select class="field staff-switch" id="staff-switch" title="Friseur" hidden></select>
                     <button class="b icon" id="btn-refresh" title="Aktualisieren">↻</button>
-                    <button class="b icon" id="btn-theme" title="Hell / Dunkel / Auto">🌓</button>
+                    <button class="b icon" id="btn-theme" title="Darstellung: Auto / Ruhig / Hell / Dunkel">🌓</button>
                     <button class="b icon" id="btn-bell" title="Benachrichtigungen">🔔</button>
                     <button class="b icon desk" id="btn-help" title="Tastenkürzel (?)">?</button>
                     <button class="b primary desk" id="btn-new">+ Termin</button>
@@ -1776,6 +1946,20 @@
                     </div>
                 </div>
             </section>
+            <!-- TEAM (nur Admin) -->
+            <section data-panel="team" hidden>
+                <div class="box">
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+                        <h3 style="margin:0;">Team</h3>
+                        <button class="b primary" id="team-add">+ Person</button>
+                    </div>
+                    <p class="muted" style="margin:6px 0 14px; font-size:0.88rem;">
+                        <b>Admin</b>: alles, inkl. Team und Galerie · <b>Friseur</b>: Termine und eigenes Konto ·
+                        „Nimmt Termine an“: erscheint im Kalender und Kunden können ihn wählen.
+                    </p>
+                    <div class="team-list" id="team-list"></div>
+                </div>
+            </section>
         </main>
 
         <!-- HANDY-NAVIGATION -->
@@ -1783,8 +1967,8 @@
             <button data-view="overview"><span>🏠</span>Übersicht<i class="badge" data-newcount hidden></i></button>
             <button data-view="calendar"><span>📆</span>Kalender</button>
             <button class="plus" id="nav-new"><span>+</span>Neu</button>
-            <button data-view="list"><span>☰</span>Liste</button>
-            <button data-view="gallery"><span>🖼</span>Galerie</button>
+            <button data-view="list"><span>📋</span>Liste</button>
+            <button id="nav-more"><span>☰</span>Mehr</button>
         </div>
     </div>
 
@@ -1819,6 +2003,10 @@
                         <button type="button" class="b icon" id="n-next">›</button>
                     </div>
                     <p class="muted" id="n-daytext" style="text-align:center; margin-top:6px;"></p>
+                </div>
+                <div id="n-staff-box" hidden>
+                    <div class="label">Friseur</div>
+                    <div class="chips" id="n-staff"></div>
                 </div>
                 <div data-new="termin">
                     <div class="label">Uhrzeit</div>
@@ -1865,6 +2053,44 @@
         </form>
     </dialog>
 
+    <!-- PERSON BEARBEITEN -->
+    <dialog class="pop" id="person">
+        <form class="pop-body" id="person-form">
+            <h3 class="h3" style="margin:0;" id="person-title">Person</h3>
+            <input class="field" id="pf-name" placeholder="Name (z. B. Ali)" required>
+            <input class="field" id="pf-username" placeholder="Benutzername (z. B. ali)" autocapitalize="none" autocomplete="off" required>
+            <div>
+                <div class="label">Rolle</div>
+                <div class="seg" id="pf-role">
+                    <button type="button" data-role="friseur">Friseur</button>
+                    <button type="button" data-role="admin">Admin</button>
+                </div>
+            </div>
+            <label class="check"><input type="checkbox" id="pf-bookable"> Nimmt Termine an</label>
+            <label class="check" id="pf-active-row"><input type="checkbox" id="pf-active"> Aktiv (kann sich anmelden)</label>
+            <p class="err" id="pf-error"></p>
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="b" data-close>Abbrechen</button>
+                <button type="submit" class="b primary">Speichern</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="pop" id="invite">
+        <div class="pop-body">
+            <h3 class="h3" style="margin:0;">Link zum Passwort setzen</h3>
+            <p id="inv-text"></p>
+            <input class="field" id="inv-link" readonly>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <button class="b primary" id="inv-copy">📋 Link kopieren</button>
+                <a class="b" id="inv-wa" target="_blank" rel="noopener">💬 Per WhatsApp schicken</a>
+                <button class="b" id="inv-share" hidden>Teilen …</button>
+            </div>
+            <p class="muted" style="font-size:0.82rem;">Der Link gilt 7 Tage und funktioniert nur einmal. Ein neuer Link macht den alten ungültig.</p>
+            <button class="b" data-close>Fertig</button>
+        </div>
+    </dialog>
+
     <!-- HILFE -->
     <dialog class="pop" id="help">
         <div class="pop-body">
@@ -1886,11 +2112,32 @@
     <!-- BENACHRICHTIGUNGEN -->
     <dialog class="pop" id="bell">
         <div class="pop-body">
-            <h3 class="h3" style="margin:0;" id="push-title">🔔 Benachrichtigungen</h3>
+            <h3 class="h3" style="margin:0;">Konto</h3>
+            <div class="label" style="margin:0;" id="push-title">🔔 Benachrichtigungen</div>
             <p class="muted" id="push-text"></p>
             <div style="display:flex; flex-wrap:wrap; gap:8px;" id="push-actions"></div>
             <hr style="border:none; border-top:1px solid var(--p-line);">
-            <p class="muted" style="font-size:0.85rem;">Angemeldet als <b id="admin-user"></b></p>
+            <div class="more-links" id="more-links">
+                <button class="b" data-view="gallery" data-admin>🖼 Galerie</button>
+                <button class="b" data-view="team" data-admin>👥 Team</button>
+            </div>
+            <div>
+                <div class="label">Darstellung</div>
+                <div class="seg" style="display:flex;">
+                    <button type="button" data-theme-pick="auto">Auto</button>
+                    <button type="button" data-theme-pick="calm">Ruhig</button>
+                    <button type="button" data-theme-pick="light">Hell</button>
+                    <button type="button" data-theme-pick="dark">Dunkel</button>
+                </div>
+            </div>
+            <form id="pw-form" style="display:flex; flex-direction:column; gap:8px;">
+                <div class="label" style="margin:0;">Passwort ändern</div>
+                <input class="field" type="password" id="pw-current" placeholder="Aktuelles Passwort" autocomplete="current-password" required>
+                <input class="field" type="password" id="pw-next" placeholder="Neues Passwort (mind. 8 Zeichen)" autocomplete="new-password" minlength="8" required>
+                <button class="b" type="submit">Passwort speichern</button>
+                <p class="err" id="pw-msg"></p>
+            </form>
+            <p class="muted" style="font-size:0.85rem;">Angemeldet als <b id="admin-user"></b> · <span id="admin-role"></span></p>
             <button class="b" id="logout">Abmelden</button>
             <button class="b" data-close>Schließen</button>
         </div>
@@ -2039,11 +2286,33 @@
             miniMonth: todayISO().slice(0, 8) + '01',
             bookings: [],
             services: [],
+            staff: [],          // Friseure, die Termine annehmen
+            me: null,
+            staffFilter: store.get('ff-staff', ''),
             filter: { q: '', range: 'upcoming', status: new Set(), service: '' }
         };
 
         const byId = id => S.bookings.find(b => b.id === id);
-        const onDay = s => S.bookings.filter(b => b.date === s).sort((a, b) => a.time.localeCompare(b.time));
+        const STAFF_COLORS = ['#d30000', '#2d7ff9', '#20a464', '#c27a00', '#8e44ad', '#16a085', '#e67e22'];
+        const multiStaff = () => S.staff.length > 1;
+        const staffById = id => S.staff.find(s => s.id === id);
+        const staffColor = id => STAFF_COLORS[Math.max(0, S.staff.findIndex(s => s.id === id)) % STAFF_COLORS.length];
+        const staffName = id => staffById(id)?.name || '';
+        const staffTag = b => multiStaff() && b.staff_id ? `<span class="staff-tag"><i style="background:${staffColor(b.staff_id)}"></i>${esc(staffName(b.staff_id))}</span>` : '';
+        // Gezeigte Friseure: alle oder der gewählte
+        const scopeIds = () => S.staffFilter && S.staffFilter !== 'all' && staffById(Number(S.staffFilter)) ? [Number(S.staffFilter)] : S.staff.map(s => s.id);
+        const inScope = b => !multiStaff() || S.staffFilter === 'all' || !S.staffFilter || b.staff_id === Number(S.staffFilter) || b.staff_id == null;
+        const onDay = s => S.bookings.filter(b => b.date === s && inScope(b)).sort((a, b) => a.time.localeCompare(b.time));
+        const slotItems = (s, t) => onDay(s).filter(b => b.time === t && b.status !== 'abgesagt');
+
+        // Friseure, die zu der Zeit frei sind (im gewählten Bereich)
+        function freeStaffAt(s, t, ignoreId = null) {
+            const ids = scopeIds();
+            if (!ids.length) return S.bookings.some(b => b.date === s && b.time === t && b.status !== 'abgesagt' && b.id !== ignoreId) ? [] : [null];
+            const busy = new Set(S.bookings.filter(b => b.date === s && b.time === t && b.status !== 'abgesagt' && b.id !== ignoreId).map(b => b.staff_id));
+            return ids.filter(id => !busy.has(id));
+        }
+        const capacity = () => Math.max(1, scopeIds().length);
 
         // Benötigter Zeitraum: alles was Übersicht, Kalender und Liste gerade zeigen
         function neededRange() {
@@ -2064,9 +2333,20 @@
             const data = await api(`/api/admin/bookings?from=${from}&to=${to}`);
             S.bookings = data.bookings;
             S.services = data.services;
+            S.staff = data.staff || [];
+            renderStaffSwitch();
             const d = new Date();
             $('stand').textContent = `Stand ${pad(d.getHours())}:${pad(d.getMinutes())}`;
             render();
+        }
+
+        function renderStaffSwitch() {
+            const sel = $('staff-switch');
+            sel.hidden = !multiStaff();
+            if (!multiStaff()) return;
+            if (!S.staffFilter) S.staffFilter = S.me?.bookable && S.me.role === 'friseur' ? String(S.me.id) : 'all';
+            sel.innerHTML = '<option value="all">Alle Friseure</option>' + S.staff.map(st => `<option value="${st.id}">${esc(st.name)}${S.me?.id === st.id ? ' (ich)' : ''}</option>`).join('');
+            sel.value = S.staffFilter;
         }
 
         async function refresh() {
@@ -2078,18 +2358,23 @@
         }
 
         // ================= ANSICHTEN =================
+        const isAdmin = () => S.me?.role === 'admin';
+
         function setView(v) {
+            if ((v === 'gallery' || v === 'team') && !isAdmin()) v = 'overview';
+            document.querySelectorAll('dialog[open]').forEach(d => d.close());
             S.view = v;
             store.set('ff-view', v);
             document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== v);
             document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
             if (v === 'gallery') loadGallery().catch(() => { });
+            if (v === 'team') loadTeam().catch(() => { });
             render();
             window.scrollTo({ top: 0 });
         }
 
         function render() {
-            const n = S.bookings.filter(b => isNew(b) && b.date >= todayISO()).length;
+            const n = S.bookings.filter(b => inScope(b) && isNew(b) && b.date >= todayISO()).length;
             document.querySelectorAll('[data-newcount]').forEach(el => { el.hidden = !n; el.textContent = n; });
             document.title = `${n ? `(${n}) ` : ''}Termine | Fresh Fade`;
             if (S.view === 'overview') renderOverview();
@@ -2101,10 +2386,11 @@
         function renderOverview() {
             const t = todayISO();
             const sat = addDays(mondayOf(t), 5);
-            const upcoming = S.bookings.filter(b => isActive(b) && (b.date > t || (b.date === t && toMin(b.time) + SLOT_MINUTES > nowMin())));
-            $('st-new').textContent = S.bookings.filter(b => isNew(b) && b.date >= t).length;
-            $('st-today').textContent = S.bookings.filter(b => isActive(b) && b.date === t).length;
-            $('st-week').textContent = S.bookings.filter(b => isActive(b) && b.date >= t && b.date <= sat).length;
+            const upcoming = S.bookings.filter(b => inScope(b) && isActive(b) && (b.date > t || (b.date === t && toMin(b.time) + SLOT_MINUTES > nowMin())));
+            const mine = S.bookings.filter(inScope);
+            $('st-new').textContent = mine.filter(b => isNew(b) && b.date >= t).length;
+            $('st-today').textContent = mine.filter(b => isActive(b) && b.date === t).length;
+            $('st-week').textContent = mine.filter(b => isActive(b) && b.date >= t && b.date <= sat).length;
 
             const minis = $('ov-minis');
             minis.innerHTML = miniMonth(S.miniMonth, true) + miniMonth(addDays(S.miniMonth, 32).slice(0, 8) + '01', false);
@@ -2134,6 +2420,7 @@
                     <div class="card-head">
                         ${isNew(b) ? '<span class="dot"></span>' : ''}
                         <span class="name">${esc(b.name)}</span>
+                        ${staffTag(b)}
                         ${b.source === 'team' ? '<span class="chip">Team</span>' : ''}
                         ${b.visits ? `<span class="chip gold">${visits}/${LOYALTY_VISITS}</span>` : ''}
                         <span class="in">${eingang(b)}</span>
@@ -2163,7 +2450,7 @@
                         nowShown = true;
                     }
                     html += `<div class="agenda-item ${b.status}${isRunning(b) ? ' running' : ''}" data-open="${b.id}">
-                        <time>${b.time}</time><span>${isNew(b) ? '<span class="dot"></span> ' : ''}${esc(b.name)} <span class="muted">· ${esc(b.service)}</span></span></div>`;
+                        <time>${b.time}</time><span>${isNew(b) ? '<span class="dot"></span> ' : ''}${esc(b.name)} <span class="muted">· ${esc(b.service)}</span> ${staffTag(b)}</span></div>`;
                     if (isRunning(b)) nowShown = true;
                 }
                 if (d === todayISO() && !nowShown && insideOpening(d)) {
@@ -2235,11 +2522,13 @@
             let html = '<div class="day-rows">';
             for (const time of slotsFor(s)) {
                 const from = toMin(time);
-                const b = items.find(x => x.time === time);
+                const here = items.filter(x => x.time === time);
                 const past = s < todayISO() || (s === todayISO() && from + SLOT_MINUTES <= nowMin());
-                html += `<div class="day-row${past && !b ? ' past' : ''}">
+                const free = freeStaffAt(s, time);
+                const freeLabel = multiStaff() && scopeIds().length > 1 ? `+ frei (${free.map(staffName).join(', ')})` : '+ frei';
+                html += `<div class="day-row${past && !here.length ? ' past' : ''}">
                     <div class="day-time"><b>${time}</b>–${toTime(from + SLOT_MINUTES)}</div>
-                    <div class="day-slot">${b ? ev(b) : (past ? '' : `<button class="free-btn" data-new="${s}|${time}">+ frei</button>`)}</div>
+                    <div class="day-slot">${here.map(b => ev(b)).join('')}${!past && free.length ? `<button class="free-btn" data-new="${s}|${time}">${freeLabel}</button>` : ''}</div>
                     ${nowLineIn(s, from, from + SLOT_MINUTES)}
                 </div>`;
             }
@@ -2252,9 +2541,10 @@
         }
 
         function ev(b, draggable = false) {
-            if (b.blocked) return `<div class="ev blocked" data-open="${b.id}" ${draggable ? 'draggable="true"' : ''}><b>Pause</b></div>`;
-            return `<div class="ev ${b.status}${isNew(b) ? ' neu' : ''}" data-open="${b.id}" ${draggable && !isPast(b) ? 'draggable="true"' : ''} title="${esc(b.name)} · ${esc(b.service)}">
-                <b>${esc(b.name)}</b><span>${esc(b.service)}</span></div>`;
+            if (b.blocked) return `<div class="ev blocked" data-open="${b.id}" ${draggable ? 'draggable="true"' : ''}><b>Pause</b>${multiStaff() && scopeIds().length > 1 ? `<span>${esc(staffName(b.staff_id))}</span>` : ''}</div>`;
+            const color = multiStaff() && b.staff_id ? `style="border-left-color:${staffColor(b.staff_id)}"` : '';
+            return `<div class="ev ${b.status}${isNew(b) ? ' neu' : ''}" data-open="${b.id}" ${color} ${draggable && !isPast(b) ? 'draggable="true"' : ''} title="${esc(b.name)} · ${esc(b.service)}${multiStaff() ? ' · ' + esc(staffName(b.staff_id)) : ''}">
+                <b>${esc(b.name)}</b><span>${esc(b.service)}${multiStaff() && scopeIds().length > 1 ? ' · ' + esc(staffName(b.staff_id)) : ''}</span></div>`;
         }
 
         function weekGrid(mon) {
@@ -2266,11 +2556,12 @@
                 const from = toMin(time);
                 html += `<div class="wt">${time}</div>`;
                 for (const d of days) {
-                    const b = onDay(d).find(x => x.time === time && x.status !== 'abgesagt');
+                    const here = slotItems(d, time);
                     const past = d < todayISO() || (d === todayISO() && from + SLOT_MINUTES <= nowMin());
                     const line = nowLineIn(d, from, from + SLOT_MINUTES);
-                    if (b) html += `<div class="wc" data-date="${d}" data-time="${time}">${ev(b, true)}${line}</div>`;
-                    else if (!slotsFor(d).includes(time)) html += '<div class="wc closed"></div>';
+                    const free = !past && freeStaffAt(d, time).length > 0;
+                    if (!slotsFor(d).includes(time)) html += '<div class="wc closed"></div>';
+                    else if (here.length) html += `<div class="wc${free ? ' free busy' : ''}" data-date="${d}" data-time="${time}" ${free ? `data-new="${d}|${time}"` : ''}><div class="slot-stack">${here.map(b => ev(b, true)).join('')}</div>${line}</div>`;
                     else html += `<div class="wc ${past ? 'past' : 'free'}" data-date="${d}" data-time="${time}" ${past ? '' : `data-new="${d}|${time}"`}>${line}</div>`;
                 }
             }
@@ -2282,13 +2573,14 @@
             for (let i = 0; i < 6; i++) {
                 const d = addDays(mon, i);
                 const items = onDay(d).filter(b => b.status !== 'abgesagt');
-                const free = slotsFor(d).filter(t => !items.some(b => b.time === t) && !(d === todayISO() && toMin(t) + SLOT_MINUTES <= nowMin()) && d >= todayISO()).length;
+                const free = d < todayISO() ? 0 : slotsFor(d).filter(t => !(d === todayISO() && toMin(t) + SLOT_MINUTES <= nowMin()))
+                    .reduce((sum, t) => sum + freeStaffAt(d, t).length, 0);
                 html += `<div class="wlist-day"><div class="wlist-head${d === todayISO() ? ' today' : ''}" data-day="${d}">
                     <span>${fmtShort(d)}</span><span class="muted" style="font-weight:400;">${d < todayISO() ? `${items.filter(b => !b.blocked).length} Termine` : `${free} frei`} ›</span></div>`;
                 let nowShown = false;
                 for (const b of items) {
                     if (d === todayISO() && !nowShown && toMin(b.time) >= nowMin()) { html += nowSep(); nowShown = true; }
-                    html += `<div class="agenda-item ${b.status}${isRunning(b) ? ' running' : ''}" data-open="${b.id}"><time>${b.time}</time><span>${b.blocked ? 'Pause' : esc(b.name) + ` <span class="muted">· ${esc(b.service)}</span>`}</span></div>`;
+                    html += `<div class="agenda-item ${b.status}${isRunning(b) ? ' running' : ''}" data-open="${b.id}"><time>${b.time}</time><span>${b.blocked ? 'Pause' : esc(b.name) + ` <span class="muted">· ${esc(b.service)}</span>`} ${staffTag(b)}</span></div>`;
                 }
                 html += '</div>';
             }
@@ -2310,7 +2602,7 @@
                 const booked = items.filter(isActive);
                 const neu = booked.filter(isNew).length;
                 const taken = items.filter(b => b.status !== 'abgesagt').length;
-                const total = slotsFor(d).length;
+                const total = slotsFor(d).length * capacity();
                 html += `<div class="md${other ? ' other' : ''}${d === t ? ' today' : ''}" data-day="${d}">
                     <b>${parse(d).getDate()}</b>
                     ${booked.length ? `<span class="chip ok">${booked.length}<span class="mtxt">&nbsp;Termine</span></span>` : ''}
@@ -2351,7 +2643,7 @@
             const q = f.q.trim().toLowerCase();
             const compact = v => v.replace(/\s/g, '');
             return S.bookings.filter(b => {
-                if (b.blocked) return false;
+                if (b.blocked || !inScope(b)) return false;
                 if (f.range === 'upcoming' && b.date < t) return false;
                 if (f.range === 'today' && b.date !== t) return false;
                 if (f.range === 'week' && (b.date < mon || b.date > addDays(mon, 6))) return false;
@@ -2389,7 +2681,7 @@
                 const st = STATUS[b.status];
                 rows += `<tr class="row ${b.status}${isNew(b) ? ' neu' : ''}" data-open="${b.id}">
                     <td><b>${relDay(b.date)}</b> ${b.time}<br><small class="muted">${fmtShort(b.date)}</small></td>
-                    <td class="name">${isNew(b) ? '<span class="dot"></span> ' : ''}${esc(b.name)} ${b.visits ? `<span class="chip gold">${b.visits % LOYALTY_VISITS}/${LOYALTY_VISITS}</span>` : ''}</td>
+                    <td class="name">${isNew(b) ? '<span class="dot"></span> ' : ''}${esc(b.name)} ${b.visits ? `<span class="chip gold">${b.visits % LOYALTY_VISITS}/${LOYALTY_VISITS}</span>` : ''}<br>${staffTag(b)}</td>
                     <td>${esc(b.service)}${b.note ? `<br><small class="muted">${esc(b.note)}</small>` : ''}</td>
                     <td>${hasPhone(b) ? `<a href="tel:${esc(b.phone)}" data-stop style="color:inherit;">${esc(b.phone)}</a>` : ''}${b.email ? `<br><small class="muted">${esc(b.email)}</small>` : ''}</td>
                     <td><span class="chip ${st.cls}">${st.label}</span></td>
@@ -2448,13 +2740,14 @@
                         <div class="tb-when">${relDay(b.date)}<br>${b.time}–${toTime(toMin(b.time) + SLOT_MINUTES)} Uhr</div>
                         ${b.blocked ? '<span class="chip">Pause</span>' : `<span class="chip ${st.cls}">${st.label}</span>`}
                     </div>
-                    <div class="muted" style="margin-top:4px;">${fmtLong(b.date)}</div>
+                    <div class="muted" style="margin-top:4px;">${fmtLong(b.date)}${multiStaff() && b.staff_id ? ` · bei <b style="color:var(--p-ink)">${esc(staffName(b.staff_id))}</b>` : ''}</div>
                     <div class="row-btns">${actions}<button class="b big" id="d-move-toggle">↔ Verschieben</button></div>
                     <div id="d-move" hidden style="margin-top:12px;">
                         <div class="grid2">
                             <input class="field" type="date" id="d-date" value="${b.date}">
                             <select class="field" id="d-time"></select>
                         </div>
+                        ${multiStaff() ? `<select class="field" id="d-staff" style="margin-top:8px;">${S.staff.map(st => `<option value="${st.id}" ${st.id === b.staff_id ? 'selected' : ''}>bei ${esc(st.name)}</option>`).join('')}</select>` : ''}
                         <button class="b primary big" id="d-move-save" style="width:100%; margin-top:8px;">Verschieben</button>
                     </div>
                 </div>
@@ -2493,11 +2786,12 @@
                     Automatische Löschung: ${deleteOn}<br>
                     <button class="danger" id="d-delete">${b.blocked ? 'Pause entfernen' : 'Termin endgültig löschen'}</button>
                 </div>`;
-            fillTimes($('d-time'), b.date, b.time, b.id);
+            fillTimes($('d-time'), b.date, b.time, b.id, b.staff_id);
         }
 
-        function fillTimes(select, s, selected, ignoreId) {
-            const taken = new Set(onDay(s).filter(b => b.status !== 'abgesagt' && b.id !== ignoreId).map(b => b.time));
+        // Belegte Zeiten eines Friseurs (staffId) an einem Tag
+        function fillTimes(select, s, selected, ignoreId, staffId) {
+            const taken = new Set(S.bookings.filter(b => b.date === s && b.status !== 'abgesagt' && b.id !== ignoreId && (!multiStaff() || b.staff_id === staffId)).map(b => b.time));
             const times = slotsFor(s);
             select.innerHTML = times.length ? times.map(t => `<option ${t === selected ? 'selected' : ''} ${taken.has(t) ? 'disabled' : ''}>${t}${taken.has(t) ? ' – belegt' : ''}</option>`).join('') : '<option value="">Geschlossen</option>';
         }
@@ -2530,9 +2824,10 @@
             if (t.id === 'd-move-save') {
                 const date = $('d-date').value;
                 const time = $('d-time').value;
+                const staffId = $('d-staff') ? Number($('d-staff').value) : b.staff_id;
                 if (!time) return toast('An diesem Tag geschlossen');
                 try {
-                    await post('/api/admin/update', { id: b.id, date, time });
+                    await post('/api/admin/update', { id: b.id, date, time, staff_id: staffId });
                     toast(`Verschoben auf ${fmtShort(date)} ${time}`);
                     await load();
                     renderDetail();
@@ -2559,7 +2854,9 @@
         });
 
         $('d-body').addEventListener('change', e => {
-            if (e.target.id === 'd-date') fillTimes($('d-time'), e.target.value, '', detailId);
+            const b = byId(detailId);
+            const staffId = $('d-staff') ? Number($('d-staff').value) : b?.staff_id;
+            if (e.target.id === 'd-date' || e.target.id === 'd-staff') fillTimes($('d-time'), $('d-date').value, $('d-time').value, detailId, staffId);
         });
 
         // Notiz speichert 700 ms nach der letzten Eingabe
@@ -2583,13 +2880,17 @@
         });
 
         // ================= NEUER TERMIN =================
-        const N = { date: '', time: '', service: '', mode: 'termin' };
+        const N = { date: '', time: '', service: '', mode: 'termin', staff: null };
 
         function openNew(date, time) {
             N.mode = 'termin';
             N.date = date && isOpen(date) ? date : (isOpen(todayISO()) ? todayISO() : nextOpen(todayISO(), 1));
             N.time = time || '';
             N.service = S.services[0] || '';
+            const ids = scopeIds();
+            const free = date && time ? freeStaffAt(date, time) : [];
+            N.staff = free[0] ?? (S.me?.bookable && ids.includes(S.me.id) ? S.me.id : ids[0] ?? null);
+            N.pauseStaff = S.staffFilter && S.staffFilter !== 'all' ? Number(S.staffFilter) : 'all';
             for (const id of ['n-name', 'n-phone', 'n-email', 'n-note']) $(id).value = '';
             $('n-error').textContent = '';
             renderNew();
@@ -2602,7 +2903,11 @@
             document.querySelectorAll('[data-new]').forEach(el => { if (el.tagName === 'DIV' && el.closest('#newsheet')) el.hidden = el.dataset.new !== N.mode; });
             $('n-date').value = N.date;
             $('n-daytext').textContent = isOpen(N.date) ? fmtLong(N.date) : `${fmtLong(N.date)} – geschlossen`;
-            const taken = new Set(onDay(N.date).filter(b => b.status !== 'abgesagt').map(b => b.time));
+            const taken = new Set(S.bookings.filter(b => b.date === N.date && b.status !== 'abgesagt' && (!multiStaff() || b.staff_id === N.staff)).map(b => b.time));
+            $('n-staff-box').hidden = !multiStaff();
+            $('n-staff').innerHTML = N.mode === 'pause'
+                ? `<button type="button" class="${N.pauseStaff === 'all' ? 'on' : ''}" data-nstaff="all">Alle</button>` + S.staff.map(st => `<button type="button" class="${N.pauseStaff === st.id ? 'on' : ''}" data-nstaff="${st.id}">${esc(st.name)}</button>`).join('')
+                : S.staff.map(st => `<button type="button" class="${N.staff === st.id ? 'on' : ''}" data-nstaff="${st.id}">${esc(st.name)}</button>`).join('');
             const pastLimit = N.date === todayISO() ? nowMin() : -1;
             $('n-times').innerHTML = slotsFor(N.date).map(t => {
                 const full = taken.has(t) || toMin(t) + SLOT_MINUTES <= pastLimit;
@@ -2610,7 +2915,7 @@
             }).join('') || '<p class="muted">Geschlossen</p>';
             $('n-services').innerHTML = S.services.map(s => `<button type="button" class="${s === N.service ? 'on' : ''}" data-service="${esc(s)}">${esc(s)}</button>`).join('');
             if (N.mode === 'termin') {
-                $('n-summary').textContent = N.time ? `${fmtShort(N.date)} · ${N.time} Uhr` : 'Uhrzeit wählen';
+                $('n-summary').textContent = N.time ? `${fmtShort(N.date)} · ${N.time} Uhr${multiStaff() ? ` · ${staffName(N.staff)}` : ''}` : 'Uhrzeit wählen';
                 $('n-summary2').textContent = [$('n-name').value, N.service].filter(Boolean).join(' · ');
                 $('n-submit').textContent = 'Termin eintragen';
             } else {
@@ -2633,6 +2938,17 @@
             const b = e.target.closest('[data-time]');
             if (!b || b.disabled) return;
             N.time = b.dataset.time;
+            renderNew();
+        });
+        $('n-staff').addEventListener('click', e => {
+            const b = e.target.closest('[data-nstaff]');
+            if (!b) return;
+            const v = b.dataset.nstaff === 'all' ? 'all' : Number(b.dataset.nstaff);
+            if (N.mode === 'pause') N.pauseStaff = v;
+            else {
+                N.staff = v;
+                if (N.time && !freeStaffAt(N.date, N.time).includes(v)) N.time = '';
+            }
             renderNew();
         });
         $('n-services').addEventListener('click', e => {
@@ -2662,14 +2978,14 @@
                     const to = toMin($('p-to').value);
                     const times = slotsFor(N.date).filter(t => toMin(t) + SLOT_MINUTES > from && toMin(t) < to);
                     if (!times.length) throw new Error('Kein Zeitraum innerhalb der Öffnungszeit.');
-                    await post('/api/admin/block', { date: N.date, times });
+                    await post('/api/admin/block', { date: N.date, times, staff_id: N.pauseStaff });
                     toast('Blockiert');
                 } else {
                     if (!N.time) throw new Error('Bitte eine Uhrzeit wählen.');
                     if ($('n-name').value.trim().length < 2) throw new Error('Bitte einen Namen eingeben.');
                     await post('/api/admin/create', {
                         date: N.date, time: N.time, name: $('n-name').value, phone: $('n-phone').value,
-                        email: $('n-email').value, service: N.service, note: $('n-note').value
+                        email: $('n-email').value, service: N.service, note: $('n-note').value, staff_id: N.staff
                     });
                     toast('Termin eingetragen');
                 }
@@ -2733,7 +3049,27 @@
         $('nav-new').addEventListener('click', () => openNew(S.view === 'calendar' ? S.cursor : ''));
         $('btn-refresh').addEventListener('click', () => refresh().then(() => toast('Aktualisiert')));
         $('btn-help').addEventListener('click', () => $('help').showModal());
-        $('btn-bell').addEventListener('click', () => { renderPush().catch(() => { }); $('bell').showModal(); });
+        const openAccount = () => { renderPush().catch(() => { }); $('pw-msg').textContent = ''; $('bell').showModal(); };
+        $('btn-bell').addEventListener('click', openAccount);
+        $('nav-more').addEventListener('click', openAccount);
+        $('staff-switch').addEventListener('change', e => {
+            S.staffFilter = e.target.value;
+            store.set('ff-staff', S.staffFilter);
+            render();
+        });
+        document.querySelectorAll('[data-theme-pick]').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.themePick)));
+        $('pw-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            try {
+                await post('/api/admin/account/password', { current: $('pw-current').value, next: $('pw-next').value });
+                $('pw-current').value = '';
+                $('pw-next').value = '';
+                $('pw-msg').textContent = '';
+                toast('Passwort geändert – andere Geräte sind abgemeldet');
+            } catch (err) {
+                $('pw-msg').textContent = err.message;
+            }
+        });
 
         // Kalender-Bedienung
         $('cal-prev').addEventListener('click', () => calStep(-1));
@@ -2782,8 +3118,11 @@
             if (!cell || dragId === null) return;
             e.preventDefault();
             const b = byId(dragId);
+            // Gleichen Friseur behalten, wenn er frei ist, sonst den ersten freien im Bereich
+            const free = freeStaffAt(cell.dataset.date, cell.dataset.time, dragId);
+            const staffId = free.includes(b.staff_id) || !multiStaff() ? b.staff_id : free[0];
             try {
-                await post('/api/admin/update', { id: dragId, date: cell.dataset.date, time: cell.dataset.time });
+                await post('/api/admin/update', { id: dragId, date: cell.dataset.date, time: cell.dataset.time, staff_id: staffId });
                 toast(`${b.blocked ? 'Pause' : b.name} → ${fmtShort(cell.dataset.date)} ${cell.dataset.time}`);
             } catch (err) {
                 toast(err.message);
@@ -2806,11 +3145,12 @@
         $('f-toggle').addEventListener('click', () => $('filters').classList.toggle('open'));
 
         // ================= HELL / DUNKEL =================
-        const THEMES = ['auto', 'light', 'dark'];
-        const THEME_LABEL = { auto: 'Auto', light: 'Hell', dark: 'Dunkel' };
+        const THEMES = ['auto', 'calm', 'light', 'dark'];
+        const THEME_LABEL = { auto: 'Auto', calm: 'Ruhig', light: 'Hell', dark: 'Dunkel' };
         function applyTheme(t) {
             document.documentElement.dataset.theme = t;
-            $('btn-theme').textContent = { auto: '🌓', light: '☀️', dark: '🌙' }[t];
+            $('btn-theme').textContent = { auto: '🌓', calm: '🌿', light: '☀️', dark: '🌙' }[t];
+            document.querySelectorAll('[data-theme-pick]').forEach(b => b.classList.toggle('on', b.dataset.themePick === t));
             $('btn-theme').title = `Darstellung: ${THEME_LABEL[t]}`;
             store.set('ff-theme', t);
         }
@@ -3058,10 +3398,130 @@
         $('preview-prev').addEventListener('click', () => openPreview(previewIndex - 1));
         $('preview-next').addEventListener('click', () => openPreview(previewIndex + 1));
 
+        // ================= TEAM (nur Admin) =================
+        let team = [];
+        let personId = null;
+        let personRole = 'friseur';
+
+        async function loadTeam() {
+            team = (await api('/api/admin/staff')).staff;
+            const initials = n => n.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            $('team-list').innerHTML = team.map(p => {
+                const state = !p.active ? '<span class="chip off">deaktiviert</span>'
+                    : p.invitePending ? '<span class="chip warn">Einladung offen</span>'
+                        : !p.hasPassword ? '<span class="chip warn">kein Passwort</span>' : '<span class="chip ok">aktiv</span>';
+                return `<div class="person${p.active ? '' : ' inactive'}">
+                    <div class="avatar" style="background:${p.bookable ? staffColor(p.id) : 'var(--p-off)'}">${esc(initials(p.name))}</div>
+                    <div class="who">
+                        <b>${esc(p.name)}</b> ${S.me?.id === p.id ? '<span class="chip">ich</span>' : ''}<br>
+                        <small>@${esc(p.username)} · ${p.role === 'admin' ? 'Admin' : 'Friseur'}${p.bookable ? ' · nimmt Termine an' : ''}</small><br>
+                        ${state}
+                    </div>
+                    <div class="acts">
+                        <button class="b" data-invite="${p.id}">🔑 ${p.hasPassword ? 'Passwort-Link' : 'Einladen'}</button>
+                        <button class="b" data-edit="${p.id}">Bearbeiten</button>
+                    </div>
+                </div>`;
+            }).join('') || '<div class="empty">Noch niemand im Team.</div>';
+        }
+
+        function openPerson(p) {
+            personId = p?.id || null;
+            personRole = p?.role || 'friseur';
+            $('person-title').textContent = p ? `${p.name} bearbeiten` : 'Neue Person';
+            $('pf-name').value = p?.name || '';
+            $('pf-username').value = p?.username || '';
+            $('pf-bookable').checked = p ? Boolean(p.bookable) : true;
+            $('pf-active').checked = p ? Boolean(p.active) : true;
+            $('pf-active-row').hidden = !p;
+            $('pf-error').textContent = '';
+            document.querySelectorAll('#pf-role button').forEach(b => b.classList.toggle('on', b.dataset.role === personRole));
+            $('person').showModal();
+        }
+
+        async function showInvite(id) {
+            try {
+                const r = await post('/api/admin/staff/invite', { id });
+                $('inv-text').innerHTML = `Schick diesen Link an <b>${esc(r.name)}</b>. Damit setzt er sein Passwort selbst. Benutzername: <b>${esc(r.username)}</b>`;
+                $('inv-link').value = r.link;
+                const text = `Hallo ${r.name}, hier kannst du dein Passwort für die Fresh-Fade-Termine setzen (Benutzername: ${r.username}): ${r.link}`;
+                $('inv-wa').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                $('inv-share').hidden = !navigator.share;
+                $('inv-share').onclick = () => navigator.share({ title: 'Fresh Fade Termine', text }).catch(() => { });
+                $('invite').showModal();
+                loadTeam();
+            } catch (e) {
+                toast(e.message);
+            }
+        }
+
+        $('team-add').addEventListener('click', () => openPerson(null));
+        $('team-list').addEventListener('click', e => {
+            const inv = e.target.closest('[data-invite]');
+            if (inv) return showInvite(Number(inv.dataset.invite));
+            const ed = e.target.closest('[data-edit]');
+            if (ed) openPerson(team.find(p => p.id === Number(ed.dataset.edit)));
+        });
+        $('pf-role').addEventListener('click', e => {
+            const b = e.target.closest('[data-role]');
+            if (!b) return;
+            personRole = b.dataset.role;
+            document.querySelectorAll('#pf-role button').forEach(x => x.classList.toggle('on', x === b));
+        });
+        $('pf-name').addEventListener('input', () => {
+            if (!personId) $('pf-username').value = $('pf-name').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
+        });
+        $('person-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const isNewPerson = !personId;
+            try {
+                const r = await post('/api/admin/staff', {
+                    id: personId, name: $('pf-name').value, username: $('pf-username').value,
+                    role: personRole, bookable: $('pf-bookable').checked, active: $('pf-active').checked
+                });
+                $('person').close();
+                await loadTeam();
+                await load();
+                if (isNewPerson) showInvite(r.staff.id);
+                else toast('Gespeichert');
+            } catch (err) {
+                $('pf-error').textContent = err.message;
+            }
+        });
+        $('inv-copy').addEventListener('click', () => copy($('inv-link').value, 'Link'));
+
         // ================= LOGIN / START =================
         function showLogin() {
             $('login-box').hidden = false;
+            $('setup-box').hidden = true;
             $('app').hidden = true;
+        }
+
+        // Einladungslink: #setup=TOKEN
+        async function showSetup(token) {
+            $('setup-box').hidden = false;
+            $('login-box').hidden = true;
+            $('app').hidden = true;
+            try {
+                const res = await fetch(`/api/setup?token=${encodeURIComponent(token)}`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                $('setup-name').textContent = data.name;
+                $('setup-sub').textContent = `Lege dein Passwort fest. Dein Benutzername ist „${data.username}“.`;
+            } catch (e) {
+                $('setup-form').hidden = true;
+                $('setup-sub').textContent = e.message;
+            }
+            $('setup-form').onsubmit = async ev => {
+                ev.preventDefault();
+                if ($('setup-pw').value !== $('setup-pw2').value) return ($('setup-msg').textContent = 'Die Passwörter stimmen nicht überein.');
+                const res = await fetch('/api/setup', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, password: $('setup-pw').value }) });
+                const data = await res.json();
+                if (!res.ok) return ($('setup-msg').textContent = data.error);
+                history.replaceState(null, '', '/admin');
+                $('setup-box').hidden = true;
+                start().catch(() => showLogin());
+            };
         }
 
         // Aus einer Benachrichtigung geöffnet (#datum-JJJJ-MM-TT): Tagesansicht
@@ -3078,7 +3538,10 @@
 
         async function start() {
             const { user } = await api('/api/admin/me');
-            $('admin-user').textContent = user;
+            S.me = user;
+            $('admin-user').textContent = user.name;
+            $('admin-role').textContent = user.role === 'admin' ? 'Admin' : 'Friseur';
+            document.querySelectorAll('[data-admin]').forEach(el => el.hidden = user.role !== 'admin');
             openFromHash();
             $('login-box').hidden = true;
             $('app').hidden = false;
@@ -3106,6 +3569,9 @@
         $('logout').addEventListener('click', async () => {
             await fetch('/api/admin/logout', { method: 'POST' });
             $('bell').close();
+            S.me = null;
+            S.staffFilter = '';
+            store.set('ff-staff', '');
             showLogin();
         });
 
@@ -3118,7 +3584,9 @@
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin' }).catch(() => { });
 
-        start().catch(() => showLogin());
+        const setupToken = location.hash.match(/^#setup=([\w-]+)$/)?.[1];
+        if (setupToken) showSetup(setupToken);
+        else start().catch(() => showLogin());
     </script>
 </body>
 

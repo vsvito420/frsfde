@@ -213,6 +213,10 @@
             <div class="booking-step">
                 <h3><span>1</span> Leistung</h3>
                 <select id="booking-service" required></select>
+                <div class="booking-staff" id="booking-staff" hidden>
+                    <p class="booking-hint" style="margin:14px 0 8px;">Bei wem?</p>
+                    <div class="booking-staff-list" id="booking-staff-list"></div>
+                </div>
             </div>
 
             <div class="booking-step">
@@ -526,11 +530,29 @@
                 const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 const formatDate = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 
+                // Friseur-Auswahl nur, wenn mehrere Friseure Termine annehmen
+                let selectedStaff = '';
+                const staffBox = document.getElementById('booking-staff');
+                const staffList = document.getElementById('booking-staff-list');
+
                 fetch('/api/services').then(r => r.json()).then(data => {
                     serviceSelect.innerHTML = '<option value="">Bitte wählen …</option>' +
                         data.services.map(s => `<option>${s}</option>`).join('');
+                    if (data.staff && data.staff.length > 1) {
+                        staffList.innerHTML = '<button type="button" class="booking-day selected" data-staff="">Egal</button>' +
+                            data.staff.map(s => `<button type="button" class="booking-day" data-staff="${s.id}">${s.name}</button>`).join('');
+                        staffBox.hidden = false;
+                    }
                 }).catch(() => {
                     errorEl.textContent = 'Online-Buchung gerade nicht erreichbar. Bitte per WhatsApp oder Telefon buchen: 0174 4891087';
+                });
+
+                staffList.addEventListener('click', e => {
+                    const btn = e.target.closest('[data-staff]');
+                    if (!btn) return;
+                    staffList.querySelectorAll('[data-staff]').forEach(b => b.classList.toggle('selected', b === btn));
+                    selectedStaff = btn.dataset.staff;
+                    if (selectedDate) ladeSlots();
                 });
 
                 // Nächste 14 Tage ohne Sonntag
@@ -566,7 +588,7 @@
                     selectedTime = null;
                     slotsEl.innerHTML = '<p class="booking-hint">Lade freie Zeiten …</p>';
                     try {
-                        const response = await fetch(`/api/slots?date=${selectedDate}`);
+                        const response = await fetch(`/api/slots?date=${selectedDate}${selectedStaff ? `&staff=${selectedStaff}` : ''}`);
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.error);
                         if (!data.slots.some(s => s.available)) {
@@ -591,6 +613,7 @@
                         name: document.getElementById('booking-name').value,
                         phone: document.getElementById('booking-phone').value,
                         email: document.getElementById('booking-email').value,
+                        staff: selectedStaff,
                         website: document.getElementById('booking-website').value
                     };
                     if (!payload.service) return (errorEl.textContent = 'Bitte wähle eine Leistung.');
@@ -612,9 +635,9 @@
                         }
                         bookingForm.hidden = true;
                         document.getElementById('booking-success-text').textContent =
-                            `${payload.service} am ${formatDate(payload.date)} um ${payload.time} Uhr. Wir freuen uns auf dich!`;
+                            `${payload.service}${data.staff ? ` bei ${data.staff}` : ''} am ${formatDate(payload.date)} um ${payload.time} Uhr. Wir freuen uns auf dich!`;
                         document.getElementById('booking-success').hidden = false;
-                        naechsterTermin.speichern({ date: payload.date, time: payload.time, service: payload.service });
+                        naechsterTermin.speichern({ date: payload.date, time: payload.time, service: `${payload.service}${data.staff ? ` · bei ${data.staff}` : ''}` });
                         naechsterTermin.popup();
                     } catch (error) {
                         errorEl.textContent = 'Buchung fehlgeschlagen. Bitte per WhatsApp oder Telefon buchen: 0174 4891087';

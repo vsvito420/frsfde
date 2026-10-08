@@ -1,5 +1,5 @@
 // Service Worker für die Admin-App: App-Hülle offline verfügbar, Termine immer frisch vom Server.
-const CACHE = 'ff-admin-v4';
+const CACHE = 'ff-admin-v5';
 const SHELL = ['/admin', '/styles.css', '/fonts/fonts.css', '/assets/app/icon-192.png'];
 
 self.addEventListener('install', event => {

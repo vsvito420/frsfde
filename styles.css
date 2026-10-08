@@ -1526,3 +1526,15 @@ footer p {
         transform: translateY(20px);
     }
 }
+
+.booking-staff-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.booking-staff-list .booking-day {
+    flex: 0 0 auto;
+    padding: 10px 18px;
+    font-weight: 600;
+}

@@ -2,6 +2,7 @@
 // Läuft als Pages Function (functions/api/[[path]].js) für alle /api/*-Anfragen.
 
 import { notifyAdmins } from './push.js';
+import { currentStaff, login, clearCookie, changePassword, createInvite, setupInfo, setupPassword, listStaff, saveStaff, publicStaff } from './auth.js';
 
 const SLOT_MINUTES = 25;
 const BOOKING_DAYS_AHEAD = 30;
@@ -91,136 +92,39 @@ async function readJson(request) {
     }
 }
 
-// Optional für später: Login über Cloudflare Access (GitHub). Access legt ein signiertes
-// JWT in den Header; wir prüfen Signatur, Audience, Ablauf und die erlaubten E-Mails.
-let accessKeysCache = null;
-
-const base64UrlDecode = text =>
-    Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(text.length / 4) * 4, '=')), c => c.charCodeAt(0));
-
-async function accessKeys(env) {
-    if (accessKeysCache && accessKeysCache.expires > Date.now()) return accessKeysCache.keys;
-    const response = await fetch(`https://${env.ACCESS_TEAM_DOMAIN}/cdn-cgi/access/certs`);
-    const { keys } = await response.json();
-    accessKeysCache = { keys, expires: Date.now() + 60 * 60 * 1000 };
-    return keys;
+async function bookableStaff(env) {
+    const { results } = await env.DB.prepare('SELECT id, name, username FROM staff WHERE active = 1 AND bookable = 1 ORDER BY sort, id').all();
+    return results;
 }
 
-// Login mit Benutzername + Passwort. ADMIN_USERS (Secret) = "name:passwort,name2:passwort2".
-// Nach dem Login gibt es ein mit SESSION_SECRET signiertes Cookie (30 Tage gültig, damit die Handy-App angemeldet bleibt).
-const SESSION_COOKIE = 'ff_session';
-const SESSION_HOURS = 24 * 30;
-
-async function hmac(env, text) {
-    const key = await crypto.subtle.importKey(
-        'raw', new TextEncoder().encode(env.SESSION_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-    );
-    const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(text));
-    return btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/[+/=]/g, c => ({ '+': '-', '/': '_', '=': '' }[c]));
-}
-
-// Vergleich in konstanter Zeit, damit Passwörter nicht über Antwortzeiten erraten werden können
-async function safeEqual(a, b) {
-    const [ha, hb] = await Promise.all([a, b].map(v => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))));
-    const va = new Uint8Array(ha);
-    const vb = new Uint8Array(hb);
-    let diff = 0;
-    for (let i = 0; i < va.length; i++) diff |= va[i] ^ vb[i];
-    return diff === 0;
-}
-
-function adminUsers(env) {
-    return String(env.ADMIN_USERS || '').split(',').map(entry => {
-        const index = entry.indexOf(':');
-        return index > 0 ? { name: entry.slice(0, index).trim(), password: entry.slice(index + 1).trim() } : null;
-    }).filter(Boolean);
-}
-
-async function sessionUser(request, env) {
-    if (!env.SESSION_SECRET) return null;
-    const cookie = (request.headers.get('cookie') || '').split(';').map(c => c.trim())
-        .find(c => c.startsWith(`${SESSION_COOKIE}=`));
-    if (!cookie) return null;
-    const [user, expires, signature] = decodeURIComponent(cookie.slice(SESSION_COOKIE.length + 1)).split('|');
-    if (!user || !signature || Number(expires) < Date.now()) return null;
-    if (!(await safeEqual(signature, await hmac(env, `${user}|${expires}`)))) return null;
-    return adminUsers(env).some(u => u.name === user) ? user : null;
-}
-
-async function login(request, env) {
-    const body = await readJson(request);
-    const name = String(body?.user || '').trim();
-    const password = String(body?.password || '');
-    let match = null;
-    for (const user of adminUsers(env)) {
-        const ok = (await safeEqual(user.name, name)) & (await safeEqual(user.password, password));
-        if (ok) match = user;
+// Belegte Uhrzeiten pro Friseur an einem Tag: Map(time -> Set(staff_id))
+async function takenByTime(env, date) {
+    const { results } = await env.DB.prepare("SELECT time, staff_id FROM bookings WHERE date = ? AND status != 'abgesagt'").bind(date).all();
+    const taken = new Map();
+    for (const r of results) {
+        if (!taken.has(r.time)) taken.set(r.time, new Set());
+        taken.get(r.time).add(r.staff_id ?? 0);
     }
-    if (!match || !env.SESSION_SECRET) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return json({ error: 'Benutzername oder Passwort falsch.' }, 401);
-    }
-    const expires = Date.now() + SESSION_HOURS * 60 * 60 * 1000;
-    const value = `${match.name}|${expires}|${await hmac(env, `${match.name}|${expires}`)}`;
-    const secure = new URL(request.url).protocol === 'https:' ? ' Secure;' : '';
-    return new Response(JSON.stringify({ user: match.name }), {
-        headers: {
-            'content-type': 'application/json; charset=utf-8',
-            'set-cookie': `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/api/admin; HttpOnly;${secure} SameSite=Strict; Max-Age=${SESSION_HOURS * 3600}`
-        }
-    });
+    return taken;
 }
 
-const logout = () => new Response(JSON.stringify({ ok: true }), {
-    headers: {
-        'content-type': 'application/json; charset=utf-8',
-        'set-cookie': `${SESSION_COOKIE}=; Path=/api/admin; HttpOnly; SameSite=Strict; Max-Age=0`
-    }
-});
-
-// Angemeldeter Admin: Session-Cookie oder (später) Cloudflare Access
-async function adminUser(request, env) {
-    return (await sessionUser(request, env)) || (await accessEmail(request, env));
-}
-
-async function accessEmail(request, env) {
-    const allowed = String(env.ADMIN_EMAILS || '').toLowerCase().split(',').map(e => e.trim()).filter(Boolean);
-
-    const token = request.headers.get('cf-access-jwt-assertion');
-    if (!token || !env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return null;
-
-    try {
-        const [headerPart, payloadPart, signaturePart] = token.split('.');
-        const header = JSON.parse(new TextDecoder().decode(base64UrlDecode(headerPart)));
-        const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(payloadPart)));
-
-        const jwk = (await accessKeys(env)).find(k => k.kid === header.kid);
-        if (!jwk) return null;
-        const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
-        const valid = await crypto.subtle.verify(
-            'RSASSA-PKCS1-v1_5', key, base64UrlDecode(signaturePart),
-            new TextEncoder().encode(`${headerPart}.${payloadPart}`)
-        );
-
-        const audiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-        const email = String(payload.email || '').toLowerCase();
-        if (!valid || !audiences.includes(env.ACCESS_AUD) || payload.exp * 1000 < Date.now()) return null;
-        if (payload.iss !== `https://${env.ACCESS_TEAM_DOMAIN}`) return null;
-        return allowed.includes(email) ? email : null;
-    } catch {
-        return null;
-    }
+// Wunsch-Friseur (ID) oder alle, die Termine annehmen
+async function eligibleStaff(env, wanted) {
+    const staff = await bookableStaff(env);
+    if (!staff.length) return [{ id: null, name: 'Fresh Fade', username: null }];
+    const id = Number(wanted) || null;
+    return id ? staff.filter(s => s.id === id) : staff;
 }
 
 async function getSlots(url, env) {
     const date = url.searchParams.get('date') || '';
     if (!isBookableDate(date)) return json({ error: 'Ungültiges Datum.' }, 400);
-
-    const { results } = await env.DB.prepare("SELECT time FROM bookings WHERE date = ? AND status != 'abgesagt'").bind(date).all();
-    const taken = new Set(results.map(r => r.time));
+    const staff = await eligibleStaff(env, url.searchParams.get('staff'));
+    const taken = await takenByTime(env, date);
+    // Frei, wenn mindestens ein passender Friseur zu der Zeit frei ist (keine Namen nach außen)
     const slots = slotsForDate(date).map(time => ({
         time,
-        available: !taken.has(time) && !isPastSlot(date, time)
+        available: !isPastSlot(date, time) && staff.some(s => !taken.get(time)?.has(s.id ?? 0))
     }));
     return json({ date, slots });
 }
@@ -250,27 +154,38 @@ async function book(request, env, ctx) {
     // Datenschutz: Termine, die älter als 30 Tage sind, löschen
     await env.DB.prepare('DELETE FROM bookings WHERE date < ?').bind(addDays(nowInBerlin().date, -30)).run();
 
-    try {
-        await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, seen, source) VALUES (?, ?, ?, ?, ?, ?, 0, 'website')")
-            .bind(date, time, name, phone, email || null, service).run();
-    } catch (error) {
-        if (String(error).includes('UNIQUE')) {
-            return json({ error: 'Dieser Termin wurde gerade vergeben. Bitte wähle eine andere Zeit.' }, 409);
+    // Wunsch-Friseur oder der erste freie; bei gleichzeitiger Buchung den nächsten versuchen
+    const staff = await eligibleStaff(env, body.staff);
+    if (!staff.length) return json({ error: 'Dieser Friseur ist nicht buchbar.' }, 400);
+    const taken = await takenByTime(env, date);
+    let assigned = null;
+    for (const candidate of staff.filter(s => !taken.get(time)?.has(s.id ?? 0))) {
+        try {
+            await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, seen, source, staff_id) VALUES (?, ?, ?, ?, ?, ?, 0, 'website', ?)")
+                .bind(date, time, name, phone, email || null, service, candidate.id).run();
+            assigned = candidate;
+            break;
+        } catch (error) {
+            if (!String(error).includes('UNIQUE')) throw error;
         }
-        throw error;
     }
+    if (!assigned) return json({ error: 'Dieser Termin wurde gerade vergeben. Bitte wähle eine andere Zeit.' }, 409);
     // Push an den Friseur, ohne die Antwort an den Kunden aufzuhalten
     const weekday = new Date(`${date}T12:00:00Z`).toLocaleDateString('de-DE', { weekday: 'short', timeZone: 'UTC' });
     const [, month, day] = date.split('-');
+    // Benachrichtigt werden alle Admins und der zugeteilte Friseur
+    const { results: admins } = await env.DB.prepare("SELECT username FROM staff WHERE role = 'admin' AND active = 1").all();
+    const recipients = [...admins.map(a => a.username), assigned.username].filter(Boolean);
+    const multiple = staff.length > 1 || (await bookableStaff(env)).length > 1;
     const push = notifyAdmins(env, {
         title: `💈 Neuer Termin: ${name}`,
-        body: `${weekday}, ${Number(day)}.${Number(month)}. um ${time} Uhr · ${service}`,
+        body: `${weekday}, ${Number(day)}.${Number(month)}. um ${time} Uhr · ${service}${multiple ? ` · bei ${assigned.name}` : ''}`,
         url: `/admin#datum-${date}`,
-        tag: `termin-${date}-${time}`
-    }).catch(() => { });
+        tag: `termin-${date}-${time}-${assigned.id}`
+    }, recipients.length ? recipients : null).catch(() => { });
     if (ctx?.waitUntil) ctx.waitUntil(push);
 
-    return json({ ok: true, date, time, service });
+    return json({ ok: true, date, time, service, staff: multiple ? assigned.name : null });
 }
 
 async function pushSubscribe(request, env, user) {
@@ -297,11 +212,11 @@ async function adminBookings(url, env) {
     // visits = bisherige Besuche (Status "erschienen") mit derselben Telefonnummer, für die Treuekarte
     const { results } = await env.DB.prepare(`
         SELECT b.id, b.date, b.time, b.name, b.phone, b.email, b.service, b.blocked, b.status, b.note,
-            b.seen, b.source, b.created_at,
+            b.seen, b.source, b.created_at, b.staff_id,
             (SELECT count(*) FROM bookings v WHERE v.phone = b.phone AND v.status = 'erschienen' AND v.blocked = 0) AS visits
         FROM bookings b WHERE b.date >= ? AND b.date <= ? ORDER BY b.date, b.time
     `).bind(from, to).all();
-    return json({ bookings: results, services: SERVICES });
+    return json({ bookings: results, services: SERVICES, staff: await bookableStaff(env) });
 }
 
 const isUniqueError = error => String(error).includes('UNIQUE');
@@ -318,6 +233,7 @@ async function adminUpdate(request, env) {
         if (body[key] !== undefined) next[key] = body[key] === null ? null : String(body[key]).trim();
     }
     if (body.seen !== undefined) next.seen = body.seen ? 1 : 0;
+    if (body.staff_id !== undefined) next.staff_id = Number(body.staff_id) || null;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(next.date) || !slotsForDate(next.date).includes(next.time)) {
         return json({ error: 'Zu dieser Zeit ist geöffnet nicht möglich.' }, 400);
     }
@@ -330,11 +246,11 @@ async function adminUpdate(request, env) {
 
     try {
         await env.DB.prepare(
-            'UPDATE bookings SET date = ?, time = ?, name = ?, phone = ?, email = ?, service = ?, status = ?, note = ?, seen = ? WHERE id = ?'
+            'UPDATE bookings SET date = ?, time = ?, name = ?, phone = ?, email = ?, service = ?, status = ?, note = ?, seen = ?, staff_id = ? WHERE id = ?'
         ).bind(next.date, next.time, next.name.slice(0, 80), next.phone.slice(0, 30), next.email ? next.email.slice(0, 120) : null,
-            next.service.slice(0, 80), next.status, next.note ? next.note.slice(0, 500) : null, next.seen, current.id).run();
+            next.service.slice(0, 80), next.status, next.note ? next.note.slice(0, 500) : null, next.seen, next.staff_id, current.id).run();
     } catch (error) {
-        if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit ist schon ein Termin.' }, 409);
+        if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit hat der Friseur schon einen Termin.' }, 409);
         throw error;
     }
     return json({ ok: true });
@@ -350,6 +266,8 @@ async function adminCreate(request, env) {
     const email = String(body?.email || '').trim().slice(0, 120);
     const service = String(body?.service || 'Sonstiges').slice(0, 80);
     const note = String(body?.note || '').trim().slice(0, 500);
+    const staff = await bookableStaff(env);
+    const staffId = Number(body?.staff_id) || staff[0]?.id || null;
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !slotsForDate(date).includes(time)) return json({ error: 'Ungültige Zeit.' }, 400);
     if (name.length < 2) return json({ error: 'Name fehlt.' }, 400);
@@ -357,10 +275,10 @@ async function adminCreate(request, env) {
     if (email && !EMAIL_PATTERN.test(email)) return json({ error: 'Ungültige E-Mail-Adresse.' }, 400);
 
     try {
-        await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, note, seen, source) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'team')")
-            .bind(date, time, name, phone || '-', email || null, service, note || null).run();
+        await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, note, seen, source, staff_id) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'team', ?)")
+            .bind(date, time, name, phone || '-', email || null, service, note || null, staffId).run();
     } catch (error) {
-        if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit ist schon ein Termin.' }, 409);
+        if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit hat der Friseur schon einen Termin.' }, 409);
         throw error;
     }
     return json({ ok: true });
@@ -449,10 +367,14 @@ async function adminBlock(request, env) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || validTimes.length === 0) {
         return json({ error: 'Ungültiges Datum oder Uhrzeit.' }, 400);
     }
+    // staff_id: ein Friseur, oder "all" = für alle, die Termine annehmen
+    const staffIds = body?.staff_id === 'all' || !body?.staff_id
+        ? (await bookableStaff(env)).map(s => s.id)
+        : [Number(body.staff_id)];
     const insert = env.DB.prepare(
-        "INSERT OR IGNORE INTO bookings (date, time, name, phone, service, blocked, source) VALUES (?, ?, 'Blockiert', '-', 'Blockiert', 1, 'team')"
+        "INSERT OR IGNORE INTO bookings (date, time, name, phone, service, blocked, source, staff_id) VALUES (?, ?, 'Blockiert', '-', 'Blockiert', 1, 'team', ?)"
     );
-    await env.DB.batch(validTimes.map(t => insert.bind(date, t)));
+    await env.DB.batch((staffIds.length ? staffIds : [null]).flatMap(id => validTimes.map(t => insert.bind(date, t, id))));
     return json({ ok: true });
 }
 
@@ -461,7 +383,12 @@ export default {
         const url = new URL(request.url);
         const route = `${request.method} ${url.pathname}`;
 
-        if (route === 'GET /api/services') return json({ services: SERVICES });
+        if (route === 'GET /api/services') {
+            const staff = await bookableStaff(env);
+            return json({ services: SERVICES, staff: staff.length > 1 ? staff.map(s => ({ id: s.id, name: s.name })) : [] });
+        }
+        if (route === 'GET /api/setup') return setupInfo(url, env);
+        if (route === 'POST /api/setup') return setupPassword(request, env);
         if (route === 'GET /api/gallery') return galleryList(env);
         const imageMatch = url.pathname.match(/^\/api\/gallery\/(\d+)$/);
         if (request.method === 'GET' && imageMatch) return galleryImage(Number(imageMatch[1]), env);
@@ -470,10 +397,15 @@ export default {
 
         if (url.pathname.startsWith('/api/admin/')) {
             if (route === 'POST /api/admin/login') return login(request, env);
-            if (route === 'POST /api/admin/logout') return logout();
-            const user = await adminUser(request, env);
-            if (!user) return json({ error: 'Nicht angemeldet.' }, 401);
-            if (route === 'GET /api/admin/me') return json({ user });
+            if (route === 'POST /api/admin/logout') {
+                return new Response('{"ok":true}', { headers: { 'content-type': 'application/json', 'set-cookie': clearCookie() } });
+            }
+            const me = await currentStaff(request, env);
+            if (!me) return json({ error: 'Nicht angemeldet.' }, 401);
+            const isAdmin = me.role === 'admin';
+            const user = me.username;
+            if (route === 'GET /api/admin/me') return json({ user: publicStaff(me) });
+            if (route === 'POST /api/admin/account/password') return changePassword(request, env, me);
             if (route === 'GET /api/admin/bookings') return adminBookings(url, env);
             if (route === 'POST /api/admin/delete') return adminDelete(request, env);
             if (route === 'POST /api/admin/block') return adminBlock(request, env);
@@ -483,8 +415,14 @@ export default {
             if (route === 'POST /api/admin/push/subscribe') return pushSubscribe(request, env, user);
             if (route === 'POST /api/admin/push/unsubscribe') return pushUnsubscribe(request, env);
             if (route === 'POST /api/admin/push/test') {
-                return json(await notifyAdmins(env, { title: '💈 Test von Fresh Fade', body: 'Benachrichtigungen funktionieren!', url: '/admin', tag: 'test' }));
+                return json(await notifyAdmins(env, { title: '💈 Test von Fresh Fade', body: 'Benachrichtigungen funktionieren!', url: '/admin', tag: 'test' }, [user]));
             }
+
+            // Ab hier nur für Admins: Team und Galerie
+            if (!isAdmin) return json({ error: 'Nur für Admins.' }, 403);
+            if (route === 'GET /api/admin/staff') return listStaff(env);
+            if (route === 'POST /api/admin/staff') return saveStaff(request, env, me);
+            if (route === 'POST /api/admin/staff/invite') return createInvite(request, env);
             if (route === 'POST /api/admin/gallery') return galleryUpload(request, url, env);
             if (route === 'POST /api/admin/gallery/order') return galleryOrder(request, env);
             if (route === 'POST /api/admin/gallery/delete') return galleryDelete(request, env);
