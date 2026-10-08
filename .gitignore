@@ -1,2 +1,4 @@
 /node_modules
 /assets-unoptimized
+/.wrangler
+/.dev.vars

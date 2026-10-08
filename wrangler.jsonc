@@ -1,0 +1,18 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    // Pages-Projekt "repo" (freshfade-studio.de), deployt automatisch bei Push auf GitHub
+    "name": "repo",
+    "pages_build_output_dir": "./",
+    "compatibility_date": "2026-10-01",
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "frsfde-db",
+            "database_id": "f46b42fa-1f13-45c6-932c-3b7ca209531d",
+            "migrations_dir": "migrations"
+        }
+    ]
+    // Admin-Login: Secrets ADMIN_USERS ("name:passwort,name2:passwort2") und SESSION_SECRET
+    // per "wrangler pages secret put" setzen. Später optional Cloudflare Access (GitHub) über
+    // die Variablen ACCESS_TEAM_DOMAIN, ACCESS_AUD und ADMIN_EMAILS.
+}

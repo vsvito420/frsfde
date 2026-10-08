@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Termine | Fresh Fade Studio</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./fonts/fonts.css" />
+    <style>
+        body {
+            padding: 24px 16px 64px;
+        }
+
+        .admin {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .admin h1 {
+            font-size: 2.6rem;
+            margin-bottom: 20px;
+        }
+
+        .admin-box {
+            padding: 20px;
+            margin-bottom: 20px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .admin-box h2 {
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+        }
+
+        .admin input,
+        .admin select {
+            padding: 12px;
+            background: #000;
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+        }
+
+        .admin-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .admin .btn {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+        }
+
+        .admin-day {
+            margin-top: 24px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-red);
+            font-size: 1.5rem;
+        }
+
+        .admin-booking {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-booking time {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: var(--accent-red);
+            min-width: 60px;
+        }
+
+        .admin-booking div {
+            flex: 1;
+        }
+
+        .admin-booking small {
+            color: var(--text-muted);
+        }
+
+        .admin-booking a {
+            color: var(--text-main);
+        }
+
+        .admin-booking.blocked {
+            opacity: 0.5;
+        }
+
+        .admin-delete {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--text-main);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .admin-delete:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .admin-msg {
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="admin">
+        <h1>Termine <span style="color:var(--accent-red);">Fresh Fade</span></h1>
+
+        <section class="admin-box" id="login-box">
+            <h2>Anmelden</h2>
+            <form class="admin-row" id="login-form">
+                <input type="text" id="login-user" placeholder="Benutzername" autocomplete="username" required>
+                <input type="password" id="login-password" placeholder="Passwort" autocomplete="current-password" required>
+                <button class="btn" type="submit">Anmelden</button>
+            </form>
+            <p class="admin-msg" id="login-msg"></p>
+        </section>
+
+        <div id="admin-content" hidden>
+            <section class="admin-box">
+                <h2>Zeit blockieren (Pause, Urlaub, …)</h2>
+                <form class="admin-row" id="block-form">
+                    <input type="date" id="block-date" required>
+                    <input type="time" id="block-from" step="1500" value="12:00" required>
+                    <span>bis</span>
+                    <input type="time" id="block-to" step="1500" value="12:25" required>
+                    <button class="btn" type="submit">Blockieren</button>
+                </form>
+                <p class="admin-msg">Ganzen Tag sperren: 09:30 bis 19:30 eintragen.</p>
+            </section>
+
+            <section class="admin-box">
+                <div class="admin-row" style="justify-content:space-between;">
+                    <h2 style="margin:0;">Kommende Termine</h2>
+                    <button class="btn" id="reload">Aktualisieren</button>
+                </div>
+                <div id="bookings"></div>
+            </section>
+
+            <p style="text-align:center; color:var(--text-muted);">Angemeldet als <span id="admin-user"></span> ·
+                <a href="#" id="logout" style="color:var(--text-muted);">Abmelden</a></p>
+        </div>
+    </main>
+
+    <script>
+        const SLOT_MINUTES = 25;
+        const loginBox = document.getElementById('login-box');
+        const content = document.getElementById('admin-content');
+        const bookingsEl = document.getElementById('bookings');
+
+        const escapeHtml = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const formatDate = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        async function api(path, options = {}) {
+            const response = await fetch(path, {
+                ...options,
+                headers: { 'content-type': 'application/json' }
+            });
+            const data = await response.json();
+            if (response.status === 401) {
+                showLogin();
+                throw new Error('unauthorized');
+            }
+            if (!response.ok) throw new Error(data.error || 'Fehler');
+            return data;
+        }
+
+        function showLogin() {
+            loginBox.hidden = false;
+            content.hidden = true;
+        }
+
+        async function loadBookings() {
+            const { bookings } = await api('/api/admin/bookings');
+            loginBox.hidden = true;
+            content.hidden = false;
+            if (bookings.length === 0) {
+                bookingsEl.innerHTML = '<p class="admin-msg">Keine kommenden Termine.</p>';
+                return;
+            }
+            let html = '';
+            let lastDate = '';
+            for (const b of bookings) {
+                if (b.date !== lastDate) {
+                    html += `<h3 class="admin-day">${formatDate(b.date)}</h3>`;
+                    lastDate = b.date;
+                }
+                const phone = escapeHtml(b.phone);
+                const whatsapp = b.phone.replace(/[^\d+]/g, '').replace(/^0/, '+49').replace('+', '');
+                html += `
+                    <div class="admin-booking${b.blocked ? ' blocked' : ''}">
+                        <time>${b.time}</time>
+                        <div>
+                            <strong>${escapeHtml(b.name)}</strong><br>
+                            <small>${escapeHtml(b.service)}</small>
+                            ${b.blocked ? '' : `<br><small><a href="tel:${phone}">${phone}</a> · <a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener">WhatsApp</a></small>`}
+                        </div>
+                        <button class="admin-delete" data-id="${b.id}">${b.blocked ? 'Freigeben' : 'Stornieren'}</button>
+                    </div>`;
+            }
+            bookingsEl.innerHTML = html;
+        }
+
+        document.getElementById('reload').addEventListener('click', () => loadBookings().catch(() => { }));
+
+        bookingsEl.addEventListener('click', async e => {
+            const btn = e.target.closest('.admin-delete');
+            if (!btn) return;
+            if (!confirm(btn.textContent.trim() === 'Stornieren' ? 'Termin wirklich stornieren?' : 'Zeit wieder freigeben?')) return;
+            await api('/api/admin/delete', { method: 'POST', body: JSON.stringify({ id: Number(btn.dataset.id) }) });
+            loadBookings();
+        });
+
+        document.getElementById('block-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const toMinutes = v => Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5));
+            const from = toMinutes(document.getElementById('block-from').value);
+            const to = toMinutes(document.getElementById('block-to').value);
+            const times = [];
+            // Alle möglichen Slot-Startzeiten im Bereich; der Server ignoriert ungültige
+            for (let t = 9 * 60 + 30; t < 20 * 60; t += SLOT_MINUTES) {
+                if (t + SLOT_MINUTES > from && t < to) {
+                    times.push(`${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`);
+                }
+            }
+            try {
+                await api('/api/admin/block', { method: 'POST', body: JSON.stringify({ date: document.getElementById('block-date').value, times }) });
+                loadBookings();
+            } catch (error) {
+                if (error.message !== 'unauthorized') alert(error.message);
+            }
+        });
+
+        async function start() {
+            const { user } = await api('/api/admin/me');
+            document.getElementById('admin-user').textContent = user;
+            await loadBookings();
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const msg = document.getElementById('login-msg');
+            msg.textContent = '';
+            const response = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({
+                    user: document.getElementById('login-user').value,
+                    password: document.getElementById('login-password').value
+                })
+            });
+            if (!response.ok) {
+                msg.textContent = (await response.json()).error || 'Anmeldung fehlgeschlagen.';
+                return;
+            }
+            document.getElementById('login-password').value = '';
+            start().catch(() => { });
+        });
+
+        document.getElementById('logout').addEventListener('click', async e => {
+            e.preventDefault();
+            await fetch('/api/admin/logout', { method: 'POST' });
+            showLogin();
+        });
+
+        start().catch(() => { });
+    </script>
+</body>
+
+</html>

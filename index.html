@@ -22,6 +22,7 @@
                 <a href="#services">Leistungen</a>
                 <a href="#gallery">Galerie</a>
                 <a href="#preise">Preise</a>
+                <a href="#termin">Termin</a>
                 <a href="#contact">Kontakt</a>
                 <a href="#oeffnungszeiten">Öffnungszeiten</a>
                 <a href="https://www.instagram.com/freshfades_studiobarbershop" target="_blank"
@@ -42,6 +43,7 @@
         <a href="#services" class="mobile-link">Leistungen</a>
         <a href="#gallery" class="mobile-link">Galerie</a>
         <a href="#preise" class="mobile-link">Preise</a>
+        <a href="#termin" class="mobile-link">Termin</a>
         <a href="#contact" class="mobile-link">Kontakt</a>
         <a href="#oeffnungszeiten" class="mobile-link">Öffnungszeiten</a>
         <a href="https://www.instagram.com/freshfades_studiobarbershop" target="_blank"
@@ -68,7 +70,7 @@
                 </div>
             </div>
             <div class="hero-actions">
-                <a href="#contact" class="btn">Termin buchen</a>
+                <a href="#termin" class="btn">Termin buchen</a>
                 <a href="#preise" class="btn btn-outline">Preisliste</a>
             </div>
         </div>
@@ -169,6 +171,51 @@
             <span>6</span><span>7</span><span>8</span><span>9</span><span class="loyalty-reward">10<br>20%</span>
         </div>
         <p style="text-align:center; margin-top:var(--space-lg); font-style:italic;"> Your Style. <span style="color:var(--accent-red);">Our Passion.</span> </p>
+    </section>
+
+    <!-- BOOKING -->
+    <section id="termin" class="section container">
+        <h2 style="text-align:center; font-size:3rem;"> 💈 Termin <span style="color:var(--accent-red);">buchen</span> </h2>
+        <p style=" text-align:center; color:var(--text-muted); margin-top:10px; margin-bottom:40px; "> Wähle Leistung, Tag und Uhrzeit. Ein Termin dauert 25 Minuten. </p>
+
+        <form class="booking" id="booking-form" novalidate>
+            <div class="booking-step">
+                <h3><span>1</span> Leistung</h3>
+                <select id="booking-service" required></select>
+            </div>
+
+            <div class="booking-step">
+                <h3><span>2</span> Tag</h3>
+                <div class="booking-days" id="booking-days"></div>
+            </div>
+
+            <div class="booking-step">
+                <h3><span>3</span> Uhrzeit</h3>
+                <div class="booking-slots" id="booking-slots">
+                    <p class="booking-hint">Bitte zuerst einen Tag wählen.</p>
+                </div>
+            </div>
+
+            <div class="booking-step">
+                <h3><span>4</span> Deine Daten</h3>
+                <div class="booking-fields">
+                    <input type="text" id="booking-name" placeholder="Name" autocomplete="name" required>
+                    <input type="tel" id="booking-phone" placeholder="Telefonnummer" autocomplete="tel" required>
+                    <input type="text" id="booking-website" class="booking-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+                </div>
+                <p class="booking-privacy">Deine Daten werden nur für den Termin gespeichert und 30 Tage danach gelöscht. Mehr in der <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
+            </div>
+
+            <p class="booking-error" id="booking-error" role="alert"></p>
+            <button type="submit" class="btn booking-submit" id="booking-submit">Termin verbindlich buchen</button>
+        </form>
+
+        <div class="booking-success" id="booking-success" hidden>
+            <span class="booking-success-icon">✓</span>
+            <h3>Termin gebucht!</h3>
+            <p id="booking-success-text"></p>
+            <p class="booking-hint">Falls du doch nicht kannst, sag bitte kurz per WhatsApp oder Telefon ab: 0174 4891087</p>
+        </div>
     </section>
 
     <!-- CONTACT -->
@@ -330,6 +377,116 @@
             }
 
             document.addEventListener('DOMContentLoaded', ladePreisliste);
+
+            // TERMIN BUCHEN
+            const bookingForm = document.getElementById('booking-form');
+            if (bookingForm) {
+                const serviceSelect = document.getElementById('booking-service');
+                const daysEl = document.getElementById('booking-days');
+                const slotsEl = document.getElementById('booking-slots');
+                const errorEl = document.getElementById('booking-error');
+                const submitBtn = document.getElementById('booking-submit');
+                const weekdayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+                let selectedDate = null;
+                let selectedTime = null;
+
+                const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const formatDate = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+
+                fetch('/api/services').then(r => r.json()).then(data => {
+                    serviceSelect.innerHTML = '<option value="">Bitte wählen …</option>' +
+                        data.services.map(s => `<option>${s}</option>`).join('');
+                }).catch(() => {
+                    errorEl.textContent = 'Online-Buchung gerade nicht erreichbar. Bitte per WhatsApp oder Telefon buchen: 0174 4891087';
+                });
+
+                // Nächste 14 Tage ohne Sonntag
+                for (let i = 0, added = 0; added < 14; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() + i);
+                    if (d.getDay() === 0) continue;
+                    added++;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'booking-day';
+                    btn.dataset.date = isoDate(d);
+                    btn.innerHTML = `<small>${i === 0 ? 'Heute' : weekdayNames[d.getDay()]}</small><strong>${d.getDate()}.</strong><small>${d.toLocaleDateString('de-DE', { month: 'short' })}</small>`;
+                    daysEl.appendChild(btn);
+                }
+
+                daysEl.addEventListener('click', e => {
+                    const btn = e.target.closest('.booking-day');
+                    if (!btn) return;
+                    daysEl.querySelectorAll('.booking-day').forEach(b => b.classList.toggle('selected', b === btn));
+                    selectedDate = btn.dataset.date;
+                    ladeSlots();
+                });
+
+                slotsEl.addEventListener('click', e => {
+                    const btn = e.target.closest('.booking-slot');
+                    if (!btn || btn.disabled) return;
+                    slotsEl.querySelectorAll('.booking-slot').forEach(b => b.classList.toggle('selected', b === btn));
+                    selectedTime = btn.dataset.time;
+                });
+
+                async function ladeSlots() {
+                    selectedTime = null;
+                    slotsEl.innerHTML = '<p class="booking-hint">Lade freie Zeiten …</p>';
+                    try {
+                        const response = await fetch(`/api/slots?date=${selectedDate}`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error);
+                        if (!data.slots.some(s => s.available)) {
+                            slotsEl.innerHTML = '<p class="booking-hint">An diesem Tag ist leider nichts mehr frei.</p>';
+                            return;
+                        }
+                        slotsEl.innerHTML = data.slots.map(s =>
+                            `<button type="button" class="booking-slot" data-time="${s.time}" ${s.available ? '' : 'disabled'}>${s.time}</button>`
+                        ).join('');
+                    } catch (error) {
+                        slotsEl.innerHTML = '<p class="booking-hint">Freie Zeiten konnten nicht geladen werden.</p>';
+                    }
+                }
+
+                bookingForm.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    errorEl.textContent = '';
+                    const payload = {
+                        service: serviceSelect.value,
+                        date: selectedDate,
+                        time: selectedTime,
+                        name: document.getElementById('booking-name').value,
+                        phone: document.getElementById('booking-phone').value,
+                        website: document.getElementById('booking-website').value
+                    };
+                    if (!payload.service) return (errorEl.textContent = 'Bitte wähle eine Leistung.');
+                    if (!payload.date) return (errorEl.textContent = 'Bitte wähle einen Tag.');
+                    if (!payload.time) return (errorEl.textContent = 'Bitte wähle eine Uhrzeit.');
+
+                    submitBtn.disabled = true;
+                    try {
+                        const response = await fetch('/api/book', {
+                            method: 'POST',
+                            headers: { 'content-type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                            errorEl.textContent = data.error || 'Buchung fehlgeschlagen.';
+                            if (response.status === 409) ladeSlots();
+                            return;
+                        }
+                        bookingForm.hidden = true;
+                        document.getElementById('booking-success-text').textContent =
+                            `${payload.service} am ${formatDate(payload.date)} um ${payload.time} Uhr. Wir freuen uns auf dich!`;
+                        document.getElementById('booking-success').hidden = false;
+                    } catch (error) {
+                        errorEl.textContent = 'Buchung fehlgeschlagen. Bitte per WhatsApp oder Telefon buchen: 0174 4891087';
+                    } finally {
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
 
             // LOYALTY CARD - Stempel-Animation sobald sichtbar
             const loyaltyGrid = document.getElementById('loyalty-grid');
