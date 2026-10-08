@@ -7,8 +7,8 @@
     "d1_databases": [
         {
             "binding": "DB",
-            "database_name": "frsfde-db",
-            "database_id": "f46b42fa-1f13-45c6-932c-3b7ca209531d",
+            "database_name": "freshfade-termine",
+            "database_id": "f1dbe2ad-54f7-4c8e-92e1-85d28c396b68",
             "migrations_dir": "migrations"
         }
     ]
