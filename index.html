@@ -635,29 +635,10 @@
                 loyaltyGrid.classList.add('animate');
             }
 
-            // GALLERY - Dynamic load from folder
+            // GALERIE: Bilder aus dem Admin-Bereich; solange dort keine sind, die bisherigen Standardbilder
             const galleryGrid = document.getElementById('gallery-grid');
-            const galleryFolder = './assets/beispiele/';
-
-            const galleryImageNames = [
-                'test.JPG.webp',
-                'test-1.JPG.webp',
-                'test-2.JPG.webp',
-                'test-3.JPG.webp',
-                'test-4.JPG.webp',
-                'test-5.JPG.webp'
-            ];
-
-
-
-            if (galleryGrid) {
-                galleryImageNames.forEach((name, i) => {
-                    const div = document.createElement('div');
-                    div.className = 'gallery-item';
-                    div.innerHTML = `<img src="${galleryFolder}${name}" alt="Fresh Fade ${i + 1}">`;
-                    galleryGrid.appendChild(div);
-                });
-            }
+            const defaultGallery = ['test.JPG.webp', 'test-1.JPG.webp', 'test-2.JPG.webp', 'test-3.JPG.webp', 'test-4.JPG.webp', 'test-5.JPG.webp']
+                .map(name => `./assets/beispiele/${name}`);
 
             // LIGHTBOX with navigation
             const lightbox = document.getElementById('lightbox');
@@ -675,14 +656,28 @@
                 }
             }
 
+            function zeigeGalerie(urls) {
+                galleryGrid.innerHTML = urls.map((src, i) =>
+                    `<div class="gallery-item"><img src="${src}" alt="Fresh Fade Haarschnitt ${i + 1}" loading="lazy"></div>`
+                ).join('');
+                galleryImageElements = [...galleryGrid.querySelectorAll('.gallery-item img')];
+            }
+
             if (galleryGrid) {
-                galleryImageElements = galleryGrid.querySelectorAll('.gallery-item img');
-                galleryImageElements.forEach((img, i) => {
-                    img.addEventListener('click', () => {
-                        currentImageIndex = i;
-                        lightbox.classList.add('active');
-                        lightboxImg.src = img.src;
-                    });
+                zeigeGalerie(defaultGallery);
+                fetch('/api/gallery')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.images && data.images.length) zeigeGalerie(data.images.map(img => `/api/gallery/${img.id}`));
+                    })
+                    .catch(() => { });
+
+                galleryGrid.addEventListener('click', e => {
+                    const index = galleryImageElements.indexOf(e.target.closest('img'));
+                    if (index < 0) return;
+                    currentImageIndex = index;
+                    lightbox.classList.add('active');
+                    lightboxImg.src = galleryImageElements[index].src;
                 });
             }
 

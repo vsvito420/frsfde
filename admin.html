@@ -494,6 +494,101 @@
             transform: translateX(-50%);
         }
 
+        /* GALERIE */
+        .gallery-admin {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .g-card {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .g-card.dragging {
+            opacity: 0.4;
+        }
+
+        .g-card.drop-target {
+            outline: 2px dashed var(--accent-red);
+        }
+
+        .g-card img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            cursor: zoom-in;
+        }
+
+        .g-tools {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px;
+        }
+
+        .g-tools button {
+            flex: 1;
+            min-height: 36px;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 4px;
+        }
+
+        .g-tools button:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .g-tools button:disabled {
+            opacity: 0.25;
+            cursor: default;
+        }
+
+        .g-pos {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            padding: 1px 7px;
+            border-radius: 99px;
+            background: rgba(0, 0, 0, 0.75);
+            font-size: 0.75rem;
+        }
+
+        .upload-label {
+            cursor: pointer;
+        }
+
+        .upload-label input {
+            display: none;
+        }
+
+        .preview-dialog {
+            width: min(900px, calc(100% - 24px));
+            background: #000;
+        }
+
+        .preview-dialog img {
+            display: block;
+            width: 100%;
+            max-height: 75vh;
+            object-fit: contain;
+        }
+
+        .preview-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+        }
+
         /* TAGES-TABS (nur Handy) */
         .day-tabs {
             display: none;
@@ -733,6 +828,19 @@
                 <p class="admin-msg">Ganzen Tag sperren: 09:30 bis 19:30 eintragen.</p>
             </section>
 
+            <!-- GALERIE -->
+            <section class="admin-box">
+                <div class="admin-row" style="justify-content:space-between;">
+                    <h2 style="margin:0;">Galerie auf der Webseite</h2>
+                    <label class="btn upload-label">+ Bilder hochladen
+                        <input type="file" id="gallery-upload" accept="image/*" multiple>
+                    </label>
+                </div>
+                <p class="admin-msg" id="gallery-status"></p>
+                <div class="gallery-admin" id="gallery-admin"></div>
+                <p class="admin-msg">Bild antippen zum Ansehen · ‹ › Reihenfolge ändern (am PC auch ziehen) · ⇄ Bild tauschen · 🗑 löschen. Änderungen sind sofort auf der Webseite.</p>
+            </section>
+
             <!-- LISTE -->
             <section class="admin-box">
                 <div class="admin-row" style="justify-content:space-between;">
@@ -829,6 +937,19 @@
             </div>
         </form>
     </dialog>
+
+    <!-- DIALOG: BILD ANSEHEN -->
+    <dialog class="preview-dialog" id="preview-dialog">
+        <img id="preview-img" alt="Galerie-Bild">
+        <div class="preview-nav">
+            <button type="button" class="small-btn" id="preview-prev">‹ Zurück</button>
+            <span class="admin-msg" style="margin:0;" id="preview-count"></span>
+            <button type="button" class="small-btn" id="preview-next">Weiter ›</button>
+            <button type="button" class="small-btn" data-close>Schließen</button>
+        </div>
+    </dialog>
+
+    <input type="file" id="gallery-replace" accept="image/*" hidden>
 
     <div class="toast" id="toast"></div>
 
@@ -1282,11 +1403,188 @@
             }
         });
 
+        // GALERIE
+        const galleryEl = $('gallery-admin');
+        const galleryStatus = $('gallery-status');
+        const DEFAULT_GALLERY = ['test.JPG.webp', 'test-1.JPG.webp', 'test-2.JPG.webp', 'test-3.JPG.webp', 'test-4.JPG.webp', 'test-5.JPG.webp']
+            .map(name => `/assets/beispiele/${name}`);
+        let galleryImages = [];
+        let previewIndex = 0;
+        let replaceId = null;
+
+        async function loadGallery() {
+            const data = await (await fetch('/api/gallery')).json();
+            galleryImages = data.images;
+            renderGallery();
+        }
+
+        function renderGallery() {
+            if (galleryImages.length === 0) {
+                galleryEl.innerHTML = '';
+                galleryStatus.innerHTML = 'Noch keine eigenen Bilder – die Webseite zeigt die 6 Standardbilder. '
+                    + '<button type="button" class="small-btn" id="gallery-import">Standardbilder übernehmen</button>';
+                $('gallery-import').addEventListener('click', importDefaults);
+                return;
+            }
+            galleryStatus.textContent = `${galleryImages.length} Bilder auf der Webseite`;
+            galleryEl.innerHTML = galleryImages.map((img, i) => `
+                <div class="g-card" draggable="true" data-index="${i}">
+                    <div style="position:relative;">
+                        <img src="/api/gallery/${img.id}" alt="Bild ${i + 1}" loading="lazy" data-preview="${i}">
+                        <span class="g-pos">${i + 1}</span>
+                    </div>
+                    <div class="g-tools">
+                        <button type="button" data-move="-1" title="Nach vorne" ${i === 0 ? 'disabled' : ''}>‹</button>
+                        <button type="button" data-replace="${img.id}" title="Bild tauschen">⇄</button>
+                        <button type="button" data-delete="${img.id}" title="Löschen">🗑</button>
+                        <button type="button" data-move="1" title="Nach hinten" ${i === galleryImages.length - 1 ? 'disabled' : ''}>›</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        // Im Browser verkleinern: max. 1600 px, WebP (Safari kann kein WebP erzeugen, dann JPEG)
+        async function shrink(file) {
+            const bitmap = await createImageBitmap(file);
+            const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(bitmap.width * scale);
+            canvas.height = Math.round(bitmap.height * scale);
+            canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+            const encode = (type, quality) => new Promise(resolve => canvas.toBlob(resolve, type, quality));
+            let blob = await encode('image/webp', 0.82);
+            if (!blob || blob.type !== 'image/webp') blob = await encode('image/jpeg', 0.85);
+            for (let quality = 0.7; blob.size > 1.7 * 1024 * 1024 && quality > 0.3; quality -= 0.15) {
+                blob = await encode(blob.type, quality);
+            }
+            return { blob, width: canvas.width, height: canvas.height };
+        }
+
+        async function upload(file, replace = null) {
+            const { blob, width, height } = await shrink(file);
+            const params = new URLSearchParams({ w: width, h: height });
+            if (replace) params.set('replace', replace);
+            const response = await fetch(`/api/admin/gallery?${params}`, { method: 'POST', headers: { 'content-type': blob.type }, body: blob });
+            if (!response.ok) throw new Error((await response.json()).error || 'Upload fehlgeschlagen');
+        }
+
+        async function uploadFiles(files, label = 'Lade hoch') {
+            const list = [...files];
+            try {
+                for (let i = 0; i < list.length; i++) {
+                    galleryStatus.textContent = `${label} … ${i + 1} von ${list.length}`;
+                    await upload(list[i]);
+                }
+                toast(list.length === 1 ? 'Bild hochgeladen' : `${list.length} Bilder hochgeladen`);
+            } catch (error) {
+                toast(error.message);
+            }
+            loadGallery();
+        }
+
+        async function importDefaults() {
+            const files = await Promise.all(DEFAULT_GALLERY.map(async url => new File([await (await fetch(url)).blob()], url.split('/').pop(), { type: 'image/webp' })));
+            uploadFiles(files, 'Übernehme Standardbilder');
+        }
+
+        async function saveOrder() {
+            await post('/api/admin/gallery/order', { ids: galleryImages.map(img => img.id) });
+            toast('Reihenfolge gespeichert');
+        }
+
+        $('gallery-upload').addEventListener('change', e => {
+            if (e.target.files.length) uploadFiles(e.target.files);
+            e.target.value = '';
+        });
+
+        $('gallery-replace').addEventListener('change', async e => {
+            const file = e.target.files[0];
+            e.target.value = '';
+            if (!file || !replaceId) return;
+            galleryStatus.textContent = 'Tausche Bild …';
+            try {
+                await upload(file, replaceId);
+                toast('Bild getauscht');
+            } catch (error) {
+                toast(error.message);
+            }
+            loadGallery();
+        });
+
+        galleryEl.addEventListener('click', async e => {
+            const target = e.target.closest('button, img');
+            if (!target) return;
+            const index = Number(target.closest('.g-card').dataset.index);
+            if (target.dataset.preview !== undefined) return openPreview(index);
+            if (target.dataset.replace) {
+                replaceId = Number(target.dataset.replace);
+                return $('gallery-replace').click();
+            }
+            if (target.dataset.delete) {
+                if (!confirm('Bild von der Webseite löschen?')) return;
+                await post('/api/admin/gallery/delete', { id: Number(target.dataset.delete) });
+                toast('Bild gelöscht');
+                return loadGallery();
+            }
+            if (target.dataset.move) {
+                const to = index + Number(target.dataset.move);
+                [galleryImages[index], galleryImages[to]] = [galleryImages[to], galleryImages[index]];
+                renderGallery();
+                saveOrder();
+            }
+        });
+
+        // Reihenfolge per Drag & Drop (PC)
+        let galleryDrag = null;
+        galleryEl.addEventListener('dragstart', e => {
+            const card = e.target.closest('.g-card');
+            if (!card) return;
+            galleryDrag = Number(card.dataset.index);
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(galleryDrag));
+        });
+        galleryEl.addEventListener('dragover', e => {
+            const card = e.target.closest('.g-card');
+            if (!card || galleryDrag === null) return;
+            e.preventDefault();
+            galleryEl.querySelectorAll('.drop-target').forEach(c => c !== card && c.classList.remove('drop-target'));
+            card.classList.add('drop-target');
+        });
+        galleryEl.addEventListener('dragend', () => {
+            galleryDrag = null;
+            galleryEl.querySelectorAll('.dragging, .drop-target').forEach(c => c.classList.remove('dragging', 'drop-target'));
+        });
+        galleryEl.addEventListener('drop', e => {
+            const card = e.target.closest('.g-card');
+            if (!card || galleryDrag === null) return;
+            e.preventDefault();
+            const [moved] = galleryImages.splice(galleryDrag, 1);
+            galleryImages.splice(Number(card.dataset.index), 0, moved);
+            galleryDrag = null;
+            renderGallery();
+            saveOrder();
+        });
+
+        // Vorschau mit Blättern
+        function openPreview(index) {
+            previewIndex = (index + galleryImages.length) % galleryImages.length;
+            $('preview-img').src = `/api/gallery/${galleryImages[previewIndex].id}`;
+            $('preview-count').textContent = `${previewIndex + 1} / ${galleryImages.length}`;
+            if (!$('preview-dialog').open) $('preview-dialog').showModal();
+        }
+        $('preview-prev').addEventListener('click', () => openPreview(previewIndex - 1));
+        $('preview-next').addEventListener('click', () => openPreview(previewIndex + 1));
+        $('preview-dialog').addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') openPreview(previewIndex - 1);
+            if (e.key === 'ArrowRight') openPreview(previewIndex + 1);
+        });
+
         // LOGIN
         async function start() {
             const { user } = await api('/api/admin/me');
             $('admin-user').textContent = user;
             await refresh();
+            loadGallery().catch(() => { });
         }
 
         $('login-form').addEventListener('submit', async e => {

@@ -333,6 +333,74 @@ async function adminCreate(request, env) {
     return json({ ok: true });
 }
 
+// GALERIE: Bilder liegen als BLOB in D1 (vorher im Browser auf max. 1600 px verkleinert)
+const MAX_IMAGE_BYTES = 1.8 * 1024 * 1024;
+const IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
+
+async function galleryList(env) {
+    const { results } = await env.DB.prepare('SELECT id, width, height FROM gallery ORDER BY position, id').all();
+    return json({ images: results }, 200);
+}
+
+async function galleryImage(id, env) {
+    const row = await env.DB.prepare('SELECT type, data FROM gallery WHERE id = ?').bind(id).first();
+    if (!row) return new Response('Nicht gefunden', { status: 404 });
+    // Jedes Bild hat eine eigene, nie wiederverwendete ID, daher darf es dauerhaft gecacht werden
+    return new Response(new Uint8Array(row.data), {
+        headers: { 'content-type': row.type, 'cache-control': 'public, max-age=31536000, immutable' }
+    });
+}
+
+async function readImage(request) {
+    const type = (request.headers.get('content-type') || '').split(';')[0];
+    if (!IMAGE_TYPES.includes(type)) return { error: 'Nur Bilder (WebP, JPEG, PNG) erlaubt.' };
+    const data = await request.arrayBuffer();
+    if (data.byteLength === 0) return { error: 'Leere Datei.' };
+    if (data.byteLength > MAX_IMAGE_BYTES) return { error: 'Bild zu groß.' };
+    return { type, data };
+}
+
+async function galleryUpload(request, url, env) {
+    const image = await readImage(request);
+    if (image.error) return json({ error: image.error }, 400);
+    const width = Number(url.searchParams.get('w')) || null;
+    const height = Number(url.searchParams.get('h')) || null;
+    const replaceId = Number(url.searchParams.get('replace')) || null;
+
+    if (replaceId) {
+        // Tauschen: neues Bild bekommt die Position des alten, damit die Reihenfolge bleibt
+        const old = await env.DB.prepare('SELECT position FROM gallery WHERE id = ?').bind(replaceId).first();
+        if (!old) return json({ error: 'Bild nicht gefunden.' }, 404);
+        await env.DB.batch([
+            env.DB.prepare('INSERT INTO gallery (position, type, data, width, height) VALUES (?, ?, ?, ?, ?)')
+                .bind(old.position, image.type, image.data, width, height),
+            env.DB.prepare('DELETE FROM gallery WHERE id = ?').bind(replaceId)
+        ]);
+        return json({ ok: true });
+    }
+
+    const { next } = await env.DB.prepare('SELECT coalesce(max(position), -1) + 1 AS next FROM gallery').first();
+    await env.DB.prepare('INSERT INTO gallery (position, type, data, width, height) VALUES (?, ?, ?, ?, ?)')
+        .bind(next, image.type, image.data, width, height).run();
+    return json({ ok: true });
+}
+
+async function galleryOrder(request, env) {
+    const body = await readJson(request);
+    const ids = Array.isArray(body?.ids) ? body.ids.filter(Number.isInteger) : [];
+    if (ids.length === 0) return json({ error: 'Keine Reihenfolge.' }, 400);
+    const update = env.DB.prepare('UPDATE gallery SET position = ? WHERE id = ?');
+    await env.DB.batch(ids.map((id, index) => update.bind(index, id)));
+    return json({ ok: true });
+}
+
+async function galleryDelete(request, env) {
+    const body = await readJson(request);
+    if (!body || !Number.isInteger(body.id)) return json({ error: 'Ungültige ID.' }, 400);
+    await env.DB.prepare('DELETE FROM gallery WHERE id = ?').bind(body.id).run();
+    return json({ ok: true });
+}
+
 async function adminDelete(request, env) {
     const body = await readJson(request);
     if (!body || !Number.isInteger(body.id)) return json({ error: 'Ungültige ID.' }, 400);
@@ -361,6 +429,9 @@ export default {
         const route = `${request.method} ${url.pathname}`;
 
         if (route === 'GET /api/services') return json({ services: SERVICES });
+        if (route === 'GET /api/gallery') return galleryList(env);
+        const imageMatch = url.pathname.match(/^\/api\/gallery\/(\d+)$/);
+        if (request.method === 'GET' && imageMatch) return galleryImage(Number(imageMatch[1]), env);
         if (route === 'GET /api/slots') return getSlots(url, env);
         if (route === 'POST /api/book') return book(request, env);
 
@@ -375,6 +446,9 @@ export default {
             if (route === 'POST /api/admin/block') return adminBlock(request, env);
             if (route === 'POST /api/admin/update') return adminUpdate(request, env);
             if (route === 'POST /api/admin/create') return adminCreate(request, env);
+            if (route === 'POST /api/admin/gallery') return galleryUpload(request, url, env);
+            if (route === 'POST /api/admin/gallery/order') return galleryOrder(request, env);
+            if (route === 'POST /api/admin/gallery/delete') return galleryDelete(request, env);
         }
 
         return json({ error: 'Nicht gefunden.' }, 404);
