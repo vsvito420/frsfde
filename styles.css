@@ -203,6 +203,14 @@ nav {
     transform: translateY(-2px);
 }
 
+.btn-whatsapp {
+    background: var(--whatsapp-green);
+}
+
+.btn-whatsapp:hover {
+    background: var(--whatsapp-hover);
+}
+
 /* HERO */
 .hero {
     min-height: 100vh;
@@ -455,6 +463,9 @@ nav {
 }
 
 .price-category {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
     margin-bottom: var(--space-lg);
 }
 
@@ -472,6 +483,133 @@ nav {
     font-weight: 700;
     font-family: var(--font-logo);
     text-align: right;
+}
+
+/* STUDIO VIDEO (Hintergrund) */
+.studio-bg {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-align: center;
+}
+
+/* animierter Hintergrund: Barber-Pole-Streifen + rote Lichter */
+.studio-bg-anim {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background:
+        repeating-linear-gradient(-45deg,
+            rgba(211, 0, 0, 0.07) 0 40px,
+            transparent 40px 80px,
+            rgba(255, 255, 255, 0.03) 80px 120px,
+            transparent 120px 160px);
+    background-size: 226px 226px;
+    animation: pole-move 6s linear infinite;
+}
+
+.studio-bg-anim span {
+    position: absolute;
+    width: 45vw;
+    height: 45vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(211, 0, 0, 0.35), transparent 65%);
+    filter: blur(40px);
+    animation: glow-drift 14s ease-in-out infinite alternate;
+}
+
+.studio-bg-anim span:first-child {
+    top: 10%;
+    left: -10%;
+}
+
+.studio-bg-anim span:last-child {
+    bottom: 0;
+    right: -10%;
+    background: radial-gradient(circle, rgba(212, 162, 76, 0.18), transparent 65%);
+    animation-duration: 18s;
+    animation-direction: alternate-reverse;
+}
+
+@keyframes pole-move {
+    to {
+        background-position: 226px 0;
+    }
+}
+
+@keyframes glow-drift {
+    to {
+        transform: translate(20vw, -10vh) scale(1.2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-bg-anim,
+    .studio-bg-anim span {
+        animation: none;
+    }
+}
+
+.studio-main-video {
+    display: block;
+    height: min(75vh, 700px);
+    max-width: 100%;
+    margin: 28px auto 0;
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+}
+
+.studio-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(#000, rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0.2) 80%, #000);
+}
+
+.studio-bg-content {
+    position: relative;
+    z-index: 1;
+    padding: 80px 16px;
+}
+
+.studio-bg-content p {
+    color: var(--text-main);
+    margin-top: 10px;
+    font-size: 1.1rem;
+}
+
+/* LOYALTY CARD */
+.loyalty-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.loyalty-grid span {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--surface-color);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--text-muted);
+}
+
+.loyalty-grid .loyalty-reward {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: var(--text-main);
+    font-size: 1.2rem;
+    line-height: 1.1;
 }
 
 /* CONTACT */
@@ -648,5 +786,434 @@ footer p {
     .price-value {
         min-width: 76px;
         font-size: 1.25rem;
+    }
+}
+/* PRICE BOARD (Stil wie Preisliste-Plakat) */
+.price-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.price-category {
+    gap: 12px;
+    margin: 0;
+    padding: 20px;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+}
+
+.price-category-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.price-item {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    padding: 0;
+    border: none;
+}
+
+.price-info h4 {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.price-info p {
+    font-size: 0.85rem;
+}
+
+.price-dots {
+    flex: 1;
+    min-width: 20px;
+    border-bottom: 2px dotted rgba(255, 255, 255, 0.35);
+}
+
+.price-value {
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    white-space: nowrap;
+}
+
+.price-premium {
+    align-items: center;
+    margin-top: 6px;
+    padding: 10px 12px;
+    border: 1px solid #d4a24c;
+    border-radius: 8px;
+    background: rgba(212, 162, 76, 0.06);
+}
+
+.price-premium h4 {
+    color: #e8b75a;
+    font-weight: 700;
+}
+
+.price-premium .price-dots {
+    border: none;
+}
+
+.price-crown {
+    margin-right: 6px;
+    color: #e8b75a;
+}
+
+.price-perks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 16px;
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    background: #000;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.price-perks em {
+    font-style: normal;
+    color: var(--accent-red);
+}
+
+.price-slogan {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: var(--accent-red);
+}
+
+.price-slogan span {
+    color: var(--text-main);
+}
+
+/* HERO BRAND (wie Plakat) */
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.85));
+    pointer-events: none;
+}
+
+.hero .hero-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: center;
+    gap: 40px;
+}
+
+.hero-lockup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(24px, 5vw, 64px);
+}
+
+.hero-logo-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.hero-logo-large {
+    position: relative;
+    width: clamp(160px, 22vw, 280px);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px #fff, 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.hero-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    text-transform: uppercase;
+    gap: 8px;
+    min-width: 0;
+}
+
+.hero-brand h1 {
+    font-style: italic;
+    line-height: 0.85;
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+    letter-spacing: 1px;
+    transform: skewX(-6deg);
+    text-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
+}
+
+.hero-line {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.hero-line::before,
+.hero-line::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: currentColor;
+}
+
+.hero-line span {
+    padding-left: 0.5em;
+}
+
+.hero-studio {
+    font-family: var(--font-logo);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    letter-spacing: 0.5em;
+    color: var(--accent-red);
+}
+
+.hero-barber {
+    font-family: var(--font-logo);
+    font-weight: 700;
+    font-size: clamp(1.1rem, 2.8vw, 1.9rem);
+    letter-spacing: 0.3em;
+}
+
+.hero-sub,
+.hero-cuts {
+    letter-spacing: 0.25em;
+    font-size: clamp(0.75rem, 1.8vw, 1.05rem);
+}
+
+.hero-sub em,
+.hero-cuts em {
+    font-style: normal;
+    color: var(--accent-red);
+}
+
+.hero-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent-red);
+    font-size: 0.9rem;
+}
+
+.hero-divider::before,
+.hero-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--accent-red);
+}
+
+.hero-cuts {
+    font-size: clamp(1rem, 2.4vw, 1.4rem);
+    letter-spacing: 0.35em;
+}
+
+.hero-owner {
+    margin-top: 6px;
+    text-transform: none;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+
+.hero-owner strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-outline {
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--text-main);
+}
+
+.btn-outline:hover {
+    background: var(--text-main);
+    color: #000;
+}
+
+.price-icon {
+    margin-right: 10px;
+}
+
+@media (max-width: 768px) {
+    .hero-lockup {
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .hero-brand {
+        width: 100%;
+    }
+}
+
+/* FEATURE STRIP (ersetzt Leistungs-Karten) */
+#services {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.feature-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: -60px;
+    position: relative;
+    z-index: 2;
+    background: var(--surface-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--accent-red);
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.feature {
+    padding: 28px 20px;
+    text-align: center;
+}
+
+.feature + .feature {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.feature h3 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+.feature p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .feature-strip {
+        grid-template-columns: repeat(2, 1fr);
+        margin-top: 0;
+    }
+
+    .feature:nth-child(3) {
+        border-left: none;
+    }
+
+    .feature:nth-child(n+3) {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+}
+
+/* PREIS-UPGRADES eingerückt */
+.price-upgrade {
+    margin-top: -4px;
+    margin-left: 18px;
+    padding-left: 12px;
+    border-left: 2px solid var(--accent-red);
+}
+
+.price-upgrade h4 {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.price-upgrade .price-value {
+    font-size: 1.4rem;
+}
+
+/* LOYALTY ANIMATION */
+.loyalty-grid span {
+    position: relative;
+    overflow: hidden;
+}
+
+.loyalty-grid span::after {
+    content: "✓";
+    position: absolute;
+    inset: 14%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    font-size: 1.8rem;
+    color: var(--accent-red);
+    border: 3px solid var(--accent-red);
+    border-radius: 50%;
+    background: rgba(211, 0, 0, 0.12);
+    opacity: 0;
+    transform: scale(2.2) rotate(-25deg);
+}
+
+.loyalty-grid .loyalty-reward::after {
+    content: none;
+}
+
+.loyalty-grid.animate span::after {
+    animation: stamp 0.35s ease-out forwards;
+}
+
+.loyalty-grid.animate .loyalty-reward {
+    animation: reward-pulse 1.6s ease-in-out 3.4s infinite;
+}
+
+.loyalty-grid.animate span:nth-child(1)::after { animation-delay: 0.2s; }
+.loyalty-grid.animate span:nth-child(2)::after { animation-delay: 0.5s; }
+.loyalty-grid.animate span:nth-child(3)::after { animation-delay: 0.8s; }
+.loyalty-grid.animate span:nth-child(4)::after { animation-delay: 1.1s; }
+.loyalty-grid.animate span:nth-child(5)::after { animation-delay: 1.4s; }
+.loyalty-grid.animate span:nth-child(6)::after { animation-delay: 1.7s; }
+.loyalty-grid.animate span:nth-child(7)::after { animation-delay: 2.0s; }
+.loyalty-grid.animate span:nth-child(8)::after { animation-delay: 2.3s; }
+.loyalty-grid.animate span:nth-child(9)::after { animation-delay: 2.6s; }
+
+@keyframes stamp {
+    to {
+        opacity: 1;
+        transform: scale(1) rotate(-12deg);
+    }
+}
+
+@keyframes reward-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(211, 0, 0, 0.6);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 10px rgba(211, 0, 0, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loyalty-grid.animate span::after,
+    .loyalty-grid.animate .loyalty-reward {
+        animation-duration: 0.01s;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1;
     }
 }

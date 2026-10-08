@@ -1,73 +1,126 @@
-Erklärung: 1 Eintrag = 3 Zeilen | also: | Zeile 1 = Titel | Zeile 2 = "Beschreibung" oder "-" | Zeile 3 = Preis | Leerzeile = neuer Eintrag . Die erste zeile mit der erklärung wird ignoriert
+Erklärung: Zeile mit "#" am Anfang = neue Kategorie | 1 Eintrag = 3 Zeilen | Zeile 1 = Titel | Zeile 2 = "Beschreibung" oder "-" | Zeile 3 = Preis | Leerzeile = neuer Eintrag . Die erste Zeile mit der Erklärung wird ignoriert
 
-Kinder bis 12 Jahre
+# Herren
+Haarschnitt
+-
+26€
+
+Styling mit Produkt
+Gel, Wax, Pomade, Sea Salt
++2€
+
+Premium Service
+Haarschnitt + Waschen + Föhnen + Styling
+36€
+
+# Kinder bis 12 Jahre
+Haarschnitt
 -
 18€
 
-Maschinen Schnitt
+Styling mit Produkt
+Gel, Wax, Pomade, Sea Salt
++2€
+
+Premium Service
+Haarschnitt + Waschen + Föhnen + Styling
+28€
+
+# Schüler ab 12 Jahre
+Schüler Haarschnitt
 -
-17€
-
-Herrenhaarschnitt
-inkl. Styling mit hochwertigen Produkten
-26€
-
-Haarschnitt + Waschen & Föhnen
-inkl. Styling mit hochwertigen Produkten
-29€
-
-Schüler Paket
-Haarschnitt + Styling
 24€
 
-Kurze Haare
--
-25€
+Styling mit Produkt
+Gel, Wax, Pomade, Sea Salt
++2€
 
-Mittlere Haare
--
-30€
+Premium Service
+Haarschnitt + Waschen + Föhnen + Styling
+34€
 
-Lange Haare
+# Extra Premium
+Waschen + Föhnen
 -
-35€
+8€
 
+Styling mit Produkt
+Gel, Wax, Pomade, Sea Salt
+2€
+
+Premium Hot Towel / Old School
+Rasur mit heißem Handtuch
+5€
+
+# Bart Services
 Bart schneiden & Kontur
 inkl. Bartstyling, Bartöl & Aftershave
 19€
 
-Bart schneiden & färben
+Bart färben
 inkl. Bartstyling, Bartöl & Aftershave
 30€
 
-Haarschnitt & Rasur
+Premium Service
+Bart schneiden & Kontur + Hot Towel
+24€
+
+# Maschinen Schnitt
+Maschinen Schnitt
+gleiche Länge am ganzen Kopf, ohne Fade (z. B. 0–2 mm)
+18€
+
+Waschen
 -
-43€
++8€
 
-Haarschnitt, Waschen & Rasur
+Premium Service
+Maschinen Schnitt + Waschen
+26€
+
+# Damen
+Haarschnitt kurze Haare
 -
-47€
+25€
 
-Gentleman Paket
-Haarschnitt, Bart, Styling, Augenbrauen & Waxing
-55€
+Haarschnitt mittlere Haare
+-
+30€
 
-Haare färben + Styling
+Haarschnitt lange Haare
 -
 35€
 
-Traditionelles Hot Towel Ritual
+Waschen + Föhnen + Styling
 -
-+4€
+18€
 
-Augenbrauen
+# Extras
+Augenbrauen zupfen & Korrektur
 -
 3€
 
 Nase & Ohren
--
+mit Warmwachs entfernen
 8€
 
-Waschen + Föhnen + Styling
+# Getränke (je 0,33 l)
+Coca-Cola
 -
-15€
+2,50€
+
+Coca-Cola Zero
+-
+2,50€
+
+Fanta Exotic
+-
+2,50€
+
+Paulaner Spezi
+-
+2,50€
+
+Cola Mix
+-
+2,50€

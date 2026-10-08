@@ -53,14 +53,23 @@
         <div class="hero-slider" id="hero-slider">
         </div>
         <div class="container hero-content">
-            <img src="./assets/logo/logo1280X1280.webp" alt="Fresh Fade Studio" class="hero-logo-large"
-                style="border-radius:50%;">
-            <p class="tagline">PLAY FRISH</p>
-            <h1>Fresh Fade Studio</h1>
-            <p class="hero-text"> Moderner Barbershop in Friedrichshafen für präzise Haarschnitte, Bartpflege und
-                traditionelle Rasur. </p>
-            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div class="hero-lockup">
+                <div class="hero-logo-wrap">
+                    <img src="./assets/logo/logo1280X1280.webp" alt="Fresh Fade Studio Logo" class="hero-logo-large">
+                </div>
+                <div class="hero-brand">
+                    <h1>Fresh Fade</h1>
+                    <p class="hero-line hero-studio"><span>Studio</span></p>
+                    <p class="hero-line hero-barber"><span>Barber Shop</span></p>
+                    <p class="hero-sub">Premium <em>Barber</em> <em>•</em> Friedrichshafen</p>
+                    <p class="hero-divider"><span>✂</span></p>
+                    <p class="hero-cuts">Cut <em>•</em> Trimm <em>•</em> Shave</p>
+                    <p class="hero-owner">Inhaber <strong>Sorin Marinescu</strong> · Friseurmeister</p>
+                </div>
+            </div>
+            <div class="hero-actions">
                 <a href="#contact" class="btn">Termin buchen</a>
+                <a href="#preise" class="btn btn-outline">Preisliste</a>
             </div>
         </div>
     </header>
@@ -83,24 +92,26 @@
 
     <!-- SERVICES -->
     <section id="services" class="section container">
-        <h2 style="text-align:center; font-size:3rem;"> Unsere <span style="color:var(--accent-red);">Leistungen</span>
-        </h2>
-        <div class="grid-3">
-            <div class="card">
-                <h3>Haarschnitt</h3>
-                <p>Präziser Schnitt mit Beratung & Styling. Play Fresh.</p>
+        <div class="feature-strip">
+            <div class="feature">
+                <span class="feature-icon">✂️</span>
+                <h3>Präzise Schnitte</h3>
+                <p>Fades, Klassiker &amp; Styling</p>
             </div>
-            <div class="card">
-                <h3>Bart & Rasur</h3>
-                <p>Kontur schneiden, Bartöl & Aftershave. Perfekt gepflegt.</p>
+            <div class="feature">
+                <span class="feature-icon">🪒</span>
+                <h3>Bart &amp; Hot Towel</h3>
+                <p>Kontur, Bartöl &amp; Aftershave</p>
             </div>
-            <div class="card">
-                <h3>Beratung</h3>
-                <p>Kostenlose Beratung vor jedem Schnitt. Gemeinsam finden wir deinen Look.</p>
+            <div class="feature">
+                <span class="feature-icon">💬</span>
+                <h3>Gratis Beratung</h3>
+                <p>Wir finden deinen Look</p>
             </div>
-            <div class="card">
-                <h3>Gratis Getränke</h3>
-                <p>Kaffee, Wasser oder Tee? Entspann dich .. du bist in guten Händen.</p>
+            <div class="feature">
+                <span class="feature-icon">☕</span>
+                <h3>Kaffee &amp; Wasser</h3>
+                <p>Gratis, während du wartest</p>
             </div>
         </div>
     </section>
@@ -110,6 +121,17 @@
         <h2 style="text-align:center; font-size:3rem;"> Stay <span style="color:var(--accent-red);">Fresh</span> </h2>
         <p style=" text-align:center; color:var(--text-muted); margin-top:10px; margin-bottom:40px; "> Stay Cool. </p>
         <div class="gallery-grid" id="gallery-grid"></div>
+    </section>
+
+    <!-- STUDIO -->
+    <section id="studio" class="studio-bg">
+        <div class="studio-bg-anim" aria-hidden="true"><span></span><span></span></div>
+        <div class="studio-bg-content">
+            <h2 style="font-size:3rem;"> Unser <span style="color:var(--accent-red);">Studio</span> </h2>
+            <p> Schau dich schon mal um. </p>
+            <video class="studio-main-video" src="./assets/studio/studio-video.mp4" poster="./assets/studio/studio-video-poster.webp"
+                autoplay muted loop playsinline></video>
+        </div>
     </section>
 
     <!-- LIGHTBOX -->
@@ -123,10 +145,30 @@
     <!-- PRICES -->
     <section id="preise" class="section price-section">
         <div class="container">
-            <h2 style=" text-align:center; font-size:3rem; margin-bottom:var(--space-xl); "> Unsere <span
+            <h2 style=" text-align:center; font-size:3rem; margin-bottom:var(--space-xl); "> 💰 Unsere <span
                     style="color:var(--accent-red);">Preise</span> </h2>
             <div id="preisliste-container" class="price-list"></div>
+            <div class="price-perks">
+                <span>☕ Kaffee <em>gratis</em></span>
+                <span>💧 Wasser <em>gratis</em></span>
+                <span>🅿️ Freie Parkplätze</span>
+            </div>
+            <p class="price-slogan">★ Your Style. <span>Our Passion.</span> ★</p>
+            <p style="text-align:center; margin-top:var(--space-lg);">
+                <a href="./assets/studio/preisliste.webp" target="_blank" rel="noopener" class="btn">Preisliste als Bild</a>
+            </p>
         </div>
+    </section>
+
+    <!-- LOYALTY CARD -->
+    <section id="treuekarte" class="section container">
+        <h2 style="text-align:center; font-size:3rem;"> Loyalty <span style="color:var(--accent-red);">Card</span> </h2>
+        <p style=" text-align:center; color:var(--text-muted); margin-top:10px; margin-bottom:40px; "> Sammeln &amp; sparen: Bei jedem Besuch gibt es einen Stempel. Beim 10. Besuch bekommst du <strong style="color:var(--text-main);">20 % Rabatt</strong>. </p>
+        <div class="loyalty-grid" id="loyalty-grid">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+            <span>6</span><span>7</span><span>8</span><span>9</span><span class="loyalty-reward">10<br>20%</span>
+        </div>
+        <p style="text-align:center; margin-top:var(--space-lg); font-style:italic;"> Your Style. <span style="color:var(--accent-red);">Our Passion.</span> </p>
     </section>
 
     <!-- CONTACT -->
@@ -154,7 +196,7 @@
                         &nbsp;&nbsp;&nbsp;9:30 – 17:30 Uhr
                     </p>
                 </div>
-                <div class="contact-actions"> <a href="tel:01744891087" class="btn"> Telefon📞 </a> </div>
+                <div class="contact-actions"> <a href="tel:01744891087" class="btn"> Telefon📞 </a> <a href="https://wa.me/491744891087" target="_blank" rel="noopener" class="btn btn-whatsapp"> WhatsApp </a> </div>
             </div>
         </div>
     </section>
@@ -202,7 +244,7 @@
 
         <!-- FOOTER -->
         <footer>
-            <img src="./assets/logo1280X1280.webp" alt="Logo"
+            <img src="./assets/logo/logo1280X1280.webp" alt="Logo"
                 style=" width:60px; margin:0 auto 16px; border-radius:50%; opacity:0.5; ">
             <p> © 2026 Fresh Fade Studio Barbershop Friedrichshafen. </p>
             <div class="footer-links">
@@ -215,6 +257,17 @@
         <script>
 
             // PREISE
+            const preisIcons = {
+                'herren': '💇‍♂️',
+                'kinder': '👦',
+                'schüler': '🎒',
+                'extra premium': '👑',
+                'bart': '🧔',
+                'maschinen': '✂️',
+                'damen': '💇‍♀️',
+                'extras': '✨',
+                'getränke': '🥤'
+            };
             async function ladePreisliste() {
                 const container = document.getElementById('preisliste-container');
                 if (!container) return;
@@ -236,23 +289,38 @@
 
                     const dataLines = lines.slice(1);
                     let html = '';
+                    let entry = [];
+                    let inCategory = false;
 
-                    for (let i = 0; i < dataLines.length; i += 3) {
-                        const title = dataLines[i];
-                        const description = dataLines[i + 1] || '-';
-                        const price = dataLines[i + 2] || '';
-                        if (!title || !price) continue;
+                    for (const line of dataLines) {
+                        if (line.startsWith('#')) {
+                            if (inCategory) html += '</div>';
+                            const name = line.slice(1).trim();
+                            const icon = Object.entries(preisIcons).find(([key]) => name.toLowerCase().startsWith(key));
+                            html += `<div class="price-category"><h3 class="price-category-title">${icon ? `<span class="price-icon">${icon[1]}</span>` : ''}${name}</h3>`;
+                            inCategory = true;
+                            entry = [];
+                            continue;
+                        }
+                        entry.push(line);
+                        if (entry.length < 3) continue;
 
+                        const [title, description, price] = entry;
+                        entry = [];
+                        const premium = title.toLowerCase().startsWith('premium service');
+                        const upgrade = price.startsWith('+');
                         html += `
-                <div class="price-item">
+                <div class="price-item${premium ? ' price-premium' : ''}${upgrade ? ' price-upgrade' : ''}">
                 <div class="price-info">
-                    <h4>${title}</h4>
+                    <h4>${premium ? '<span class="price-crown">👑</span>' : ''}${title}</h4>
                     ${description !== '-' ? `<p>${description}</p>` : ''}
                 </div>
+                <span class="price-dots"></span>
                 <div class="price-value">${price}</div>
                 </div>
             `;
                     }
+                    if (inCategory) html += '</div>';
 
                     container.innerHTML = html || '<p>Keine Preise vorhanden.</p>';
                 } catch (error) {
@@ -262,6 +330,19 @@
             }
 
             document.addEventListener('DOMContentLoaded', ladePreisliste);
+
+            // LOYALTY CARD - Stempel-Animation sobald sichtbar
+            const loyaltyGrid = document.getElementById('loyalty-grid');
+            if (loyaltyGrid && 'IntersectionObserver' in window) {
+                const observer = new IntersectionObserver(entries => {
+                    if (!entries[0].isIntersecting) return;
+                    loyaltyGrid.classList.add('animate');
+                    observer.disconnect();
+                }, { threshold: 0.5 });
+                observer.observe(loyaltyGrid);
+            } else if (loyaltyGrid) {
+                loyaltyGrid.classList.add('animate');
+            }
 
             // GALLERY - Dynamic load from folder
             const galleryGrid = document.getElementById('gallery-grid');
