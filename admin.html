@@ -589,6 +589,28 @@
             gap: 10px;
         }
 
+        .g-preview {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .g-preview h3 {
+            font-size: 1.3rem;
+        }
+
+        .g-preview-frame {
+            margin-top: 12px;
+            padding: 28px 20px;
+            background: var(--bg-color);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+        }
+
+        .g-preview-frame .gallery-item img {
+            cursor: zoom-in;
+        }
+
         /* TAGES-TABS (nur Handy) */
         .day-tabs {
             display: none;
@@ -828,6 +850,15 @@
                 <p class="admin-msg">Ganzen Tag sperren: 09:30 bis 19:30 eintragen.</p>
             </section>
 
+            <!-- LISTE -->
+            <section class="admin-box">
+                <div class="admin-row" style="justify-content:space-between;">
+                    <h2 style="margin:0;">Alle kommenden Termine</h2>
+                    <input type="search" id="search" placeholder="Name oder Telefon suchen …" style="max-width:280px;">
+                </div>
+                <div id="bookings"></div>
+            </section>
+
             <!-- GALERIE -->
             <section class="admin-box">
                 <div class="admin-row" style="justify-content:space-between;">
@@ -838,16 +869,18 @@
                 </div>
                 <p class="admin-msg" id="gallery-status"></p>
                 <div class="gallery-admin" id="gallery-admin"></div>
-                <p class="admin-msg">Bild antippen zum Ansehen · ‹ › Reihenfolge ändern (am PC auch ziehen) · ⇄ Bild tauschen · 🗑 löschen. Änderungen sind sofort auf der Webseite.</p>
-            </section>
-
-            <!-- LISTE -->
-            <section class="admin-box">
-                <div class="admin-row" style="justify-content:space-between;">
-                    <h2 style="margin:0;">Alle kommenden Termine</h2>
-                    <input type="search" id="search" placeholder="Name oder Telefon suchen …" style="max-width:280px;">
+                <div class="g-preview">
+                    <div class="admin-row" style="justify-content:space-between;">
+                        <h3>So sieht es auf der Webseite aus</h3>
+                        <a class="small-btn" href="/#gallery" target="_blank" rel="noopener">Auf Webseite öffnen ↗</a>
+                    </div>
+                    <div class="g-preview-frame">
+                        <h2 style="text-align:center; font-size:2.4rem;"> Stay <span style="color:var(--accent-red);">Fresh</span> </h2>
+                        <p style="text-align:center; color:var(--text-muted); margin:6px 0 24px;"> Stay Cool. </p>
+                        <div class="gallery-grid" id="gallery-preview"></div>
+                    </div>
                 </div>
-                <div id="bookings"></div>
+                <p class="admin-msg">Bild antippen zum Ansehen · ‹ › Reihenfolge ändern (am PC auch ziehen) · ⇄ Bild tauschen · 🗑 löschen. Änderungen sind sofort auf der Webseite.</p>
             </section>
         </div>
     </main>
@@ -1418,7 +1451,15 @@
             renderGallery();
         }
 
+        function renderPreview() {
+            const urls = galleryImages.length ? galleryImages.map(img => `/api/gallery/${img.id}`) : DEFAULT_GALLERY;
+            $('gallery-preview').innerHTML = urls.map((src, i) =>
+                `<div class="gallery-item"><img src="${src}" alt="Vorschau ${i + 1}" loading="lazy" data-site-preview="${i}"></div>`
+            ).join('');
+        }
+
         function renderGallery() {
+            renderPreview();
             if (galleryImages.length === 0) {
                 galleryEl.innerHTML = '';
                 galleryStatus.innerHTML = 'Noch keine eigenen Bilder – die Webseite zeigt die 6 Standardbilder. '
@@ -1572,6 +1613,10 @@
             $('preview-count').textContent = `${previewIndex + 1} / ${galleryImages.length}`;
             if (!$('preview-dialog').open) $('preview-dialog').showModal();
         }
+        $('gallery-preview').addEventListener('click', e => {
+            const img = e.target.closest('[data-site-preview]');
+            if (img && galleryImages.length) openPreview(Number(img.dataset.sitePreview));
+        });
         $('preview-prev').addEventListener('click', () => openPreview(previewIndex - 1));
         $('preview-next').addEventListener('click', () => openPreview(previewIndex + 1));
         $('preview-dialog').addEventListener('keydown', e => {
