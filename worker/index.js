@@ -105,9 +105,9 @@ async function accessKeys(env) {
 }
 
 // Login mit Benutzername + Passwort. ADMIN_USERS (Secret) = "name:passwort,name2:passwort2".
-// Nach dem Login gibt es ein mit SESSION_SECRET signiertes Cookie (12 Stunden gültig).
+// Nach dem Login gibt es ein mit SESSION_SECRET signiertes Cookie (30 Tage gültig, damit die Handy-App angemeldet bleibt).
 const SESSION_COOKIE = 'ff_session';
-const SESSION_HOURS = 12;
+const SESSION_HOURS = 24 * 30;
 
 async function hmac(env, text) {
     const key = await crypto.subtle.importKey(
