@@ -96,7 +96,8 @@ nav {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: var(--space-lg);
+    gap: clamp(14px, 2vw, var(--space-lg));
+    margin-left: var(--space-md);
 }
 
 .nav-links a {
