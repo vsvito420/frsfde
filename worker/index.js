@@ -97,6 +97,34 @@ async function bookableStaff(env) {
     return results;
 }
 
+// SCHICHTPLAN: Arbeitszeiten (pro Wochentag) und Abwesenheiten (ganze Tage)
+async function loadSchedule(env, from = '0000-01-01', to = '9999-12-31') {
+    const [hours, absences] = await Promise.all([
+        env.DB.prepare('SELECT staff_id, weekday, start, end FROM staff_hours').all(),
+        env.DB.prepare('SELECT id, staff_id, date_from, date_to, kind, note FROM staff_absence WHERE date_to >= ? AND date_from <= ? ORDER BY date_from').bind(from, to).all()
+    ]);
+    const schedule = {};
+    const entry = id => (schedule[id] ??= { hours: null, absences: [] });
+    for (const h of hours.results) {
+        entry(h.staff_id).hours ??= {};
+        schedule[h.staff_id].hours[h.weekday] = h.start ? [h.start, h.end] : null;
+    }
+    for (const a of absences.results) entry(a.staff_id).absences.push(a);
+    return schedule;
+}
+
+// Arbeitet der Friseur zu dieser Zeit? (ohne Schichtplan = alle Öffnungszeiten)
+function worksAt(schedule, staffId, date, time) {
+    if (staffId == null) return true;
+    const plan = schedule[staffId];
+    if (!plan) return true;
+    if (plan.absences.some(a => a.date_from <= date && a.date_to >= date)) return false;
+    if (!plan.hours) return true;
+    const shift = plan.hours[new Date(`${date}T12:00:00Z`).getUTCDay()];
+    if (!shift) return false;
+    return toMinutes(time) >= toMinutes(shift[0]) && toMinutes(time) + SLOT_MINUTES <= toMinutes(shift[1]);
+}
+
 // Belegte Uhrzeiten pro Friseur an einem Tag: Map(time -> Set(staff_id))
 async function takenByTime(env, date) {
     const { results } = await env.DB.prepare("SELECT time, staff_id FROM bookings WHERE date = ? AND status != 'abgesagt'").bind(date).all();
@@ -121,10 +149,11 @@ async function getSlots(url, env) {
     if (!isBookableDate(date)) return json({ error: 'Ungültiges Datum.' }, 400);
     const staff = await eligibleStaff(env, url.searchParams.get('staff'));
     const taken = await takenByTime(env, date);
-    // Frei, wenn mindestens ein passender Friseur zu der Zeit frei ist (keine Namen nach außen)
+    const schedule = await loadSchedule(env, date, date);
+    // Frei, wenn mindestens ein passender Friseur Dienst hat und frei ist (keine Namen nach außen)
     const slots = slotsForDate(date).map(time => ({
         time,
-        available: !isPastSlot(date, time) && staff.some(s => !taken.get(time)?.has(s.id ?? 0))
+        available: !isPastSlot(date, time) && staff.some(s => worksAt(schedule, s.id, date, time) && !taken.get(time)?.has(s.id ?? 0))
     }));
     return json({ date, slots });
 }
@@ -158,8 +187,9 @@ async function book(request, env, ctx) {
     const staff = await eligibleStaff(env, body.staff);
     if (!staff.length) return json({ error: 'Dieser Friseur ist nicht buchbar.' }, 400);
     const taken = await takenByTime(env, date);
+    const schedule = await loadSchedule(env, date, date);
     let assigned = null;
-    for (const candidate of staff.filter(s => !taken.get(time)?.has(s.id ?? 0))) {
+    for (const candidate of staff.filter(s => worksAt(schedule, s.id, date, time) && !taken.get(time)?.has(s.id ?? 0))) {
         try {
             await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, seen, source, staff_id) VALUES (?, ?, ?, ?, ?, ?, 0, 'website', ?)")
                 .bind(date, time, name, phone, email || null, service, candidate.id).run();
@@ -216,7 +246,7 @@ async function adminBookings(url, env) {
             (SELECT count(*) FROM bookings v WHERE v.phone = b.phone AND v.status = 'erschienen' AND v.blocked = 0) AS visits
         FROM bookings b WHERE b.date >= ? AND b.date <= ? ORDER BY b.date, b.time
     `).bind(from, to).all();
-    return json({ bookings: results, services: SERVICES, staff: await bookableStaff(env) });
+    return json({ bookings: results, services: SERVICES, staff: await bookableStaff(env), schedule: await loadSchedule(env, from, to) });
 }
 
 const isUniqueError = error => String(error).includes('UNIQUE');
@@ -352,6 +382,117 @@ async function galleryDelete(request, env) {
     return json({ ok: true });
 }
 
+// Schichtplan lesen (alle) und bearbeiten (Admin, Abwesenheiten auch für sich selbst)
+async function scheduleView(env) {
+    const today = nowInBerlin().date;
+    return json({ staff: await bookableStaff(env), schedule: await loadSchedule(env, today, '9999-12-31'), openingHours: OPENING_HOURS });
+}
+
+const TIME_PATTERN = /^\d{2}:\d{2}$/;
+
+async function scheduleHours(request, env) {
+    const body = await readJson(request);
+    const staffId = Number(body?.staff_id);
+    if (!staffId) return json({ error: 'Friseur fehlt.' }, 400);
+    const statements = [env.DB.prepare('DELETE FROM staff_hours WHERE staff_id = ?').bind(staffId)];
+    // hours = null: wieder alle Öffnungszeiten
+    if (body.hours) {
+        for (let weekday = 0; weekday <= 6; weekday++) {
+            const shift = body.hours[weekday];
+            const open = OPENING_HOURS[weekday];
+            if (shift && open) {
+                const [start, end] = shift;
+                if (!TIME_PATTERN.test(start) || !TIME_PATTERN.test(end) || toMinutes(start) >= toMinutes(end)) {
+                    return json({ error: 'Ungültige Arbeitszeit.' }, 400);
+                }
+                statements.push(env.DB.prepare('INSERT INTO staff_hours (staff_id, weekday, start, end) VALUES (?, ?, ?, ?)').bind(staffId, weekday, start, end));
+            } else {
+                statements.push(env.DB.prepare('INSERT INTO staff_hours (staff_id, weekday, start, end) VALUES (?, ?, NULL, NULL)').bind(staffId, weekday));
+            }
+        }
+    }
+    await env.DB.batch(statements);
+    return json({ ok: true });
+}
+
+const ABSENCE_KINDS = ['urlaub', 'krank', 'frei', 'schule', 'sonstiges'];
+
+async function scheduleAbsence(request, env, me) {
+    const body = await readJson(request);
+    const staffId = Number(body?.staff_id);
+    if (me.role !== 'admin' && staffId !== me.id) return json({ error: 'Nur für dich selbst.' }, 403);
+    const from = String(body?.date_from || '');
+    const to = String(body?.date_to || from);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || to < from) return json({ error: 'Ungültiger Zeitraum.' }, 400);
+    const kind = ABSENCE_KINDS.includes(body?.kind) ? body.kind : 'sonstiges';
+    await env.DB.prepare('INSERT INTO staff_absence (staff_id, date_from, date_to, kind, note) VALUES (?, ?, ?, ?, ?)')
+        .bind(staffId, from, to, kind, String(body?.note || '').slice(0, 200) || null).run();
+    return json({ ok: true });
+}
+
+async function scheduleAbsenceDelete(request, env, me) {
+    const body = await readJson(request);
+    const row = await env.DB.prepare('SELECT staff_id FROM staff_absence WHERE id = ?').bind(Number(body?.id)).first();
+    if (!row) return json({ error: 'Nicht gefunden.' }, 404);
+    if (me.role !== 'admin' && row.staff_id !== me.id) return json({ error: 'Nur für dich selbst.' }, 403);
+    await env.DB.prepare('DELETE FROM staff_absence WHERE id = ?').bind(Number(body.id)).run();
+    return json({ ok: true });
+}
+
+// TESTDATEN (nur Admin): zufällige Buchungen erzeugen und wieder löschen
+const TEST_NAMES = ['Max', 'Leon', 'Paul', 'Elias', 'Noah', 'Ben', 'Luca', 'Finn', 'Emil', 'Jonas', 'Ali', 'Mehmet', 'Can', 'Luis', 'Tim', 'Sara', 'Lea', 'Mia', 'Anna', 'Emma'];
+const TEST_LAST = ['M.', 'K.', 'S.', 'B.', 'W.', 'Ö.', 'Y.', 'H.'];
+const pick = list => list[Math.floor(Math.random() * list.length)];
+
+async function testGenerate(request, env, me) {
+    const body = await readJson(request);
+    const count = Math.min(Math.max(Number(body?.count) || 10, 1), 50);
+    const days = Math.min(Math.max(Number(body?.days) || 14, 1), BOOKING_DAYS_AHEAD);
+    const today = nowInBerlin().date;
+    const staff = await eligibleStaff(env, null);
+    const schedule = await loadSchedule(env, today, addDays(today, days));
+    const takenCache = new Map();
+    const created = [];
+
+    for (let attempt = 0; created.length < count && attempt < count * 25; attempt++) {
+        const date = addDays(today, Math.floor(Math.random() * (days + 1)));
+        const slots = slotsForDate(date).filter(t => !isPastSlot(date, t));
+        if (!slots.length) continue;
+        const time = pick(slots);
+        if (!takenCache.has(date)) takenCache.set(date, await takenByTime(env, date));
+        const taken = takenCache.get(date);
+        const free = staff.filter(s => worksAt(schedule, s.id, date, time) && !taken.get(time)?.has(s.id ?? 0));
+        if (!free.length) continue;
+        const assigned = pick(free);
+        const name = `${pick(TEST_NAMES)} ${pick(TEST_LAST)}`;
+        try {
+            await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, note, seen, source, staff_id) VALUES (?, ?, ?, ?, NULL, ?, '🧪 Testbuchung', 0, 'test', ?)")
+                .bind(date, time, name, `0151 ${String(Math.floor(Math.random() * 1e8)).padStart(8, '0')}`, pick(SERVICES.slice(0, -1)), assigned.id).run();
+            if (!taken.has(time)) taken.set(time, new Set());
+            taken.get(time).add(assigned.id ?? 0);
+            created.push({ date, time, name, staff: assigned.name });
+        } catch (error) {
+            if (!isUniqueError(error)) throw error;
+        }
+    }
+
+    if (body?.push && created.length) {
+        const first = created.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))[0];
+        await notifyAdmins(env, {
+            title: `🧪 ${created.length} Testbuchungen`,
+            body: `Nächste: ${first.name} am ${first.date.slice(8)}.${first.date.slice(5, 7)}. um ${first.time} Uhr`,
+            url: `/admin#datum-${first.date}`,
+            tag: 'test-bookings'
+        }, [me.username]).catch(() => { });
+    }
+    return json({ created: created.length });
+}
+
+async function testClear(env) {
+    const result = await env.DB.prepare("DELETE FROM bookings WHERE source = 'test'").run();
+    return json({ deleted: result.meta?.changes ?? 0 });
+}
+
 async function adminDelete(request, env) {
     const body = await readJson(request);
     if (!body || !Number.isInteger(body.id)) return json({ error: 'Ungültige ID.' }, 400);
@@ -414,6 +555,9 @@ export default {
             if (route === 'GET /api/admin/push/key') return json({ key: env.VAPID_PUBLIC_KEY || null });
             if (route === 'POST /api/admin/push/subscribe') return pushSubscribe(request, env, user);
             if (route === 'POST /api/admin/push/unsubscribe') return pushUnsubscribe(request, env);
+            if (route === 'GET /api/admin/schedule') return scheduleView(env);
+            if (route === 'POST /api/admin/schedule/absence') return scheduleAbsence(request, env, me);
+            if (route === 'POST /api/admin/schedule/absence/delete') return scheduleAbsenceDelete(request, env, me);
             if (route === 'POST /api/admin/push/test') {
                 return json(await notifyAdmins(env, { title: '💈 Test von Fresh Fade', body: 'Benachrichtigungen funktionieren!', url: '/admin', tag: 'test' }, [user]));
             }
@@ -423,6 +567,9 @@ export default {
             if (route === 'GET /api/admin/staff') return listStaff(env);
             if (route === 'POST /api/admin/staff') return saveStaff(request, env, me);
             if (route === 'POST /api/admin/staff/invite') return createInvite(request, env);
+            if (route === 'POST /api/admin/schedule/hours') return scheduleHours(request, env);
+            if (route === 'POST /api/admin/test/generate') return testGenerate(request, env, me);
+            if (route === 'POST /api/admin/test/clear') return testClear(env);
             if (route === 'POST /api/admin/gallery') return galleryUpload(request, url, env);
             if (route === 'POST /api/admin/gallery/order') return galleryOrder(request, env);
             if (route === 'POST /api/admin/gallery/delete') return galleryDelete(request, env);

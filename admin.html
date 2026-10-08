@@ -1774,6 +1774,107 @@
             border-radius: 50%;
         }
 
+        #shift-week {
+            overflow-x: auto;
+        }
+
+        dialog.pop {
+            max-height: calc(100% - 24px);
+            overflow-y: auto;
+        }
+
+        .shift-grid {
+            display: grid;
+            grid-template-columns: 140px repeat(6, 1fr);
+            gap: 1px;
+            background: var(--p-line);
+            border: 1px solid var(--p-line);
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.85rem;
+        }
+
+        .shift-grid > div {
+            background: var(--p-card);
+            padding: 10px;
+        }
+
+        .shift-grid .sh {
+            background: var(--p-card2);
+            color: var(--p-muted);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .shift-grid .sn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .shift-grid .sc {
+            text-align: center;
+        }
+
+        .shift-bar {
+            display: block;
+            margin-top: 4px;
+            padding: 4px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .shift-off {
+            color: var(--p-off);
+        }
+
+        .shift-abs {
+            display: block;
+            margin-top: 4px;
+            padding: 4px;
+            border-radius: 6px;
+            background: var(--p-warn-bg);
+            color: var(--p-warn);
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .hours-row {
+            display: grid;
+            grid-template-columns: 110px 100px 130px 130px;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 0;
+            border-top: 1px solid var(--p-line);
+        }
+
+        .hours-row .field {
+            padding: 8px;
+        }
+
+        .week .wc.off,
+        .day-row.off {
+            background: repeating-linear-gradient(45deg, var(--p-card) 0 4px, var(--p-bg2) 4px 8px);
+        }
+
+        @media (max-width: 700px) {
+            .shift-grid {
+                grid-template-columns: 80px repeat(6, minmax(78px, 1fr));
+                min-width: 560px;
+            }
+
+            .hours-row {
+                grid-template-columns: 1fr auto;
+            }
+
+            .hours-row .field {
+                min-width: 0;
+            }
+        }
+
         .slot-stack {
             display: flex;
             flex-direction: column;
@@ -1834,6 +1935,7 @@
                     <button data-view="overview">Übersicht <span class="badge" data-newcount hidden></span></button>
                     <button data-view="calendar">Kalender</button>
                     <button data-view="list">Liste</button>
+                    <button data-view="shifts">Schichtplan</button>
                     <button data-view="gallery" data-admin>Galerie</button>
                     <button data-view="team" data-admin>Team</button>
                 </div>
@@ -1946,6 +2048,17 @@
                     </div>
                 </div>
             </section>
+            <!-- SCHICHTPLAN -->
+            <section data-panel="shifts" hidden>
+                <div class="box" style="margin-bottom:16px;">
+                    <h3 style="margin:0 0 6px;">Schichtplan</h3>
+                    <p class="muted" style="font-size:0.88rem;">Wer wann arbeitet. Ohne eigene Zeiten arbeitet ein Friseur alle Öffnungszeiten (100 %).
+                        Kunden können nur Zeiten buchen, in denen jemand Dienst hat.</p>
+                </div>
+                <div class="shift-grid" id="shift-week"></div>
+                <div id="shift-staff" style="display:grid; gap:16px; margin-top:16px;"></div>
+            </section>
+
             <!-- TEAM (nur Admin) -->
             <section data-panel="team" hidden>
                 <div class="box">
@@ -2118,8 +2231,30 @@
             <div style="display:flex; flex-wrap:wrap; gap:8px;" id="push-actions"></div>
             <hr style="border:none; border-top:1px solid var(--p-line);">
             <div class="more-links" id="more-links">
+                <button class="b" data-view="shifts">🗓 Schichtplan</button>
                 <button class="b" data-view="gallery" data-admin>🖼 Galerie</button>
                 <button class="b" data-view="team" data-admin>👥 Team</button>
+            </div>
+            <div data-admin>
+                <div class="label">🧪 Testdaten</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                    <select class="field" id="test-count" style="width:auto;">
+                        <option value="5">5 Buchungen</option>
+                        <option value="10" selected>10 Buchungen</option>
+                        <option value="25">25 Buchungen</option>
+                    </select>
+                    <select class="field" id="test-days" style="width:auto;">
+                        <option value="7">nächste 7 Tage</option>
+                        <option value="14" selected>nächste 14 Tage</option>
+                        <option value="30">nächste 30 Tage</option>
+                    </select>
+                    <label class="check"><input type="checkbox" id="test-push"> Push senden</label>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                    <button class="b primary" id="test-generate" style="flex:1 1 140px;">Zufällig erzeugen</button>
+                    <button class="b" id="test-clear" style="flex:1 1 140px;">Alle Testdaten löschen</button>
+                </div>
+                <p class="muted" style="font-size:0.78rem; margin-top:6px;">Testbuchungen halten sich an Öffnungszeiten und Schichtplan und sind mit 🧪 markiert.</p>
             </div>
             <div>
                 <div class="label">Darstellung</div>
@@ -2287,6 +2422,7 @@
             bookings: [],
             services: [],
             staff: [],          // Friseure, die Termine annehmen
+            schedule: {},       // Schichtplan je Friseur
             me: null,
             staffFilter: store.get('ff-staff', ''),
             filter: { q: '', range: 'upcoming', status: new Set(), service: '' }
@@ -2305,14 +2441,28 @@
         const onDay = s => S.bookings.filter(b => b.date === s && inScope(b)).sort((a, b) => a.time.localeCompare(b.time));
         const slotItems = (s, t) => onDay(s).filter(b => b.time === t && b.status !== 'abgesagt');
 
-        // Friseure, die zu der Zeit frei sind (im gewählten Bereich)
+        // Hat der Friseur Dienst? (ohne Schichtplan = alle Öffnungszeiten)
+        const absenceOn = (id, s) => (S.schedule[id]?.absences || []).find(a => a.date_from <= s && a.date_to >= s);
+        function worksAt(id, s, t) {
+            if (id == null) return true;
+            const plan = S.schedule[id];
+            if (!plan) return true;
+            if (absenceOn(id, s)) return false;
+            if (!plan.hours) return true;
+            const shift = plan.hours[parse(s).getDay()];
+            return Boolean(shift) && toMin(t) >= toMin(shift[0]) && toMin(t) + SLOT_MINUTES <= toMin(shift[1]);
+        }
+        const onDuty = (s, t) => !S.staff.length || scopeIds().some(id => worksAt(id, s, t));
+
+        // Friseure, die zu der Zeit Dienst haben und frei sind (im gewählten Bereich)
         function freeStaffAt(s, t, ignoreId = null) {
-            const ids = scopeIds();
+            const ids = scopeIds().filter(id => worksAt(id, s, t));
             if (!ids.length) return S.bookings.some(b => b.date === s && b.time === t && b.status !== 'abgesagt' && b.id !== ignoreId) ? [] : [null];
             const busy = new Set(S.bookings.filter(b => b.date === s && b.time === t && b.status !== 'abgesagt' && b.id !== ignoreId).map(b => b.staff_id));
             return ids.filter(id => !busy.has(id));
         }
         const capacity = () => Math.max(1, scopeIds().length);
+        const capacityOn = s => slotsFor(s).reduce((sum, t) => sum + (S.staff.length ? scopeIds().filter(id => worksAt(id, s, t)).length : 1), 0);
 
         // Benötigter Zeitraum: alles was Übersicht, Kalender und Liste gerade zeigen
         function neededRange() {
@@ -2334,6 +2484,7 @@
             S.bookings = data.bookings;
             S.services = data.services;
             S.staff = data.staff || [];
+            S.schedule = data.schedule || {};
             renderStaffSwitch();
             const d = new Date();
             $('stand').textContent = `Stand ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -2369,6 +2520,7 @@
             document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
             if (v === 'gallery') loadGallery().catch(() => { });
             if (v === 'team') loadTeam().catch(() => { });
+            if (v === 'shifts') loadShifts().catch(() => { });
             render();
             window.scrollTo({ top: 0 });
         }
@@ -2421,7 +2573,7 @@
                         ${isNew(b) ? '<span class="dot"></span>' : ''}
                         <span class="name">${esc(b.name)}</span>
                         ${staffTag(b)}
-                        ${b.source === 'team' ? '<span class="chip">Team</span>' : ''}
+                        ${b.source === 'team' ? '<span class="chip">Team</span>' : ''}${b.source === 'test' ? '<span class="chip">🧪 Test</span>' : ''}
                         ${b.visits ? `<span class="chip gold">${visits}/${LOYALTY_VISITS}</span>` : ''}
                         <span class="in">${eingang(b)}</span>
                     </div>
@@ -2526,9 +2678,10 @@
                 const past = s < todayISO() || (s === todayISO() && from + SLOT_MINUTES <= nowMin());
                 const free = freeStaffAt(s, time);
                 const freeLabel = multiStaff() && scopeIds().length > 1 ? `+ frei (${free.map(staffName).join(', ')})` : '+ frei';
-                html += `<div class="day-row${past && !here.length ? ' past' : ''}">
+                const off = !onDuty(s, time);
+                html += `<div class="day-row${past && !here.length ? ' past' : ''}${off && !here.length ? ' off' : ''}">
                     <div class="day-time"><b>${time}</b>–${toTime(from + SLOT_MINUTES)}</div>
-                    <div class="day-slot">${here.map(b => ev(b)).join('')}${!past && free.length ? `<button class="free-btn" data-new="${s}|${time}">${freeLabel}</button>` : ''}</div>
+                    <div class="day-slot">${here.map(b => ev(b)).join('')}${!past && free.length ? `<button class="free-btn" data-new="${s}|${time}">${freeLabel}</button>` : ''}${off && !here.length ? '<span class="muted" style="align-self:center; font-size:0.8rem;">kein Dienst</span>' : ''}</div>
                     ${nowLineIn(s, from, from + SLOT_MINUTES)}
                 </div>`;
             }
@@ -2562,6 +2715,7 @@
                     const free = !past && freeStaffAt(d, time).length > 0;
                     if (!slotsFor(d).includes(time)) html += '<div class="wc closed"></div>';
                     else if (here.length) html += `<div class="wc${free ? ' free busy' : ''}" data-date="${d}" data-time="${time}" ${free ? `data-new="${d}|${time}"` : ''}><div class="slot-stack">${here.map(b => ev(b, true)).join('')}</div>${line}</div>`;
+                    else if (!onDuty(d, time)) html += `<div class="wc off" title="kein Dienst">${line}</div>`;
                     else html += `<div class="wc ${past ? 'past' : 'free'}" data-date="${d}" data-time="${time}" ${past ? '' : `data-new="${d}|${time}"`}>${line}</div>`;
                 }
             }
@@ -2602,12 +2756,13 @@
                 const booked = items.filter(isActive);
                 const neu = booked.filter(isNew).length;
                 const taken = items.filter(b => b.status !== 'abgesagt').length;
-                const total = slotsFor(d).length * capacity();
+                const total = Math.max(1, capacityOn(d));
                 html += `<div class="md${other ? ' other' : ''}${d === t ? ' today' : ''}" data-day="${d}">
                     <b>${parse(d).getDate()}</b>
                     ${booked.length ? `<span class="chip ok">${booked.length}<span class="mtxt">&nbsp;Termine</span></span>` : ''}
                     ${neu ? `<span class="chip warn">${neu}<span class="mtxt">&nbsp;neu</span></span>` : ''}
-                    ${d >= t ? `<span class="muted mtxt">${total - taken}/${total} frei</span>` : ''}
+                    ${d >= t ? `<span class="muted mtxt">${Math.max(0, total - taken)}/${total} frei</span>` : ''}
+                    ${multiStaff() ? S.staff.filter(st => absenceOn(st.id, d)).map(st => `<span class="chip warn">${esc(st.name)} ${esc(absenceOn(st.id, d).kind)}</span>`).join('') : (S.staff[0] && absenceOn(S.staff[0].id, d) ? `<span class="chip warn">${esc(absenceOn(S.staff[0].id, d).kind)}</span>` : '')}
                     <div class="bar"><i style="width:${(taken / total) * 100}%"></i></div>
                 </div>`;
             }
@@ -2685,7 +2840,7 @@
                     <td>${esc(b.service)}${b.note ? `<br><small class="muted">${esc(b.note)}</small>` : ''}</td>
                     <td>${hasPhone(b) ? `<a href="tel:${esc(b.phone)}" data-stop style="color:inherit;">${esc(b.phone)}</a>` : ''}${b.email ? `<br><small class="muted">${esc(b.email)}</small>` : ''}</td>
                     <td><span class="chip ${st.cls}">${st.label}</span></td>
-                    <td class="muted" style="font-size:0.8rem;">${b.source === 'team' ? 'Team' : eingang(b).replace('Eingang ', '')}</td>
+                    <td class="muted" style="font-size:0.8rem;">${b.source === 'team' ? 'Team' : b.source === 'test' ? '🧪 Test' : eingang(b).replace('Eingang ', '')}</td>
                 </tr>`;
                 cards += card(b);
             }
@@ -2781,7 +2936,7 @@
                     <textarea class="field" id="d-note" rows="3" placeholder="z. B. Skin Fade 0,5 mm, Bart kurz">${esc(b.note || '')}</textarea>
                 </div>`}
                 <div class="meta">
-                    Quelle: ${b.source === 'team' ? 'Team (im Admin eingetragen)' : 'Website'}<br>
+                    Quelle: ${b.source === 'team' ? 'Team (im Admin eingetragen)' : b.source === 'test' ? '🧪 Testdaten' : 'Website'}<br>
                     ${b.created_at ? `${eingang(b)} · ${ago(b)}<br>` : ''}
                     Automatische Löschung: ${deleteOn}<br>
                     <button class="danger" id="d-delete">${b.blocked ? 'Pause entfernen' : 'Termin endgültig löschen'}</button>
@@ -3397,6 +3552,141 @@
         }
         $('preview-prev').addEventListener('click', () => openPreview(previewIndex - 1));
         $('preview-next').addEventListener('click', () => openPreview(previewIndex + 1));
+
+        // ================= SCHICHTPLAN =================
+        const KIND_LABEL = { urlaub: 'Urlaub', krank: 'Krank', frei: 'Frei', schule: 'Berufsschule', sonstiges: 'Abwesend' };
+        const WEEK_ORDER = [1, 2, 3, 4, 5, 6];
+        let shiftData = null;
+
+        const openMinutes = wd => OPENING_HOURS[wd] ? toMin(OPENING_HOURS[wd][1]) - toMin(OPENING_HOURS[wd][0]) : 0;
+        const totalOpen = WEEK_ORDER.reduce((sum, wd) => sum + openMinutes(wd), 0);
+        function shiftFor(plan, wd) {
+            if (!OPENING_HOURS[wd]) return null;
+            if (!plan?.hours) return OPENING_HOURS[wd];
+            return plan.hours[wd] || null;
+        }
+        const fmtHours = m => `${Math.floor(m / 60)}${m % 60 ? `:${pad(m % 60)}` : ''} Std.`;
+
+        async function loadShifts() {
+            shiftData = await api('/api/admin/schedule');
+            renderShifts();
+        }
+
+        function renderShifts() {
+            const { staff, schedule } = shiftData;
+            const mon = mondayOf(todayISO());
+            // Wochenübersicht (diese Woche)
+            let grid = '<div class="sh"></div>' + WEEK_ORDER.map((wd, i) => `<div class="sh">${WD[wd]} ${fmtDate(addDays(mon, i))}</div>`).join('');
+            for (const st of staff) {
+                const plan = schedule[st.id];
+                grid += `<div class="sn"><span class="avatar" style="width:28px;height:28px;font-size:0.75rem;background:${staffColor(st.id)}">${esc(st.name[0])}</span>${esc(st.name)}</div>`;
+                WEEK_ORDER.forEach((wd, i) => {
+                    const d = addDays(mon, i);
+                    const abs = (plan?.absences || []).find(a => a.date_from <= d && a.date_to >= d);
+                    const sh = shiftFor(plan, wd);
+                    grid += `<div class="sc">${abs ? `<span class="shift-abs">${KIND_LABEL[abs.kind] || abs.kind}</span>`
+                        : sh ? `<span class="shift-bar" style="background:${staffColor(st.id)}">${sh[0]}–${sh[1]}</span>` : '<span class="shift-off">frei</span>'}</div>`;
+                });
+            }
+            $('shift-week').innerHTML = staff.length ? grid : '<div class="empty" style="grid-column:1/-1;">Noch niemand nimmt Termine an. Im Team „Nimmt Termine an“ aktivieren.</div>';
+
+            // Pro Person: Arbeitszeiten (Admin bearbeitet) und Abwesenheiten
+            $('shift-staff').innerHTML = staff.map(st => {
+                const plan = schedule[st.id];
+                const minutes = WEEK_ORDER.reduce((sum, wd) => { const sh = shiftFor(plan, wd); return sum + (sh ? toMin(sh[1]) - toMin(sh[0]) : 0); }, 0);
+                const canEditAbs = isAdmin() || S.me?.id === st.id;
+                const rows = WEEK_ORDER.map(wd => {
+                    const sh = shiftFor(plan, wd);
+                    const open = OPENING_HOURS[wd];
+                    return `<div class="hours-row" data-wd="${wd}">
+                        <b>${WD_LONG[wd]}</b>
+                        <label class="check"><input type="checkbox" data-on ${sh ? 'checked' : ''} ${isAdmin() ? '' : 'disabled'}> Dienst</label>
+                        <input class="field" type="time" step="1500" data-start value="${sh ? sh[0] : open[0]}" min="${open[0]}" max="${open[1]}" ${isAdmin() ? '' : 'disabled'}>
+                        <input class="field" type="time" step="1500" data-end value="${sh ? sh[1] : open[1]}" min="${open[0]}" max="${open[1]}" ${isAdmin() ? '' : 'disabled'}>
+                    </div>`;
+                }).join('');
+                const absences = (plan?.absences || []).map(a => `<div class="agenda-item" style="cursor:default;">
+                    <span class="chip warn">${KIND_LABEL[a.kind] || a.kind}</span>
+                    <span>${fmtShort(a.date_from)}${a.date_to !== a.date_from ? ` – ${fmtShort(a.date_to)}` : ''}${a.note ? ` · ${esc(a.note)}` : ''}</span>
+                    ${canEditAbs ? `<button class="danger" style="margin-left:auto;" data-abs-del="${a.id}">entfernen</button>` : ''}</div>`).join('') || '<p class="muted" style="font-size:0.85rem;">Keine geplanten Abwesenheiten.</p>';
+                return `<div class="box" data-staff="${st.id}">
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+                        <h3 style="margin:0;">${esc(st.name)}</h3>
+                        <span class="chip ${minutes === totalOpen ? 'ok' : 'acc'}">${fmtHours(minutes)} / Woche · ${Math.round((minutes / totalOpen) * 100)} %</span>
+                    </div>
+                    <div class="label" style="margin-top:12px;">Arbeitszeiten</div>
+                    ${rows}
+                    ${isAdmin() ? `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                        <button class="b primary" data-hours-save>Speichern</button>
+                        <button class="b" data-hours-full>Alle Öffnungszeiten (100 %)</button>
+                    </div>` : ''}
+                    <div class="label" style="margin-top:16px;">Abwesenheiten</div>
+                    ${absences}
+                    ${canEditAbs ? `<div class="grid2" style="margin-top:8px;">
+                        <input class="field" type="date" data-abs-from value="${todayISO()}">
+                        <input class="field" type="date" data-abs-to value="${todayISO()}">
+                        <select class="field" data-abs-kind>${Object.entries(KIND_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
+                        <button class="b" data-abs-add>+ Abwesenheit</button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        $('shift-staff').addEventListener('click', async e => {
+            const box = e.target.closest('[data-staff]');
+            if (!box) return;
+            const staffId = Number(box.dataset.staff);
+            try {
+                if (e.target.closest('[data-hours-full]')) {
+                    await post('/api/admin/schedule/hours', { staff_id: staffId, hours: null });
+                    toast('Alle Öffnungszeiten');
+                } else if (e.target.closest('[data-hours-save]')) {
+                    const hours = {};
+                    box.querySelectorAll('.hours-row').forEach(row => {
+                        hours[row.dataset.wd] = row.querySelector('[data-on]').checked
+                            ? [row.querySelector('[data-start]').value, row.querySelector('[data-end]').value] : null;
+                    });
+                    await post('/api/admin/schedule/hours', { staff_id: staffId, hours });
+                    toast('Arbeitszeiten gespeichert');
+                } else if (e.target.closest('[data-abs-add]')) {
+                    await post('/api/admin/schedule/absence', {
+                        staff_id: staffId,
+                        date_from: box.querySelector('[data-abs-from]').value,
+                        date_to: box.querySelector('[data-abs-to]').value,
+                        kind: box.querySelector('[data-abs-kind]').value
+                    });
+                    toast('Abwesenheit eingetragen');
+                } else if (e.target.closest('[data-abs-del]')) {
+                    await post('/api/admin/schedule/absence/delete', { id: Number(e.target.closest('[data-abs-del]').dataset.absDel) });
+                    toast('Entfernt');
+                } else return;
+                await loadShifts();
+                load().catch(() => { });
+            } catch (err) {
+                toast(err.message);
+            }
+        });
+
+        // ================= TESTDATEN =================
+        $('test-generate').addEventListener('click', async () => {
+            try {
+                const r = await post('/api/admin/test/generate', { count: Number($('test-count').value), days: Number($('test-days').value), push: $('test-push').checked });
+                toast(`${r.created} Testbuchungen erzeugt`);
+                refresh();
+            } catch (e) {
+                toast(e.message);
+            }
+        });
+        $('test-clear').addEventListener('click', async () => {
+            if (!confirm('Alle Testbuchungen löschen? Echte Termine bleiben.')) return;
+            try {
+                const r = await post('/api/admin/test/clear', {});
+                toast(`${r.deleted} Testbuchungen gelöscht`);
+                refresh();
+            } catch (e) {
+                toast(e.message);
+            }
+        });
 
         // ================= TEAM (nur Admin) =================
         let team = [];
