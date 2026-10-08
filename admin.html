@@ -111,6 +111,115 @@
             color: var(--accent-red);
         }
 
+        .week-label {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .week-nav {
+            min-width: 40px;
+            padding: 8px 12px;
+            background: #000;
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+
+        .week-nav:hover {
+            border-color: var(--accent-red);
+        }
+
+        .week-scroll {
+            overflow-x: auto;
+            margin-top: 14px;
+        }
+
+        .week {
+            width: 100%;
+            min-width: 640px;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 0.8rem;
+        }
+
+        .week th,
+        .week td {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0;
+            height: 38px;
+            vertical-align: top;
+        }
+
+        .week thead th {
+            height: auto;
+            padding: 8px 4px;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .week thead th small {
+            display: block;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+        }
+
+        .week thead th.today {
+            color: var(--accent-red);
+        }
+
+        .week .week-time {
+            width: 52px;
+            padding: 4px;
+            color: var(--text-muted);
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .week td.free {
+            cursor: pointer;
+        }
+
+        .week td.free:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .week td.closed,
+        .week td.past {
+            background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(255, 255, 255, 0.03) 6px 12px);
+        }
+
+        .week-slot {
+            height: 100%;
+            padding: 3px 6px;
+            overflow: hidden;
+            border-left: 3px solid var(--accent-red);
+            background: rgba(211, 0, 0, 0.18);
+            line-height: 1.25;
+        }
+
+        .week-slot strong {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .week-slot span {
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .week-slot.blocked {
+            border-left-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+        }
+
         .admin-msg {
             color: var(--text-muted);
             margin-top: 10px;
@@ -133,6 +242,21 @@
         </section>
 
         <div id="admin-content" hidden>
+            <section class="admin-box">
+                <div class="admin-row" style="justify-content:space-between;">
+                    <h2 style="margin:0;">Wochenplan <span class="week-label" id="week-label"></span></h2>
+                    <div class="admin-row">
+                        <button class="week-nav" id="week-prev" aria-label="Vorige Woche">‹</button>
+                        <button class="week-nav" id="week-today">Heute</button>
+                        <button class="week-nav" id="week-next" aria-label="Nächste Woche">›</button>
+                    </div>
+                </div>
+                <div class="week-scroll">
+                    <table class="week" id="week"></table>
+                </div>
+                <p class="admin-msg">Auf ein freies Feld tippen, um die Zeit zu blockieren.</p>
+            </section>
+
             <section class="admin-box">
                 <h2>Zeit blockieren (Pause, Urlaub, …)</h2>
                 <form class="admin-row" id="block-form">
@@ -186,7 +310,81 @@
             content.hidden = true;
         }
 
+        // WOCHENPLAN (Stundenplan-Ansicht)
+        const OPENING_HOURS = { 1: ['09:30', '19:30'], 2: ['09:30', '19:30'], 3: ['09:30', '19:30'], 4: ['09:30', '19:30'], 5: ['09:30', '19:30'], 6: ['09:30', '17:30'] };
+        const toMin = v => Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5));
+        const toTime = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+        const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const weekEl = document.getElementById('week');
+        let weekOffset = 0;
+
+        function weekDays() {
+            const monday = new Date();
+            monday.setHours(12, 0, 0, 0);
+            monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + weekOffset * 7);
+            return Array.from({ length: 6 }, (_, i) => {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                return d;
+            });
+        }
+
+        async function loadWeek() {
+            const days = weekDays();
+            const { bookings } = await api(`/api/admin/bookings?from=${isoDate(days[0])}`);
+            const byKey = new Map(bookings.map(b => [`${b.date} ${b.time}`, b]));
+            const today = isoDate(new Date());
+            const now = new Date();
+            const nowMin = now.getHours() * 60 + now.getMinutes();
+
+            document.getElementById('week-label').textContent =
+                `${days[0].toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })} – ${days[5].toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+
+            // Zeilen: alle Slots vom frühesten Öffnen bis zum spätesten Schließen
+            const times = [];
+            for (let t = toMin('09:30'); t + SLOT_MINUTES <= toMin('19:30'); t += SLOT_MINUTES) times.push(t);
+
+            let html = '<thead><tr><th class="week-time"></th>' + days.map(d =>
+                `<th class="${isoDate(d) === today ? 'today' : ''}">${d.toLocaleDateString('de-DE', { weekday: 'short' })}<small>${d.getDate()}.${d.getMonth() + 1}.</small></th>`
+            ).join('') + '</tr></thead><tbody>';
+
+            for (const t of times) {
+                html += `<tr><td class="week-time">${toTime(t)}</td>`;
+                for (const d of days) {
+                    const date = isoDate(d);
+                    const hours = OPENING_HOURS[d.getDay()];
+                    const b = byKey.get(`${date} ${toTime(t)}`);
+                    if (b) {
+                        html += b.blocked
+                            ? `<td><div class="week-slot blocked" title="Blockiert"><strong>Blockiert</strong></div></td>`
+                            : `<td><div class="week-slot" title="${escapeHtml(b.name)} · ${escapeHtml(b.service)} · ${escapeHtml(b.phone)}"><strong>${escapeHtml(b.name)}</strong><span>${escapeHtml(b.service)}</span></div></td>`;
+                    } else if (!hours || t + SLOT_MINUTES > toMin(hours[1])) {
+                        html += '<td class="closed"></td>';
+                    } else if (date < today || (date === today && t <= nowMin)) {
+                        html += '<td class="past"></td>';
+                    } else {
+                        html += `<td class="free" data-date="${date}" data-time="${toTime(t)}"></td>`;
+                    }
+                }
+                html += '</tr>';
+            }
+            weekEl.innerHTML = html + '</tbody>';
+        }
+
+        document.getElementById('week-prev').addEventListener('click', () => { weekOffset--; loadWeek(); });
+        document.getElementById('week-next').addEventListener('click', () => { weekOffset++; loadWeek(); });
+        document.getElementById('week-today').addEventListener('click', () => { weekOffset = 0; loadWeek(); });
+
+        weekEl.addEventListener('click', async e => {
+            const cell = e.target.closest('td.free');
+            if (!cell) return;
+            if (!confirm(`${cell.dataset.time} Uhr am ${formatDate(cell.dataset.date)} blockieren?`)) return;
+            await api('/api/admin/block', { method: 'POST', body: JSON.stringify({ date: cell.dataset.date, times: [cell.dataset.time] }) });
+            loadBookings();
+        });
+
         async function loadBookings() {
+            loadWeek().catch(() => { });
             const { bookings } = await api('/api/admin/bookings');
             loginBox.hidden = true;
             content.hidden = false;
