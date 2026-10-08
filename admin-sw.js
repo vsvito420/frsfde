@@ -1,5 +1,5 @@
 // Service Worker für die Admin-App: App-Hülle offline verfügbar, Termine immer frisch vom Server.
-const CACHE = 'ff-admin-v2';
+const CACHE = 'ff-admin-v3';
 const SHELL = ['/admin', '/styles.css', '/fonts/fonts.css', '/assets/app/icon-192.png'];
 
 self.addEventListener('install', event => {
@@ -39,7 +39,7 @@ self.addEventListener('push', event => {
     event.waitUntil(self.registration.showNotification(data.title || 'Fresh Fade Termine', {
         body: data.body || 'Neue Buchung',
         icon: '/assets/app/icon-192.png',
-        badge: '/assets/app/icon-192.png',
+        badge: '/assets/app/badge-96.png',
         tag: data.tag,
         renotify: true,
         data: { url: data.url || '/admin' }
