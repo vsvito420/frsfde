@@ -1417,3 +1417,112 @@ footer p {
         padding: 20px;
     }
 }
+
+/* NÄCHSTER TERMIN (Popup + Karte) */
+.booking-fields .booking-email {
+    grid-column: 1 / -1;
+}
+
+.next-dialog {
+    width: min(440px, calc(100% - 32px));
+    margin: auto;
+    padding: 0;
+    background: var(--surface-color);
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 3px solid var(--accent-red);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.next-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.next-dialog-body {
+    padding: 32px 24px 24px;
+}
+
+.next-dialog h3 {
+    font-size: 2.2rem;
+}
+
+.next-label {
+    margin-top: 14px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.75rem;
+}
+
+.next-when {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    line-height: 1.1;
+    margin-top: 4px;
+}
+
+.next-what {
+    color: var(--accent-red);
+    font-weight: 600;
+}
+
+.next-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.next-card {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 50;
+    width: min(320px, calc(100% - 32px));
+    padding: 16px 18px;
+    background: var(--surface-color);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: 3px solid var(--accent-red);
+    border-radius: 10px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    animation: next-card-in 0.4s ease-out;
+}
+
+.next-card .next-label {
+    margin-top: 0;
+}
+
+.next-card .next-when {
+    font-size: 1.4rem;
+}
+
+.next-card-close {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.next-card-link {
+    margin-top: 8px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+
+@keyframes next-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}

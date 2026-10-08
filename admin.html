@@ -10,17 +10,34 @@
     <link rel="stylesheet" href="./fonts/fonts.css" />
     <style>
         body {
-            padding: 24px 16px 64px;
+            padding: 20px 16px 64px;
         }
 
         .admin {
-            max-width: 760px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
-        .admin h1 {
-            font-size: 2.6rem;
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
             margin-bottom: 20px;
+        }
+
+        .admin-header h1 {
+            font-size: 2.4rem;
+        }
+
+        .admin-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .admin-header a {
+            color: var(--text-muted);
         }
 
         .admin-box {
@@ -37,14 +54,19 @@
         }
 
         .admin input,
-        .admin select {
-            padding: 12px;
+        .admin select,
+        .admin textarea,
+        dialog input,
+        dialog select,
+        dialog textarea {
+            width: 100%;
+            padding: 10px 12px;
             background: #000;
             color: var(--text-main);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 6px;
             font-family: var(--font-body);
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .admin-row {
@@ -54,70 +76,22 @@
             align-items: center;
         }
 
-        .admin .btn {
-            padding: 10px 20px;
-            font-size: 1.2rem;
+        .admin-row > input,
+        .admin-row > select {
+            width: auto;
+            flex: 1 1 140px;
         }
 
-        .admin-day {
-            margin-top: 24px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid var(--accent-red);
-            font-size: 1.5rem;
+        .admin .btn,
+        dialog .btn {
+            padding: 10px 18px;
+            font-size: 1.15rem;
         }
 
-        .admin-booking {
-            display: flex;
-            gap: 14px;
+        .small-btn {
+            display: inline-flex;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .admin-booking time {
-            font-family: var(--font-display);
-            font-size: 1.6rem;
-            color: var(--accent-red);
-            min-width: 60px;
-        }
-
-        .admin-booking div {
-            flex: 1;
-        }
-
-        .admin-booking small {
-            color: var(--text-muted);
-        }
-
-        .admin-booking a {
-            color: var(--text-main);
-        }
-
-        .admin-booking.blocked {
-            opacity: 0.5;
-        }
-
-        .admin-delete {
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: var(--text-main);
-            border-radius: 6px;
-            padding: 6px 10px;
-            cursor: pointer;
-        }
-
-        .admin-delete:hover {
-            border-color: var(--accent-red);
-            color: var(--accent-red);
-        }
-
-        .week-label {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .week-nav {
-            min-width: 40px;
+            gap: 6px;
             padding: 8px 12px;
             background: #000;
             color: var(--text-main);
@@ -125,10 +99,75 @@
             border-radius: 6px;
             cursor: pointer;
             font-family: var(--font-body);
+            font-size: 0.85rem;
+            text-decoration: none;
+            white-space: nowrap;
         }
 
-        .week-nav:hover {
+        .small-btn:hover {
             border-color: var(--accent-red);
+        }
+
+        .small-btn.active {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .admin-msg {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        /* HEUTE */
+        .today-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .stat {
+            padding: 14px;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+        }
+
+        .stat small {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+        }
+
+        .stat strong {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 400;
+            line-height: 1.1;
+        }
+
+        .stat.next {
+            grid-column: span 2;
+            border-left: 3px solid var(--accent-red);
+            cursor: pointer;
+        }
+
+        .stat.next strong {
+            font-size: 1.6rem;
+        }
+
+        @media (max-width: 600px) {
+            .stat.next {
+                grid-column: auto;
+            }
+        }
+
+        /* WOCHENPLAN */
+        .week-label {
+            color: var(--text-muted);
+            font-size: 1.1rem;
         }
 
         .week-scroll {
@@ -138,7 +177,7 @@
 
         .week {
             width: 100%;
-            min-width: 640px;
+            min-width: 680px;
             border-collapse: collapse;
             table-layout: fixed;
             font-size: 0.8rem;
@@ -148,7 +187,7 @@
         .week td {
             border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 0;
-            height: 38px;
+            height: 40px;
             vertical-align: top;
         }
 
@@ -184,8 +223,14 @@
             cursor: pointer;
         }
 
-        .week td.free:hover {
-            background: rgba(255, 255, 255, 0.05);
+        .week td.free:hover,
+        .week td.drop-target {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .week td.drop-target {
+            outline: 2px dashed var(--accent-red);
+            outline-offset: -2px;
         }
 
         .week td.closed,
@@ -193,43 +238,262 @@
             background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(255, 255, 255, 0.03) 6px 12px);
         }
 
-        .week-slot {
+        .week tr.now td {
+            border-top: 2px solid var(--accent-red);
+        }
+
+        .slot {
             height: 100%;
             padding: 3px 6px;
             overflow: hidden;
             border-left: 3px solid var(--accent-red);
-            background: rgba(211, 0, 0, 0.18);
+            background: rgba(211, 0, 0, 0.2);
             line-height: 1.25;
+            cursor: pointer;
         }
 
-        .week-slot strong {
+        .slot[draggable="true"] {
+            cursor: grab;
+        }
+
+        .slot strong {
             display: block;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .week-slot span {
+        .slot span {
+            display: block;
             color: var(--text-muted);
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .week-slot.blocked {
+        .slot.erschienen {
+            border-left-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.15);
+        }
+
+        .slot.nicht_erschienen {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.15);
+        }
+
+        .slot.blocked {
             border-left-color: rgba(255, 255, 255, 0.4);
             background: rgba(255, 255, 255, 0.08);
             color: var(--text-muted);
         }
 
-        .admin-msg {
-            color: var(--text-muted);
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
             margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 5px;
+            border-radius: 2px;
+        }
+
+        /* LISTE */
+        .list-item {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .list-item time {
+            min-width: 64px;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--accent-red);
+        }
+
+        .list-item small {
+            color: var(--text-muted);
+        }
+
+        .list-item div {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-item.abgesagt {
+            opacity: 0.45;
+        }
+
+        .list-item.abgesagt strong {
+            text-decoration: line-through;
+        }
+
+        .list-day {
+            margin-top: 20px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-red);
+            font-size: 1.4rem;
+        }
+
+        .chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .chip.erschienen {
+            background: rgba(46, 204, 113, 0.25);
+        }
+
+        .chip.nicht_erschienen {
+            background: rgba(243, 156, 18, 0.25);
+        }
+
+        .chip.abgesagt {
+            background: rgba(211, 0, 0, 0.3);
+        }
+
+        .chip.loyal {
+            background: rgba(212, 162, 76, 0.25);
+            color: #e8b75a;
+        }
+
+        /* DIALOG */
+        dialog {
+            width: min(520px, calc(100% - 24px));
+            max-height: calc(100% - 24px);
+            margin: auto;
+            padding: 0;
+            background: var(--surface-color);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-top: 3px solid var(--accent-red);
+            border-radius: 10px;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .dialog-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .dialog-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .dialog-head h3 {
+            font-size: 1.8rem;
+            line-height: 1.1;
+        }
+
+        .dialog-head p {
+            color: var(--text-muted);
+        }
+
+        .dialog-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.6rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .dialog-section small {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+        }
+
+        .dialog-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .dialog-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .danger-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-decoration: underline;
+            font-family: var(--font-body);
+        }
+
+        .danger-link:hover {
+            color: var(--accent-red);
+        }
+
+        .dialog-error {
+            color: #ff5a5a;
+            min-height: 1.2em;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%) translateY(20px);
+            padding: 10px 18px;
+            background: var(--text-main);
+            color: #000;
+            border-radius: 99px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.25s ease;
+            z-index: 10;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%);
         }
     </style>
 </head>
 
 <body>
     <main class="admin">
-        <h1>Termine <span style="color:var(--accent-red);">Fresh Fade</span></h1>
+        <header class="admin-header">
+            <h1>Termine <span style="color:var(--accent-red);">Fresh Fade</span></h1>
+            <p id="admin-meta" hidden>Angemeldet als <span id="admin-user"></span> · <a href="#" id="logout">Abmelden</a></p>
+        </header>
 
         <section class="admin-box" id="login-box">
             <h2>Anmelden</h2>
@@ -242,23 +506,40 @@
         </section>
 
         <div id="admin-content" hidden>
+            <!-- HEUTE -->
+            <section class="admin-box">
+                <div class="today-grid">
+                    <div class="stat"><small>Heute</small><strong id="stat-today">–</strong></div>
+                    <div class="stat"><small>Diese Woche</small><strong id="stat-week">–</strong></div>
+                    <div class="stat next" id="stat-next"><small>Nächster Kunde</small><strong id="stat-next-name">–</strong><span class="admin-msg" id="stat-next-info"></span></div>
+                </div>
+            </section>
+
+            <!-- WOCHENPLAN -->
             <section class="admin-box">
                 <div class="admin-row" style="justify-content:space-between;">
                     <h2 style="margin:0;">Wochenplan <span class="week-label" id="week-label"></span></h2>
                     <div class="admin-row">
-                        <button class="week-nav" id="week-prev" aria-label="Vorige Woche">‹</button>
-                        <button class="week-nav" id="week-today">Heute</button>
-                        <button class="week-nav" id="week-next" aria-label="Nächste Woche">›</button>
+                        <button class="small-btn" id="week-prev" aria-label="Vorige Woche">‹</button>
+                        <button class="small-btn" id="week-today">Heute</button>
+                        <button class="small-btn" id="week-next" aria-label="Nächste Woche">›</button>
                     </div>
                 </div>
                 <div class="week-scroll">
                     <table class="week" id="week"></table>
                 </div>
-                <p class="admin-msg">Auf ein freies Feld tippen, um die Zeit zu blockieren.</p>
+                <div class="legend">
+                    <span><i style="background:var(--accent-red)"></i>Gebucht</span>
+                    <span><i style="background:#2ecc71"></i>Erschienen</span>
+                    <span><i style="background:#f39c12"></i>Nicht erschienen</span>
+                    <span><i style="background:rgba(255,255,255,.4)"></i>Blockiert</span>
+                </div>
+                <p class="admin-msg">Termin antippen für Details · Termin ziehen zum Verschieben · freies Feld antippen für neuen Termin oder Pause.</p>
             </section>
 
+            <!-- ZEITRAUM BLOCKIEREN -->
             <section class="admin-box">
-                <h2>Zeit blockieren (Pause, Urlaub, …)</h2>
+                <h2>Zeitraum blockieren (Pause, Urlaub, …)</h2>
                 <form class="admin-row" id="block-form">
                     <input type="date" id="block-date" required>
                     <input type="time" id="block-from" step="1500" value="12:00" required>
@@ -269,33 +550,160 @@
                 <p class="admin-msg">Ganzen Tag sperren: 09:30 bis 19:30 eintragen.</p>
             </section>
 
+            <!-- LISTE -->
             <section class="admin-box">
                 <div class="admin-row" style="justify-content:space-between;">
-                    <h2 style="margin:0;">Kommende Termine</h2>
-                    <button class="btn" id="reload">Aktualisieren</button>
+                    <h2 style="margin:0;">Alle kommenden Termine</h2>
+                    <input type="search" id="search" placeholder="Name oder Telefon suchen …" style="max-width:280px;">
                 </div>
                 <div id="bookings"></div>
             </section>
-
-            <p style="text-align:center; color:var(--text-muted);">Angemeldet als <span id="admin-user"></span> ·
-                <a href="#" id="logout" style="color:var(--text-muted);">Abmelden</a></p>
         </div>
     </main>
 
+    <!-- DIALOG: TERMIN -->
+    <dialog id="booking-dialog">
+        <form class="dialog-body" id="booking-dialog-form" method="dialog">
+            <div class="dialog-head">
+                <div>
+                    <h3 id="bd-title"></h3>
+                    <p id="bd-sub"></p>
+                </div>
+                <button type="button" class="dialog-close" data-close aria-label="Schließen">×</button>
+            </div>
+
+            <div class="dialog-section" id="bd-contact">
+                <small>Kontakt</small>
+                <div class="admin-row" id="bd-contact-buttons"></div>
+            </div>
+
+            <div class="dialog-section" id="bd-status-section">
+                <small>Status</small>
+                <div class="admin-row" id="bd-status">
+                    <button type="button" class="small-btn" data-status="gebucht">Gebucht</button>
+                    <button type="button" class="small-btn" data-status="erschienen">✓ Erschienen</button>
+                    <button type="button" class="small-btn" data-status="nicht_erschienen">Nicht erschienen</button>
+                    <button type="button" class="small-btn" data-status="abgesagt">✕ Abgesagt</button>
+                </div>
+            </div>
+
+            <div class="dialog-section">
+                <small>Termin (verschieben)</small>
+                <div class="dialog-grid">
+                    <input type="date" id="bd-date" required>
+                    <select id="bd-time"></select>
+                </div>
+            </div>
+
+            <div class="dialog-section" id="bd-details">
+                <small>Kunde</small>
+                <div class="dialog-grid">
+                    <input type="text" id="bd-name" placeholder="Name">
+                    <input type="tel" id="bd-phone" placeholder="Telefon">
+                    <input type="email" id="bd-email" placeholder="E-Mail (optional)">
+                    <select id="bd-service"></select>
+                </div>
+            </div>
+
+            <div class="dialog-section" id="bd-note-section">
+                <small>Notiz</small>
+                <textarea id="bd-note" rows="2" placeholder="z. B. Skin Fade 0,5 mm, Bart kurz"></textarea>
+            </div>
+
+            <p class="dialog-error" id="bd-error"></p>
+
+            <div class="dialog-actions">
+                <button type="button" class="danger-link" id="bd-delete">Löschen</button>
+                <div class="admin-row">
+                    <button type="button" class="small-btn" data-close>Abbrechen</button>
+                    <button type="submit" class="btn">Speichern</button>
+                </div>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- DIALOG: FREIES FELD -->
+    <dialog id="new-dialog">
+        <form class="dialog-body" id="new-dialog-form" method="dialog">
+            <div class="dialog-head">
+                <div>
+                    <h3>Neuer Termin</h3>
+                    <p id="nd-sub"></p>
+                </div>
+                <button type="button" class="dialog-close" data-close aria-label="Schließen">×</button>
+            </div>
+            <div class="dialog-grid">
+                <input type="text" id="nd-name" placeholder="Name">
+                <input type="tel" id="nd-phone" placeholder="Telefon">
+                <input type="email" id="nd-email" placeholder="E-Mail (optional)">
+                <select id="nd-service"></select>
+            </div>
+            <textarea id="nd-note" rows="2" placeholder="Notiz (optional)"></textarea>
+            <p class="dialog-error" id="nd-error"></p>
+            <div class="dialog-actions">
+                <button type="button" class="small-btn" id="nd-block">Nur blockieren (Pause)</button>
+                <button type="submit" class="btn">Termin eintragen</button>
+            </div>
+        </form>
+    </dialog>
+
+    <div class="toast" id="toast"></div>
+
     <script>
         const SLOT_MINUTES = 25;
-        const loginBox = document.getElementById('login-box');
-        const content = document.getElementById('admin-content');
-        const bookingsEl = document.getElementById('bookings');
+        const OPENING_HOURS = { 1: ['09:30', '19:30'], 2: ['09:30', '19:30'], 3: ['09:30', '19:30'], 4: ['09:30', '19:30'], 5: ['09:30', '19:30'], 6: ['09:30', '17:30'] };
+        const STATUS_LABELS = { gebucht: 'Gebucht', erschienen: 'Erschienen', nicht_erschienen: 'Nicht erschienen', abgesagt: 'Abgesagt' };
+        const LOYALTY_VISITS = 10;
 
-        const escapeHtml = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const $ = id => document.getElementById(id);
+        const loginBox = $('login-box');
+        const content = $('admin-content');
+        const weekEl = $('week');
+        const bookingsEl = $('bookings');
+
+        let services = [];
+        let weekBookings = [];
+        let allBookings = [];
+        let weekOffset = 0;
+        let current = null;      // Termin im Detail-Dialog
+        let newSlot = null;      // freies Feld im Neu-Dialog
+
+        const toMin = v => Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5));
+        const toTime = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+        const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const escapeHtml = text => String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         const formatDate = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+        const formatShort = iso => new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
+        const hasPhone = b => b.phone && b.phone !== '-';
+        const whatsappNumber = phone => phone.replace(/[^\d+]/g, '').replace(/^00/, '+').replace(/^0/, '+49').replace('+', '');
+
+        function slotsFor(date) {
+            const hours = OPENING_HOURS[new Date(`${date}T12:00:00`).getDay()];
+            if (!hours) return [];
+            const slots = [];
+            for (let t = toMin(hours[0]); t + SLOT_MINUTES <= toMin(hours[1]); t += SLOT_MINUTES) slots.push(toTime(t));
+            return slots;
+        }
+
+        function toast(text) {
+            const el = $('toast');
+            el.textContent = text;
+            el.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => el.classList.remove('show'), 1800);
+        }
+
+        async function copy(text, label) {
+            try {
+                await navigator.clipboard.writeText(text);
+                toast(`${label} kopiert`);
+            } catch {
+                toast(`Kopieren nicht möglich: ${text}`);
+            }
+        }
 
         async function api(path, options = {}) {
-            const response = await fetch(path, {
-                ...options,
-                headers: { 'content-type': 'application/json' }
-            });
+            const response = await fetch(path, { ...options, headers: { 'content-type': 'application/json' } });
             const data = await response.json();
             if (response.status === 401) {
                 showLogin();
@@ -305,19 +713,15 @@
             return data;
         }
 
+        const post = (path, body) => api(path, { method: 'POST', body: JSON.stringify(body) });
+
         function showLogin() {
             loginBox.hidden = false;
             content.hidden = true;
+            $('admin-meta').hidden = true;
         }
 
-        // WOCHENPLAN (Stundenplan-Ansicht)
-        const OPENING_HOURS = { 1: ['09:30', '19:30'], 2: ['09:30', '19:30'], 3: ['09:30', '19:30'], 4: ['09:30', '19:30'], 5: ['09:30', '19:30'], 6: ['09:30', '17:30'] };
-        const toMin = v => Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5));
-        const toTime = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-        const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const weekEl = document.getElementById('week');
-        let weekOffset = 0;
-
+        // DATEN LADEN
         function weekDays() {
             const monday = new Date();
             monday.setHours(12, 0, 0, 0);
@@ -329,41 +733,75 @@
             });
         }
 
-        async function loadWeek() {
+        async function refresh() {
             const days = weekDays();
-            const { bookings } = await api(`/api/admin/bookings?from=${isoDate(days[0])}`);
-            const byKey = new Map(bookings.map(b => [`${b.date} ${b.time}`, b]));
+            const today = isoDate(new Date());
+            const [week, upcoming] = await Promise.all([
+                api(`/api/admin/bookings?from=${isoDate(days[0])}&to=${isoDate(days[5])}`),
+                api(`/api/admin/bookings?from=${today}`)
+            ]);
+            services = week.services;
+            weekBookings = week.bookings;
+            allBookings = upcoming.bookings;
+            loginBox.hidden = true;
+            content.hidden = false;
+            $('admin-meta').hidden = false;
+            renderStats();
+            renderWeek();
+            renderList();
+        }
+
+        const customers = list => list.filter(b => !b.blocked && b.status !== 'abgesagt');
+
+        function renderStats() {
             const today = isoDate(new Date());
             const now = new Date();
             const nowMin = now.getHours() * 60 + now.getMinutes();
+            $('stat-today').textContent = customers(allBookings).filter(b => b.date === today).length;
+            $('stat-week').textContent = customers(weekBookings).length;
 
-            document.getElementById('week-label').textContent =
+            const next = customers(allBookings).find(b => b.status === 'gebucht' && (b.date > today || toMin(b.time) + SLOT_MINUTES > nowMin));
+            if (next) {
+                $('stat-next-name').textContent = next.name;
+                $('stat-next-info').textContent = `${next.date === today ? 'Heute' : formatShort(next.date)} · ${next.time} Uhr · ${next.service}`;
+                $('stat-next').onclick = () => openBooking(next);
+            } else {
+                $('stat-next-name').textContent = 'Keiner';
+                $('stat-next-info').textContent = '';
+                $('stat-next').onclick = null;
+            }
+        }
+
+        function renderWeek() {
+            const days = weekDays();
+            const today = isoDate(new Date());
+            const now = new Date();
+            const nowMin = now.getHours() * 60 + now.getMinutes();
+            const byKey = new Map(weekBookings.filter(b => b.status !== 'abgesagt').map(b => [`${b.date} ${b.time}`, b]));
+
+            $('week-label').textContent =
                 `${days[0].toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })} – ${days[5].toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}`;
-
-            // Zeilen: alle Slots vom frühesten Öffnen bis zum spätesten Schließen
-            const times = [];
-            for (let t = toMin('09:30'); t + SLOT_MINUTES <= toMin('19:30'); t += SLOT_MINUTES) times.push(t);
 
             let html = '<thead><tr><th class="week-time"></th>' + days.map(d =>
                 `<th class="${isoDate(d) === today ? 'today' : ''}">${d.toLocaleDateString('de-DE', { weekday: 'short' })}<small>${d.getDate()}.${d.getMonth() + 1}.</small></th>`
             ).join('') + '</tr></thead><tbody>';
 
-            for (const t of times) {
-                html += `<tr><td class="week-time">${toTime(t)}</td>`;
+            for (const time of slotsFor(isoDate(days[0]))) {
+                const t = toMin(time);
+                const isNowRow = weekOffset === 0 && nowMin >= t && nowMin < t + SLOT_MINUTES;
+                html += `<tr class="${isNowRow ? 'now' : ''}"><td class="week-time">${time}</td>`;
                 for (const d of days) {
                     const date = isoDate(d);
-                    const hours = OPENING_HOURS[d.getDay()];
-                    const b = byKey.get(`${date} ${toTime(t)}`);
+                    const b = byKey.get(`${date} ${time}`);
+                    const past = date < today || (date === today && t + SLOT_MINUTES <= nowMin);
                     if (b) {
-                        html += b.blocked
-                            ? `<td><div class="week-slot blocked" title="Blockiert"><strong>Blockiert</strong></div></td>`
-                            : `<td><div class="week-slot" title="${escapeHtml(b.name)} · ${escapeHtml(b.service)} · ${escapeHtml(b.phone)}"><strong>${escapeHtml(b.name)}</strong><span>${escapeHtml(b.service)}</span></div></td>`;
-                    } else if (!hours || t + SLOT_MINUTES > toMin(hours[1])) {
+                        const title = b.blocked ? 'Blockiert' : `${b.name} · ${b.service}${hasPhone(b) ? ' · ' + b.phone : ''}${b.note ? ' · ' + b.note : ''}`;
+                        html += `<td data-date="${date}" data-time="${time}"><div class="slot ${b.blocked ? 'blocked' : b.status}" data-id="${b.id}" draggable="true" title="${escapeHtml(title)}">`
+                            + `<strong>${b.blocked ? 'Blockiert' : escapeHtml(b.name)}</strong>${b.blocked ? '' : `<span>${escapeHtml(b.service)}</span>`}</div></td>`;
+                    } else if (!slotsFor(date).includes(time)) {
                         html += '<td class="closed"></td>';
-                    } else if (date < today || (date === today && t <= nowMin)) {
-                        html += '<td class="past"></td>';
                     } else {
-                        html += `<td class="free" data-date="${date}" data-time="${toTime(t)}"></td>`;
+                        html += `<td class="${past ? 'past' : 'free'}" data-date="${date}" data-time="${time}"></td>`;
                     }
                 }
                 html += '</tr>';
@@ -371,111 +809,283 @@
             weekEl.innerHTML = html + '</tbody>';
         }
 
-        document.getElementById('week-prev').addEventListener('click', () => { weekOffset--; loadWeek(); });
-        document.getElementById('week-next').addEventListener('click', () => { weekOffset++; loadWeek(); });
-        document.getElementById('week-today').addEventListener('click', () => { weekOffset = 0; loadWeek(); });
-
-        weekEl.addEventListener('click', async e => {
-            const cell = e.target.closest('td.free');
-            if (!cell) return;
-            if (!confirm(`${cell.dataset.time} Uhr am ${formatDate(cell.dataset.date)} blockieren?`)) return;
-            await api('/api/admin/block', { method: 'POST', body: JSON.stringify({ date: cell.dataset.date, times: [cell.dataset.time] }) });
-            loadBookings();
-        });
-
-        async function loadBookings() {
-            loadWeek().catch(() => { });
-            const { bookings } = await api('/api/admin/bookings');
-            loginBox.hidden = true;
-            content.hidden = false;
-            if (bookings.length === 0) {
-                bookingsEl.innerHTML = '<p class="admin-msg">Keine kommenden Termine.</p>';
+        function renderList() {
+            const query = $('search').value.trim().toLowerCase();
+            const compact = v => v.replace(/\s/g, '');
+            const list = allBookings.filter(b => !b.blocked && (!query || b.name.toLowerCase().includes(query) || compact(b.phone).includes(compact(query))));
+            if (list.length === 0) {
+                bookingsEl.innerHTML = `<p class="admin-msg">${query ? 'Nichts gefunden.' : 'Keine kommenden Termine.'}</p>`;
                 return;
             }
             let html = '';
             let lastDate = '';
-            for (const b of bookings) {
+            for (const b of list) {
                 if (b.date !== lastDate) {
-                    html += `<h3 class="admin-day">${formatDate(b.date)}</h3>`;
+                    html += `<h3 class="list-day">${formatDate(b.date)}</h3>`;
                     lastDate = b.date;
                 }
-                const phone = escapeHtml(b.phone);
-                const whatsapp = b.phone.replace(/[^\d+]/g, '').replace(/^0/, '+49').replace('+', '');
                 html += `
-                    <div class="admin-booking${b.blocked ? ' blocked' : ''}">
+                    <div class="list-item ${b.status}" data-id="${b.id}">
                         <time>${b.time}</time>
                         <div>
-                            <strong>${escapeHtml(b.name)}</strong><br>
-                            <small>${escapeHtml(b.service)}</small>
-                            ${b.blocked ? '' : `<br><small><a href="tel:${phone}">${phone}</a> · <a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener">WhatsApp</a></small>`}
+                            <strong>${escapeHtml(b.name)}</strong>
+                            ${b.status !== 'gebucht' ? `<span class="chip ${b.status}">${STATUS_LABELS[b.status]}</span>` : ''}
+                            ${b.visits > 0 ? `<span class="chip loyal">${b.visits % LOYALTY_VISITS}/${LOYALTY_VISITS} Besuche</span>` : ''}<br>
+                            <small>${escapeHtml(b.service)}${hasPhone(b) ? ' · ' + escapeHtml(b.phone) : ''}${b.note ? ' · ' + escapeHtml(b.note) : ''}</small>
                         </div>
-                        <button class="admin-delete" data-id="${b.id}">${b.blocked ? 'Freigeben' : 'Stornieren'}</button>
+                        ${hasPhone(b) ? `<a class="small-btn" href="tel:${escapeHtml(b.phone)}" data-stop>📞</a>` : ''}
                     </div>`;
             }
             bookingsEl.innerHTML = html;
         }
 
-        document.getElementById('reload').addEventListener('click', () => loadBookings().catch(() => { }));
+        const findBooking = id => weekBookings.find(b => b.id === id) || allBookings.find(b => b.id === id);
 
-        bookingsEl.addEventListener('click', async e => {
-            const btn = e.target.closest('.admin-delete');
-            if (!btn) return;
-            if (!confirm(btn.textContent.trim() === 'Stornieren' ? 'Termin wirklich stornieren?' : 'Zeit wieder freigeben?')) return;
-            await api('/api/admin/delete', { method: 'POST', body: JSON.stringify({ id: Number(btn.dataset.id) }) });
-            loadBookings();
-        });
-
-        document.getElementById('block-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const toMinutes = v => Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5));
-            const from = toMinutes(document.getElementById('block-from').value);
-            const to = toMinutes(document.getElementById('block-to').value);
-            const times = [];
-            // Alle möglichen Slot-Startzeiten im Bereich; der Server ignoriert ungültige
-            for (let t = 9 * 60 + 30; t < 20 * 60; t += SLOT_MINUTES) {
-                if (t + SLOT_MINUTES > from && t < to) {
-                    times.push(`${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`);
-                }
-            }
-            try {
-                await api('/api/admin/block', { method: 'POST', body: JSON.stringify({ date: document.getElementById('block-date').value, times }) });
-                loadBookings();
-            } catch (error) {
-                if (error.message !== 'unauthorized') alert(error.message);
-            }
-        });
-
-        async function start() {
-            const { user } = await api('/api/admin/me');
-            document.getElementById('admin-user').textContent = user;
-            await loadBookings();
+        // DETAIL-DIALOG
+        function fillTimes(select, date, selected) {
+            const times = slotsFor(date);
+            select.innerHTML = times.length
+                ? times.map(t => `<option ${t === selected ? 'selected' : ''}>${t}</option>`).join('')
+                : '<option value="">Geschlossen</option>';
         }
 
-        document.getElementById('login-form').addEventListener('submit', async e => {
+        function fillServices(select, selected) {
+            const list = !selected || services.includes(selected) ? services : [selected, ...services];
+            select.innerHTML = list.map(s => `<option ${s === selected ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+        }
+
+        function setStatus(status) {
+            $('bd-status').dataset.value = status;
+            $('bd-status').querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.status === status));
+        }
+
+        function contactButtons(b) {
+            const subject = encodeURIComponent('Dein Termin bei Fresh Fade Studio');
+            const body = encodeURIComponent(`Hallo ${b.name},\n\ndein Termin bei Fresh Fade Studio: ${formatDate(b.date)} um ${b.time} Uhr (${b.service}).\n\nBis bald!\nFresh Fade Studio · Donaustraße 16 · 88046 Friedrichshafen · 0174 4891087`);
+            const wa = encodeURIComponent(`Hallo ${b.name}, kurze Info zu deinem Termin bei Fresh Fade Studio am ${formatDate(b.date)} um ${b.time} Uhr: `);
+            let html = '';
+            if (hasPhone(b)) {
+                html += `<a class="small-btn" href="tel:${escapeHtml(b.phone)}">📞 Anrufen</a>`;
+                html += `<button type="button" class="small-btn" data-copy="${escapeHtml(b.phone)}" data-label="Nummer">📋 Nummer kopieren</button>`;
+                html += `<a class="small-btn" href="https://wa.me/${whatsappNumber(b.phone)}?text=${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`;
+            }
+            if (b.email) {
+                html += `<a class="small-btn" href="mailto:${escapeHtml(b.email)}?subject=${subject}&body=${body}">✉️ E-Mail schreiben</a>`;
+                html += `<button type="button" class="small-btn" data-copy="${escapeHtml(b.email)}" data-label="E-Mail">📋 E-Mail kopieren</button>`;
+            }
+            if (b.visits > 0) {
+                const stamps = b.visits % LOYALTY_VISITS;
+                html += `<span class="chip loyal">Treuekarte: ${stamps}/${LOYALTY_VISITS}${stamps === LOYALTY_VISITS - 1 ? ' – dieser Besuch 20 % Rabatt!' : ''}</span>`;
+            }
+            return html || '<span class="admin-msg" style="margin:0;">Keine Kontaktdaten hinterlegt.</span>';
+        }
+
+        function openBooking(b) {
+            if (!b) return;
+            current = b;
+            $('bd-error').textContent = '';
+            $('bd-title').textContent = b.blocked ? 'Blockiert' : b.name;
+            $('bd-sub').textContent = `${formatDate(b.date)} · ${b.time} Uhr${b.blocked ? '' : ' · ' + b.service}`;
+            $('bd-date').value = b.date;
+            fillTimes($('bd-time'), b.date, b.time);
+            $('bd-name').value = b.name;
+            $('bd-phone').value = hasPhone(b) ? b.phone : '';
+            $('bd-email').value = b.email || '';
+            fillServices($('bd-service'), b.service);
+            $('bd-note').value = b.note || '';
+            setStatus(b.status);
+            for (const id of ['bd-contact', 'bd-status-section', 'bd-details', 'bd-note-section']) $(id).hidden = Boolean(b.blocked);
+            $('bd-delete').textContent = b.blocked ? 'Zeit freigeben' : 'Termin löschen';
+            $('bd-contact-buttons').innerHTML = contactButtons(b);
+            $('booking-dialog').showModal();
+        }
+
+        $('bd-date').addEventListener('change', () => fillTimes($('bd-time'), $('bd-date').value, $('bd-time').value));
+        $('bd-status').addEventListener('click', e => {
+            const btn = e.target.closest('[data-status]');
+            if (btn) setStatus(btn.dataset.status);
+        });
+        $('bd-contact-buttons').addEventListener('click', e => {
+            const btn = e.target.closest('[data-copy]');
+            if (btn) copy(btn.dataset.copy, btn.dataset.label);
+        });
+
+        $('booking-dialog-form').addEventListener('submit', async e => {
             e.preventDefault();
-            const msg = document.getElementById('login-msg');
-            msg.textContent = '';
+            const update = { id: current.id, date: $('bd-date').value, time: $('bd-time').value };
+            if (!current.blocked) {
+                Object.assign(update, {
+                    status: $('bd-status').dataset.value,
+                    name: $('bd-name').value,
+                    phone: $('bd-phone').value || '-',
+                    email: $('bd-email').value || null,
+                    service: $('bd-service').value,
+                    note: $('bd-note').value || null
+                });
+            }
+            try {
+                await post('/api/admin/update', update);
+                $('booking-dialog').close();
+                toast('Gespeichert');
+                refresh();
+            } catch (error) {
+                $('bd-error').textContent = error.message;
+            }
+        });
+
+        $('bd-delete').addEventListener('click', async () => {
+            if (!current.blocked && !confirm('Termin endgültig löschen? Zum Absagen lieber Status „Abgesagt“ wählen.')) return;
+            await post('/api/admin/delete', { id: current.id });
+            $('booking-dialog').close();
+            toast(current.blocked ? 'Freigegeben' : 'Gelöscht');
+            refresh();
+        });
+
+        // NEU-DIALOG
+        function openNew(date, time) {
+            newSlot = { date, time };
+            $('nd-sub').textContent = `${formatDate(date)} · ${time} Uhr`;
+            for (const id of ['nd-name', 'nd-phone', 'nd-email', 'nd-note']) $(id).value = '';
+            fillServices($('nd-service'), services[0]);
+            $('nd-error').textContent = '';
+            $('new-dialog').showModal();
+            $('nd-name').focus();
+        }
+
+        $('new-dialog-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            try {
+                await post('/api/admin/create', {
+                    ...newSlot,
+                    name: $('nd-name').value,
+                    phone: $('nd-phone').value,
+                    email: $('nd-email').value,
+                    service: $('nd-service').value,
+                    note: $('nd-note').value
+                });
+                $('new-dialog').close();
+                toast('Termin eingetragen');
+                refresh();
+            } catch (error) {
+                $('nd-error').textContent = error.message;
+            }
+        });
+
+        $('nd-block').addEventListener('click', async () => {
+            await post('/api/admin/block', { date: newSlot.date, times: [newSlot.time] });
+            $('new-dialog').close();
+            toast('Blockiert');
+            refresh();
+        });
+
+        document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => btn.closest('dialog').close()));
+
+        // WOCHENPLAN: KLICK + DRAG & DROP
+        weekEl.addEventListener('click', e => {
+            const slot = e.target.closest('.slot');
+            if (slot) return openBooking(findBooking(Number(slot.dataset.id)));
+            const cell = e.target.closest('td.free');
+            if (cell) openNew(cell.dataset.date, cell.dataset.time);
+        });
+
+        let dragId = null;
+        const clearDropTargets = () => weekEl.querySelectorAll('.drop-target').forEach(c => c.classList.remove('drop-target'));
+
+        weekEl.addEventListener('dragstart', e => {
+            const slot = e.target.closest('.slot');
+            if (!slot) return;
+            dragId = Number(slot.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(dragId));
+        });
+        weekEl.addEventListener('dragover', e => {
+            const cell = e.target.closest('td.free');
+            if (!cell || dragId === null) return;
+            e.preventDefault();
+            if (!cell.classList.contains('drop-target')) {
+                clearDropTargets();
+                cell.classList.add('drop-target');
+            }
+        });
+        weekEl.addEventListener('dragend', () => {
+            dragId = null;
+            clearDropTargets();
+        });
+        weekEl.addEventListener('drop', async e => {
+            const cell = e.target.closest('td.free');
+            if (!cell || dragId === null) return;
+            e.preventDefault();
+            const b = findBooking(dragId);
+            try {
+                await post('/api/admin/update', { id: dragId, date: cell.dataset.date, time: cell.dataset.time });
+                toast(`${b.blocked ? 'Blockierung' : b.name} → ${formatShort(cell.dataset.date)}, ${cell.dataset.time} Uhr`);
+            } catch (error) {
+                toast(error.message);
+            }
+            refresh();
+        });
+
+        $('week-prev').addEventListener('click', () => { weekOffset--; refresh(); });
+        $('week-next').addEventListener('click', () => { weekOffset++; refresh(); });
+        $('week-today').addEventListener('click', () => { weekOffset = 0; refresh(); });
+
+        // LISTE
+        $('search').addEventListener('input', renderList);
+        bookingsEl.addEventListener('click', e => {
+            if (e.target.closest('[data-stop]')) return;
+            const item = e.target.closest('.list-item');
+            if (item) openBooking(findBooking(Number(item.dataset.id)));
+        });
+
+        // ZEITRAUM BLOCKIEREN
+        $('block-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const from = toMin($('block-from').value);
+            const to = toMin($('block-to').value);
+            const date = $('block-date').value;
+            const times = slotsFor(date).filter(t => toMin(t) + SLOT_MINUTES > from && toMin(t) < to);
+            try {
+                await post('/api/admin/block', { date, times });
+                toast('Blockiert');
+                refresh();
+            } catch (error) {
+                if (error.message !== 'unauthorized') toast(error.message);
+            }
+        });
+
+        // LOGIN
+        async function start() {
+            const { user } = await api('/api/admin/me');
+            $('admin-user').textContent = user;
+            await refresh();
+        }
+
+        $('login-form').addEventListener('submit', async e => {
+            e.preventDefault();
             const response = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({
-                    user: document.getElementById('login-user').value,
-                    password: document.getElementById('login-password').value
-                })
+                body: JSON.stringify({ user: $('login-user').value, password: $('login-password').value })
             });
             if (!response.ok) {
-                msg.textContent = (await response.json()).error || 'Anmeldung fehlgeschlagen.';
+                $('login-msg').textContent = (await response.json()).error || 'Anmeldung fehlgeschlagen.';
                 return;
             }
-            document.getElementById('login-password').value = '';
+            $('login-password').value = '';
+            $('login-msg').textContent = '';
             start().catch(() => { });
         });
 
-        document.getElementById('logout').addEventListener('click', async e => {
+        $('logout').addEventListener('click', async e => {
             e.preventDefault();
             await fetch('/api/admin/logout', { method: 'POST' });
             showLogin();
         });
+
+        // Jede Minute neu laden, damit neue Online-Buchungen auftauchen
+        setInterval(() => {
+            if (!content.hidden && !document.querySelector('dialog[open]')) refresh().catch(() => { });
+        }, 60000);
 
         start().catch(() => { });
     </script>

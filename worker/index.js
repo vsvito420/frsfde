@@ -27,6 +27,10 @@ const SERVICES = [
     'Sonstiges'
 ];
 
+const STATUSES = ['gebucht', 'erschienen', 'nicht_erschienen', 'abgesagt'];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^\+?[\d\s/()-]{6,}$/;
+
 const toMinutes = hhmm => {
     const [h, m] = hhmm.split(':').map(Number);
     return h * 60 + m;
@@ -210,7 +214,7 @@ async function getSlots(url, env) {
     const date = url.searchParams.get('date') || '';
     if (!isBookableDate(date)) return json({ error: 'Ungültiges Datum.' }, 400);
 
-    const { results } = await env.DB.prepare('SELECT time FROM bookings WHERE date = ?').bind(date).all();
+    const { results } = await env.DB.prepare("SELECT time FROM bookings WHERE date = ? AND status != 'abgesagt'").bind(date).all();
     const taken = new Set(results.map(r => r.time));
     const slots = slotsForDate(date).map(time => ({
         time,
@@ -231,20 +235,22 @@ async function book(request, env) {
     const name = String(body.name || '').trim().slice(0, 80);
     const phone = String(body.phone || '').trim().slice(0, 30);
     const service = String(body.service || '');
+    const email = String(body.email || '').trim().slice(0, 120);
 
     if (!isBookableDate(date) || !slotsForDate(date).includes(time) || isPastSlot(date, time)) {
         return json({ error: 'Dieser Termin ist nicht buchbar.' }, 400);
     }
     if (name.length < 2) return json({ error: 'Bitte gib deinen Namen an.' }, 400);
-    if (!/^\+?[\d\s/()-]{6,}$/.test(phone)) return json({ error: 'Bitte gib eine gültige Telefonnummer an.' }, 400);
+    if (!PHONE_PATTERN.test(phone)) return json({ error: 'Bitte gib eine gültige Telefonnummer an.' }, 400);
+    if (email && !EMAIL_PATTERN.test(email)) return json({ error: 'Bitte gib eine gültige E-Mail-Adresse an.' }, 400);
     if (!SERVICES.includes(service)) return json({ error: 'Bitte wähle eine Leistung.' }, 400);
 
     // Datenschutz: Termine, die älter als 30 Tage sind, löschen
     await env.DB.prepare('DELETE FROM bookings WHERE date < ?').bind(addDays(nowInBerlin().date, -30)).run();
 
     try {
-        await env.DB.prepare('INSERT INTO bookings (date, time, name, phone, service) VALUES (?, ?, ?, ?, ?)')
-            .bind(date, time, name, phone, service).run();
+        await env.DB.prepare('INSERT INTO bookings (date, time, name, phone, email, service) VALUES (?, ?, ?, ?, ?, ?)')
+            .bind(date, time, name, phone, email || null, service).run();
     } catch (error) {
         if (String(error).includes('UNIQUE')) {
             return json({ error: 'Dieser Termin wurde gerade vergeben. Bitte wähle eine andere Zeit.' }, 409);
@@ -256,10 +262,75 @@ async function book(request, env) {
 
 async function adminBookings(url, env) {
     const from = url.searchParams.get('from') || nowInBerlin().date;
-    const { results } = await env.DB.prepare(
-        'SELECT id, date, time, name, phone, service, blocked FROM bookings WHERE date >= ? ORDER BY date, time'
-    ).bind(from).all();
-    return json({ bookings: results });
+    const to = url.searchParams.get('to') || '9999-12-31';
+    // visits = bisherige Besuche (Status "erschienen") mit derselben Telefonnummer, für die Treuekarte
+    const { results } = await env.DB.prepare(`
+        SELECT b.id, b.date, b.time, b.name, b.phone, b.email, b.service, b.blocked, b.status, b.note,
+            (SELECT count(*) FROM bookings v WHERE v.phone = b.phone AND v.status = 'erschienen' AND v.blocked = 0) AS visits
+        FROM bookings b WHERE b.date >= ? AND b.date <= ? ORDER BY b.date, b.time
+    `).bind(from, to).all();
+    return json({ bookings: results, services: SERVICES });
+}
+
+const isUniqueError = error => String(error).includes('UNIQUE');
+
+// Termin ändern: verschieben, Status, Notiz, Kontaktdaten
+async function adminUpdate(request, env) {
+    const body = await readJson(request);
+    if (!body || !Number.isInteger(body.id)) return json({ error: 'Ungültige ID.' }, 400);
+    const current = await env.DB.prepare('SELECT * FROM bookings WHERE id = ?').bind(body.id).first();
+    if (!current) return json({ error: 'Termin nicht gefunden.' }, 404);
+
+    const next = { ...current };
+    for (const key of ['date', 'time', 'name', 'phone', 'email', 'service', 'status', 'note']) {
+        if (body[key] !== undefined) next[key] = body[key] === null ? null : String(body[key]).trim();
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(next.date) || !slotsForDate(next.date).includes(next.time)) {
+        return json({ error: 'Zu dieser Zeit ist geöffnet nicht möglich.' }, 400);
+    }
+    if (!STATUSES.includes(next.status)) return json({ error: 'Ungültiger Status.' }, 400);
+    if (!current.blocked) {
+        if (!next.name || next.name.length < 2) return json({ error: 'Name fehlt.' }, 400);
+        if (!PHONE_PATTERN.test(next.phone)) return json({ error: 'Ungültige Telefonnummer.' }, 400);
+        if (next.email && !EMAIL_PATTERN.test(next.email)) return json({ error: 'Ungültige E-Mail-Adresse.' }, 400);
+    }
+
+    try {
+        await env.DB.prepare(
+            'UPDATE bookings SET date = ?, time = ?, name = ?, phone = ?, email = ?, service = ?, status = ?, note = ? WHERE id = ?'
+        ).bind(next.date, next.time, next.name.slice(0, 80), next.phone.slice(0, 30), next.email ? next.email.slice(0, 120) : null,
+            next.service.slice(0, 80), next.status, next.note ? next.note.slice(0, 500) : null, current.id).run();
+    } catch (error) {
+        if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit ist schon ein Termin.' }, 409);
+        throw error;
+    }
+    return json({ ok: true });
+}
+
+// Termin von Hand eintragen (z. B. telefonische Buchung)
+async function adminCreate(request, env) {
+    const body = await readJson(request);
+    const date = String(body?.date || '');
+    const time = String(body?.time || '');
+    const name = String(body?.name || '').trim().slice(0, 80);
+    const phone = String(body?.phone || '').trim().slice(0, 30);
+    const email = String(body?.email || '').trim().slice(0, 120);
+    const service = String(body?.service || 'Sonstiges').slice(0, 80);
+    const note = String(body?.note || '').trim().slice(0, 500);
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !slotsForDate(date).includes(time)) return json({ error: 'Ungültige Zeit.' }, 400);
+    if (name.length < 2) return json({ error: 'Name fehlt.' }, 400);
+    if (phone && !PHONE_PATTERN.test(phone)) return json({ error: 'Ungültige Telefonnummer.' }, 400);
+    if (email && !EMAIL_PATTERN.test(email)) return json({ error: 'Ungültige E-Mail-Adresse.' }, 400);
+
+    try {
+        await env.DB.prepare('INSERT INTO bookings (date, time, name, phone, email, service, note) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            .bind(date, time, name, phone || '-', email || null, service, note || null).run();
+    } catch (error) {
+        if (isUniqueError(error)) return json({ error: 'Zu dieser Zeit ist schon ein Termin.' }, 409);
+        throw error;
+    }
+    return json({ ok: true });
 }
 
 async function adminDelete(request, env) {
@@ -302,6 +373,8 @@ export default {
             if (route === 'GET /api/admin/bookings') return adminBookings(url, env);
             if (route === 'POST /api/admin/delete') return adminDelete(request, env);
             if (route === 'POST /api/admin/block') return adminBlock(request, env);
+            if (route === 'POST /api/admin/update') return adminUpdate(request, env);
+            if (route === 'POST /api/admin/create') return adminCreate(request, env);
         }
 
         return json({ error: 'Nicht gefunden.' }, 404);

@@ -230,6 +230,7 @@
                 <div class="booking-fields">
                     <input type="text" id="booking-name" placeholder="Name" autocomplete="name" required>
                     <input type="tel" id="booking-phone" placeholder="Telefonnummer" autocomplete="tel" required>
+                    <input type="email" id="booking-email" placeholder="E-Mail (optional)" autocomplete="email" class="booking-email">
                     <input type="text" id="booking-website" class="booking-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
                 </div>
                 <p class="booking-privacy">Deine Daten werden nur für den Termin gespeichert und 30 Tage danach gelöscht. Mehr in der <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
@@ -246,6 +247,30 @@
             <p class="booking-hint">Falls du doch nicht kannst, sag bitte kurz per WhatsApp oder Telefon ab: 0174 4891087</p>
         </div>
     </section>
+
+    <!-- NÄCHSTER TERMIN (Popup nach Buchung + Erinnerung bei späteren Besuchen) -->
+    <dialog class="next-dialog" id="next-dialog">
+        <div class="next-dialog-body">
+            <span class="booking-success-icon">✓</span>
+            <h3>Termin gebucht!</h3>
+            <p class="next-label">Dein nächster Termin</p>
+            <p class="next-when" id="next-dialog-when"></p>
+            <p class="next-what" id="next-dialog-what"></p>
+            <p class="booking-hint">Fresh Fade Studio · Donaustraße 16 · Friedrichshafen</p>
+            <div class="next-actions">
+                <button type="button" class="btn btn-outline" data-ics>In Kalender speichern</button>
+                <button type="button" class="btn" id="next-dialog-close">Alles klar</button>
+            </div>
+        </div>
+    </dialog>
+
+    <aside class="next-card" id="next-card" hidden>
+        <button type="button" class="next-card-close" id="next-card-close" aria-label="Schließen">×</button>
+        <p class="next-label">💈 Dein nächster Termin</p>
+        <p class="next-when" id="next-card-when"></p>
+        <p class="next-what" id="next-card-what"></p>
+        <button type="button" class="next-card-link" data-ics>In Kalender speichern</button>
+    </aside>
 
     <!-- CONTACT -->
     <section id="contact" class="section container">
@@ -407,6 +432,83 @@
 
             document.addEventListener('DOMContentLoaded', ladePreisliste);
 
+            // NÄCHSTER TERMIN: wird nur im Browser des Kunden gespeichert
+            const naechsterTermin = (() => {
+                const KEY = 'ff-next-booking';
+                const SLOT_MINUTES = 25;
+                const card = document.getElementById('next-card');
+                const dialog = document.getElementById('next-dialog');
+
+                const laden = () => {
+                    try {
+                        const b = JSON.parse(localStorage.getItem(KEY));
+                        if (b && new Date(`${b.date}T${b.time}:00`).getTime() + SLOT_MINUTES * 60000 > Date.now()) return b;
+                        localStorage.removeItem(KEY);
+                    } catch { }
+                    return null;
+                };
+                const speichern = b => {
+                    try { localStorage.setItem(KEY, JSON.stringify(b)); } catch { }
+                };
+                const when = b => `${new Date(`${b.date}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })} · ${b.time} Uhr`;
+
+                function fuellen(prefix, b) {
+                    document.getElementById(`${prefix}-when`).textContent = when(b);
+                    document.getElementById(`${prefix}-what`).textContent = b.service;
+                }
+
+                // Kalender-Datei (.ics) für Handy/Outlook/Google Kalender
+                function kalender() {
+                    const b = laden();
+                    if (!b) return;
+                    const pad = n => String(n).padStart(2, '0');
+                    const fmt = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+                    const start = new Date(`${b.date}T${b.time}:00`);
+                    const end = new Date(start.getTime() + SLOT_MINUTES * 60000);
+                    const ics = [
+                        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Fresh Fade Studio//Termin//DE', 'BEGIN:VEVENT',
+                        `UID:${b.date}-${b.time}@freshfade-studio.de`, `DTSTAMP:${fmt(new Date())}`,
+                        `DTSTART;TZID=Europe/Berlin:${fmt(start)}`, `DTEND;TZID=Europe/Berlin:${fmt(end)}`,
+                        `SUMMARY:Fresh Fade Studio – ${b.service}`, 'LOCATION:Donaustraße 16\\, 88046 Friedrichshafen',
+                        'DESCRIPTION:Absagen bitte per WhatsApp oder Telefon: 0174 4891087',
+                        'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:Termin bei Fresh Fade Studio', 'END:VALARM',
+                        'END:VEVENT', 'END:VCALENDAR'
+                    ].join('\r\n');
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+                    link.download = 'fresh-fade-termin.ics';
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                }
+
+                function popup() {
+                    const b = laden();
+                    if (!b) return;
+                    fuellen('next-dialog', b);
+                    card.hidden = true;
+                    dialog.showModal();
+                }
+
+                function karte() {
+                    const b = laden();
+                    let geschlossen = false;
+                    try { geschlossen = sessionStorage.getItem(KEY) === 'zu'; } catch { }
+                    if (!b || geschlossen) return;
+                    fuellen('next-card', b);
+                    card.hidden = false;
+                }
+
+                document.querySelectorAll('[data-ics]').forEach(btn => btn.addEventListener('click', kalender));
+                document.getElementById('next-dialog-close').addEventListener('click', () => dialog.close());
+                document.getElementById('next-card-close').addEventListener('click', () => {
+                    card.hidden = true;
+                    try { sessionStorage.setItem(KEY, 'zu'); } catch { }
+                });
+                karte();
+
+                return { speichern, popup };
+            })();
+
             // TERMIN BUCHEN
             const bookingForm = document.getElementById('booking-form');
             if (bookingForm) {
@@ -486,6 +588,7 @@
                         time: selectedTime,
                         name: document.getElementById('booking-name').value,
                         phone: document.getElementById('booking-phone').value,
+                        email: document.getElementById('booking-email').value,
                         website: document.getElementById('booking-website').value
                     };
                     if (!payload.service) return (errorEl.textContent = 'Bitte wähle eine Leistung.');
@@ -509,6 +612,8 @@
                         document.getElementById('booking-success-text').textContent =
                             `${payload.service} am ${formatDate(payload.date)} um ${payload.time} Uhr. Wir freuen uns auf dich!`;
                         document.getElementById('booking-success').hidden = false;
+                        naechsterTermin.speichern({ date: payload.date, time: payload.time, service: payload.service });
+                        naechsterTermin.popup();
                     } catch (error) {
                         errorEl.textContent = 'Buchung fehlgeschlagen. Bitte per WhatsApp oder Telefon buchen: 0174 4891087';
                     } finally {
