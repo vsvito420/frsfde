@@ -20,7 +20,7 @@
 
 ## Über mich
 
-Herzliche Grüße! Mein Name ist **Sorin Marinescu**. Ich verfüge über mehr als 15 Jahre Erfahrung im Friseurhandwerk.
+Herzliche Grüße! Mein Name ist **Zorin Marinescu**. Ich verfüge über mehr als 15 Jahre Erfahrung im Friseurhandwerk.
 
 Liebe zum Detail und Präzision sind meine Stärke. Wir verwenden professionelle und hochmoderne Werkzeuge für deinen perfekten Look.
 
