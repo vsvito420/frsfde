@@ -912,7 +912,9 @@ footer p {
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.85));
+    background:
+        radial-gradient(ellipse 60% 55% at 55% 50%, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)),
+        linear-gradient(transparent 70%, rgba(0, 0, 0, 0.7));
     pointer-events: none;
 }
 
@@ -943,6 +945,7 @@ footer p {
 }
 
 .hero-brand {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 0, 0, 0.8);
     display: flex;
     flex-direction: column;
     align-items: stretch;

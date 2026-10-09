@@ -771,7 +771,7 @@
                 studioImages.forEach((img, i) => {
                     const div = document.createElement('div');
                     div.className = 'hero-slide' + (i === 0 ? ' active' : '');
-                    div.style.cssText = `background-image: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 100%), url('./assets/studio/${img}');`;
+                    div.style.cssText = `background-image: url('./assets/studio/${img}');`;
                     slider.appendChild(div);
                 });
                 if (studioImages.length > 1) {
