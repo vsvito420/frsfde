@@ -125,16 +125,16 @@ function worksAt(schedule, staffId, date, time) {
     return toMinutes(time) >= toMinutes(shift[0]) && toMinutes(time) + SLOT_MINUTES <= toMinutes(shift[1]);
 }
 
-// Belegte Uhrzeiten pro Friseur an einem Tag: Map(time -> Set(staff_id))
+// Belegte Termine an einem Tag: [{ from (Minuten), staff }]
 async function takenByTime(env, date) {
     const { results } = await env.DB.prepare("SELECT time, staff_id FROM bookings WHERE date = ? AND status != 'abgesagt'").bind(date).all();
-    const taken = new Map();
-    for (const r of results) {
-        if (!taken.has(r.time)) taken.set(r.time, new Set());
-        taken.get(r.time).add(r.staff_id ?? 0);
-    }
-    return taken;
+    return results.map(r => ({ from: toMinutes(r.time), staff: r.staff_id ?? 0 }));
 }
+
+// Hat der Friseur einen Termin, der sich mit diesem Slot überschneidet?
+// (auch alte Termine, die nicht im aktuellen Raster liegen)
+const isTaken = (taken, time, staffId) =>
+    taken.some(r => r.staff === (staffId ?? 0) && Math.abs(r.from - toMinutes(time)) < SLOT_MINUTES);
 
 // Wunsch-Friseur (ID) oder alle, die Termine annehmen
 async function eligibleStaff(env, wanted) {
@@ -153,7 +153,7 @@ async function getSlots(url, env) {
     // Frei, wenn mindestens ein passender Friseur Dienst hat und frei ist (keine Namen nach außen)
     const slots = slotsForDate(date).map(time => ({
         time,
-        available: !isPastSlot(date, time) && staff.some(s => worksAt(schedule, s.id, date, time) && !taken.get(time)?.has(s.id ?? 0))
+        available: !isPastSlot(date, time) && staff.some(s => worksAt(schedule, s.id, date, time) && !isTaken(taken, time, s.id))
     }));
     return json({ date, slots });
 }
@@ -189,7 +189,7 @@ async function book(request, env, ctx) {
     const taken = await takenByTime(env, date);
     const schedule = await loadSchedule(env, date, date);
     let assigned = null;
-    for (const candidate of staff.filter(s => worksAt(schedule, s.id, date, time) && !taken.get(time)?.has(s.id ?? 0))) {
+    for (const candidate of staff.filter(s => worksAt(schedule, s.id, date, time) && !isTaken(taken, time, s.id))) {
         try {
             await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, seen, source, staff_id) VALUES (?, ?, ?, ?, ?, ?, 0, 'website', ?)")
                 .bind(date, time, name, phone, email || null, service, candidate.id).run();
@@ -461,15 +461,14 @@ async function testGenerate(request, env, me) {
         const time = pick(slots);
         if (!takenCache.has(date)) takenCache.set(date, await takenByTime(env, date));
         const taken = takenCache.get(date);
-        const free = staff.filter(s => worksAt(schedule, s.id, date, time) && !taken.get(time)?.has(s.id ?? 0));
+        const free = staff.filter(s => worksAt(schedule, s.id, date, time) && !isTaken(taken, time, s.id));
         if (!free.length) continue;
         const assigned = pick(free);
         const name = `${pick(TEST_NAMES)} ${pick(TEST_LAST)}`;
         try {
             await env.DB.prepare("INSERT INTO bookings (date, time, name, phone, email, service, note, seen, source, staff_id) VALUES (?, ?, ?, ?, NULL, ?, '🧪 Testbuchung', 0, 'test', ?)")
                 .bind(date, time, name, `0151 ${String(Math.floor(Math.random() * 1e8)).padStart(8, '0')}`, pick(SERVICES.slice(0, -1)), assigned.id).run();
-            if (!taken.has(time)) taken.set(time, new Set());
-            taken.get(time).add(assigned.id ?? 0);
+            taken.push({ from: toMinutes(time), staff: assigned.id ?? 0 });
             created.push({ date, time, name, staff: assigned.name });
         } catch (error) {
             if (!isUniqueError(error)) throw error;
