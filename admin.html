@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="google" content="notranslate" />
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -2265,6 +2266,13 @@
                     <button type="button" data-theme-pick="dark">Dunkel</button>
                 </div>
             </div>
+            <div>
+                <div class="label">Sprache / Limba</div>
+                <div class="seg" style="display:flex;">
+                    <button type="button" data-lang-pick="de">Deutsch</button>
+                    <button type="button" data-lang-pick="ro">Română</button>
+                </div>
+            </div>
             <form id="pw-form" style="display:flex; flex-direction:column; gap:8px;">
                 <div class="label" style="margin:0;">Passwort ändern</div>
                 <input class="field" type="password" id="pw-current" placeholder="Aktuelles Passwort" autocomplete="current-password" required>
@@ -2293,6 +2301,222 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // ================= SPRACHE =================
+        // Deutsch ist die Grundsprache. Steht das Handy auf Rumänisch (oder ist es unter „Mehr“ gewählt),
+        // werden alle angezeigten Texte über das Wörterbuch unten übersetzt. Nachrichten an Kunden bleiben Deutsch.
+        const LANG = (() => {
+            try {
+                const saved = localStorage.getItem('ff-lang');
+                if (saved === 'de' || saved === 'ro') return saved;
+            } catch { }
+            return (navigator.languages || [navigator.language || '']).some(l => /^ro\b/i.test(l)) ? 'ro' : 'de';
+        })();
+        document.documentElement.lang = LANG;
+        // Browser-Übersetzung (Google Translate) aus, die App übersetzt selbst
+        document.documentElement.setAttribute('translate', 'no');
+        document.documentElement.classList.add('notranslate');
+
+        const I18N_RO = {
+            // Ganze Texte
+            'Termine': 'Programări', 'Termin': 'Programare', 'Anmelden': 'Autentificare', 'Willkommen': 'Bun venit',
+            'Passwort speichern & anmelden': 'Salvează parola și intră', 'Übersicht': 'Prezentare', 'Kalender': 'Calendar',
+            'Liste': 'Listă', 'Schichtplan': 'Program de lucru', 'Team': 'Echipă', '+ Termin': '+ Programare', 'Neu': 'Nou',
+            'Heute': 'Azi', 'Bis Samstag': 'Până sâmbătă', 'Nächste 7 Tage': 'Următoarele 7 zile', 'Tag': 'Zi', 'Woche': 'Săptămână',
+            'Monat': 'Lună', 'Filter': 'Filtru', 'Kommende': 'Viitoare', 'Diese Woche': 'Săptămâna aceasta', 'Dieser Monat': 'Luna aceasta',
+            'Vergangene (30 Tage)': 'Trecute (30 de zile)', 'Alle': 'Toate', 'Gebucht': 'Rezervat', 'Erschienen': 'Prezent',
+            'Nicht erschienen': 'Neprezentat', 'Abgesagt': 'Anulat', 'Alle Leistungen': 'Toate serviciile', 'Name': 'Nume',
+            'Leistung': 'Serviciu', 'Kontakt': 'Contact', 'Eingang': 'Primit', 'Galerie auf der Webseite': 'Galeria de pe site',
+            '+ Bilder hochladen': '+ Încarcă poze',
+            'Bild antippen zum Ansehen · ‹ › Reihenfolge (am PC auch ziehen) · ⇄ tauschen · 🗑 löschen. Änderungen sind sofort auf der Webseite.':
+                'Atinge o poză ca s-o vezi · ‹ › ordinea (pe PC poți și trage) · ⇄ schimbă · 🗑 șterge. Modificările apar imediat pe site.',
+            'So sieht es auf der Webseite aus': 'Așa arată pe site', 'Auf Webseite öffnen ↗': 'Deschide site-ul ↗',
+            'Wer wann arbeitet. Ohne eigene Zeiten arbeitet ein Friseur alle Öffnungszeiten (100 %).':
+                'Cine când lucrează. Fără ore proprii, un frizer lucrează tot programul (100 %).',
+            'Kunden können nur Zeiten buchen, in denen jemand Dienst hat.': 'Clienții pot rezerva doar orele în care lucrează cineva.',
+            '+ Person': '+ Persoană', ': alles, inkl. Team und Galerie ·': ': tot, inclusiv echipa și galeria ·', 'Friseur': 'Frizer',
+            ': Termine und eigenes Konto ·': ': programări și contul propriu ·',
+            '„Nimmt Termine an“: erscheint im Kalender und Kunden können ihn wählen.': '„Primește programări”: apare în calendar și clienții îl pot alege.',
+            'Mehr': 'Mai mult', 'Pause / Urlaub': 'Pauză / Concediu', 'Uhrzeit': 'Ora', 'Zeitraum': 'Interval', 'von': 'de la', 'bis': 'până la',
+            'Ganzer Tag': 'Toată ziua', 'Mittag 12:00–13:15': 'Prânz 12:00–13:15', 'Kunde': 'Client', 'Notiz': 'Notiță',
+            'Termin eintragen': 'Adaugă programarea', 'Person': 'Persoană', 'Rolle': 'Rol', 'Nimmt Termine an': 'Primește programări',
+            'Aktiv (kann sich anmelden)': 'Activ (se poate autentifica)', 'Abbrechen': 'Renunță', 'Speichern': 'Salvează',
+            'Link zum Passwort setzen': 'Link pentru setarea parolei', '📋 Link kopieren': '📋 Copiază linkul',
+            '💬 Per WhatsApp schicken': '💬 Trimite pe WhatsApp', 'Teilen …': 'Distribuie …',
+            'Der Link gilt 7 Tage und funktioniert nur einmal. Ein neuer Link macht den alten ungültig.':
+                'Linkul e valabil 7 zile și funcționează o singură dată. Un link nou îl anulează pe cel vechi.',
+            'Fertig': 'Gata', 'Tastenkürzel': 'Scurtături', 'Neuer Termin': 'Programare nouă', 'Suchen': 'Caută', 'Blättern': 'Răsfoiește',
+            'Aktualisieren': 'Actualizează', 'Schließen': 'Închide', 'Konto': 'Cont', 'Testdaten': 'Date de test', 'Push senden': 'Trimite push',
+            'Zufällig erzeugen': 'Generează aleatoriu', 'Alle Testdaten löschen': 'Șterge toate datele de test',
+            'Testbuchungen halten sich an Öffnungszeiten und Schichtplan und sind mit 🧪 markiert.':
+                'Rezervările de test respectă programul și orele de lucru și sunt marcate cu 🧪.',
+            'Darstellung': 'Aspect', 'Ruhig': 'Calm', 'Hell': 'Luminos', 'Dunkel': 'Întunecat', 'Passwort ändern': 'Schimbă parola',
+            'Passwort speichern': 'Salvează parola', 'Angemeldet als': 'Conectat ca', 'Abmelden': 'Deconectare', '‹ Zurück': '‹ Înapoi',
+            'Weiter ›': 'Înainte ›', 'Benutzername': 'Nume de utilizator', 'Passwort': 'Parolă',
+            'Neues Passwort (mind. 8 Zeichen)': 'Parolă nouă (min. 8 caractere)', 'Passwort wiederholen': 'Repetă parola',
+            'Benachrichtigungen': 'Notificări', 'Tastenkürzel (?)': 'Scurtături (?)', 'Zurück (←)': 'Înapoi (←)', 'Weiter (→)': 'Înainte (→)',
+            'Suchen: Name, Telefon …  ( / )': 'Caută: nume, telefon …  ( / )', 'Schließen (Esc)': 'Închide (Esc)', 'Name *': 'Nume *',
+            'optional': 'opțional', 'Name (z. B. Ali)': 'Nume (ex. Ali)', 'Benutzername (z. B. ali)': 'Nume de utilizator (ex. ali)',
+            'Aktuelles Passwort': 'Parola actuală', 'So': 'Du', 'Mo': 'Lu', 'Di': 'Ma', 'Mi': 'Mi', 'Do': 'Jo', 'Fr': 'Vi', 'Sa': 'Sâ',
+            'Fehler': 'Eroare', 'Alle Friseure': 'Toți frizerii', 'Aktualisieren fehlgeschlagen': 'Actualizarea a eșuat',
+            'Neue Online-Buchungen': 'Rezervări online noi', 'Nächste Termine': 'Următoarele programări',
+            'Keine anstehenden Termine. ✂️': 'Nicio programare viitoare. ✂️', '✓ Gesehen': '✓ Văzut', '✓ Erschienen': '✓ Prezent',
+            '📞 Anrufen': '📞 Sună', 'Geschlossen': 'Închis', '+ frei': '+ liber', 'Pause': 'Pauză',
+            'Termin ziehen zum Verschieben · freies Feld anklicken für neuen Termin.': 'Trage programarea ca s-o muți · apasă pe un loc liber pentru o programare nouă.',
+            'Keine Termine gefunden': 'Nicio programare găsită', '✕ Absagen': '✕ Anulează', '↺ Wieder öffnen': '↺ Redeschide',
+            '↔ Verschieben': '↔ Mută', 'Verschieben': 'Mută', 'Nummer': 'Număr', 'Treuekarte': 'Card de fidelitate',
+            'z. B. Skin Fade 0,5 mm, Bart kurz': 'ex. Skin Fade 0,5 mm, barbă scurtă', 'Quelle': 'Sursă',
+            'Nachrichten sind vorformuliert passend zum Status': 'Mesajele către client (în germană) sunt pregătite după status',
+            'An diesem Tag geschlossen': 'Închis în această zi', 'Gespeichert': 'Salvat', 'Gelöscht': 'Șters', 'speichert …': 'se salvează …',
+            'gespeichert ✓': 'salvat ✓', 'nicht gespeichert!': 'nesalvat!', 'Uhrzeit wählen': 'Alege ora',
+            'Zeit wird für Online-Buchungen gesperrt': 'Ora va fi blocată pentru rezervări online', 'Blockieren': 'Blochează',
+            'Kein Zeitraum innerhalb der Öffnungszeit': 'Niciun interval în programul de lucru', 'Blockiert': 'Blocat',
+            'Bitte eine Uhrzeit wählen': 'Te rog alege o oră', 'Bitte einen Namen eingeben': 'Te rog introdu un nume',
+            'Termin eingetragen': 'Programare adăugată', 'Als gesehen markiert': 'Marcat ca văzut', 'Aktualisiert': 'Actualizat',
+            'Passwort geändert – andere Geräte sind abgemeldet': 'Parola a fost schimbată – celelalte dispozitive au fost deconectate',
+            '🔔 Benachrichtigungen': '🔔 Notificări', '🔔 Benachrichtigungen an': '🔔 Notificări pornite', '🔕 Benachrichtigungen aus': '🔕 Notificări oprite',
+            'Am iPhone zuerst über Teilen → „Zum Home-Bildschirm“ installieren und die App von dort öffnen':
+                'Pe iPhone instalează mai întâi prin Distribuie → „Adaugă pe ecranul principal” și deschide aplicația de acolo',
+            'Dieser Browser unterstützt keine Benachrichtigungen': 'Acest browser nu suportă notificări',
+            'Blockiert. In den Handy-Einstellungen für diese App erlauben': 'Blocat. Permite notificările în setările telefonului pentru această aplicație',
+            'Bei jeder neuen Online-Buchung kommt eine Nachricht auf dieses Gerät': 'La fiecare rezervare online nouă primești un mesaj pe acest dispozitiv',
+            'Test senden': 'Trimite test', 'Ausschalten': 'Oprește',
+            'Bei jeder neuen Online-Buchung eine Nachricht aufs Handy bekommen': 'Primește un mesaj pe telefon la fiecare rezervare online nouă',
+            'Aktivieren': 'Activează', 'Benachrichtigungen aktiviert': 'Notificări activate', 'Benachrichtigungen aus': 'Notificări oprite',
+            'Kein Gerät erreicht': 'Niciun dispozitiv contactat',
+            'Noch keine eigenen Bilder – die Webseite zeigt die 6 Standardbilder': 'Încă nu ai poze proprii – site-ul arată cele 6 poze standard',
+            'Standardbilder übernehmen': 'Preia pozele standard', 'Bilder auf der Webseite': 'Poze pe site', 'Upload fehlgeschlagen': 'Încărcarea a eșuat',
+            'Bild hochgeladen': 'Poză încărcată', 'Reihenfolge gespeichert': 'Ordinea a fost salvată', 'Bild getauscht': 'Poze schimbate',
+            'Übernehme Standardbilder': 'Se preiau pozele standard', 'Bild gelöscht': 'Poză ștearsă', 'Urlaub': 'Concediu', 'Krank': 'Bolnav',
+            'Frei': 'Liber', 'Berufsschule': 'Școală profesională', 'Abwesend': 'Absent',
+            'Noch niemand nimmt Termine an. Im Team „Nimmt Termine an“ aktivieren': 'Încă nimeni nu primește programări. Activează „Primește programări” la Echipă',
+            'Dienst': 'Tură', 'kein Dienst': 'liber', 'Keine geplanten Abwesenheiten': 'Nicio absență planificată', 'Arbeitszeiten': 'Ore de lucru',
+            'Abwesenheiten': 'Absențe', 'Alle Öffnungszeiten': 'Tot programul', 'Arbeitszeiten gespeichert': 'Orele de lucru au fost salvate',
+            'Abwesenheit eingetragen': 'Absență adăugată', 'Entfernt': 'Eliminat', 'Testbuchungen erzeugt': 'Rezervări de test generate',
+            'Testbuchungen gelöscht': 'Rezervări de test șterse', 'Einladung offen': 'Invitație în așteptare', 'kein Passwort': 'fără parolă',
+            'Bearbeiten': 'Editează', 'Noch niemand im Team': 'Încă nimeni în echipă', 'Neue Person': 'Persoană nouă',
+            'Die Passwörter stimmen nicht überein': 'Parolele nu se potrivesc', 'Anmeldung fehlgeschlagen': 'Autentificarea a eșuat',
+            'frei': 'liber', 'belegt': 'ocupat', 'vorbei': 'trecut', 'heute': 'azi', 'morgen': 'mâine', 'übermorgen': 'poimâine',
+            'gestern': 'ieri', 'gerade eben': 'chiar acum',
+            'Termin endgültig löschen? Zum Absagen lieber „Absagen“ nutzen.': 'Ștergi definitiv programarea? Pentru anulare folosește mai bine „Anulează”.',
+            'Bild von der Webseite löschen?': 'Ștergi poza de pe site?',
+            'Alle Testbuchungen löschen? Echte Termine bleiben.': 'Ștergi toate rezervările de test? Programările reale rămân.',
+            'Wer wann arbeitet. Ohne eigene Zeiten arbeitet ein Friseur alle Öffnungszeiten (100 %). Kunden können nur Zeiten buchen, in denen jemand Dienst hat.':
+                'Cine când lucrează. Fără ore proprii, un frizer lucrează tot programul (100 %). Clienții pot rezerva doar orele în care lucrează cineva.',
+            ': Termine und eigenes Konto · „Nimmt Termine an“: erscheint im Kalender und Kunden können ihn wählen.':
+                ': programări și contul propriu · „Primește programări”: apare în calendar și clienții îl pot alege.',
+            'Übersicht · Kalender · Liste · Galerie': 'Prezentare · Calendar · Listă · Galerie', 'Tag · Woche · Monat': 'Zi · Săptămână · Lună',
+            '🗓 Schichtplan': '🗓 Program de lucru', '🖼 Galerie': '🖼 Galerie', '👥 Team': '👥 Echipă', '🧪 Testdaten': '🧪 Date de test'
+        };
+
+        // Teile in zusammengesetzten Texten (z. B. „Eingang heute 10:20“, „3/12 frei“, „Sa 17.10. · 11:35–12:00 Uhr“)
+        const I18N_RO_PATTERNS = [
+            [/\bum (\d{1,2}:\d{2}) Uhr\b/g, 'la $1'],
+            [/(\d{1,2}:\d{2}) Uhr\b/g, '$1'],
+            [/\bvor (\d+) Min\./g, 'acum $1 min.'],
+            [/\bvor (\d+) Std\./g, 'acum $1 h'],
+            [/\bvor (\d+) Tagen\b/g, 'acum $1 zile'],
+            [/\bnächste (\d+) Tage\b/g, 'următoarele $1 zile'],
+            [/\b(\d+) Buchungen\b/g, '$1 rezervări'],
+            [/\b(\d+) Termine\b/g, '$1 programări'],
+            [/\b(\d+) Tage\b/g, '$1 zile'],
+            [/\bGerät\(e\) gesendet\b/g, 'dispozitiv(e)'],
+            [/\bTest an\b/g, 'Test trimis la'],
+            [/\bBilder hochgeladen\b/g, 'poze încărcate'],
+            [/\bLade hoch\b/g, 'Se încarcă'],
+            [/\bVerschoben auf\b/g, 'Mutat pe'],
+            [/\bSchick diesen Link an\b/g, 'Trimite acest link lui'],
+            [/\bDamit setzt er sein Passwort selbst\. Benutzername\b/g, 'Cu el își setează singur parola. Nume de utilizator'],
+            [/\bLege dein Passwort fest\. Dein Benutzername ist „/g, 'Setează-ți parola. Numele tău de utilizator este „'],
+            [/\bAngemeldet als\b/g, 'Conectat ca'],
+            [/\bDarstellung\b/g, 'Aspect'],
+            [/\bStand\b/g, 'Actualizat'],
+            [/\bEingang\b/g, 'Primit'],
+            [/\bgerade eben\b/g, 'chiar acum'],
+            [/\bübermorgen\b/g, 'poimâine'],
+            [/\bheute\b/g, 'azi'],
+            [/\bmorgen\b/g, 'mâine'],
+            [/\bgestern\b/g, 'ieri'],
+            [/\bkein Dienst\b/g, 'liber'],
+            [/\bfrei\b/g, 'liber'],
+            [/\bbelegt\b/g, 'ocupat'],
+            [/\bvorbei\b/g, 'trecut'],
+            [/\/ Woche\b/g, '/ săptămână'],
+            [/\bAlle Friseure\b/g, 'Toți frizerii'],
+            [/\bTermine\b/g, 'Programări'],
+            [/\bTermin\b/g, 'Programare'],
+            [/\bPause\b/g, 'Pauză'],
+            [/\bAuto\b/g, 'Auto'],
+            [/\bRuhig\b/g, 'Calm'],
+            [/\bHell\b/g, 'Luminos'],
+            [/\bDunkel\b/g, 'Întunecat']
+        ].map(([re, to]) => [new RegExp(re.source.replace(/^\\b/, '(?<![\\p{L}\\d])').replace(/\\b$/, '(?![\\p{L}\\d])'), 'gu'), to]);
+
+        function tr(text) {
+            if (LANG !== 'ro' || !text || !/[A-Za-zÄÖÜäöüß]/.test(text)) return text;
+            const core = text.trim();
+            const key = core.replace(/\s+/g, ' ');
+            if (I18N_RO[key] !== undefined) return text.replace(core, I18N_RO[key]);
+            let out = text;
+            for (const [re, to] of I18N_RO_PATTERNS) out = out.replace(re, to);
+            return out;
+        }
+
+        if (LANG === 'ro') {
+            const ATTRS = ['placeholder', 'title', 'aria-label'];
+            const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT']);
+            const translateNode = node => {
+                if (node.nodeType === 3) {
+                    if (node.parentNode && SKIP.has(node.parentNode.nodeName)) return;
+                    const next = tr(node.nodeValue);
+                    if (next !== node.nodeValue) node.nodeValue = next;
+                    return;
+                }
+                if (node.nodeType !== 1 || SKIP.has(node.nodeName) && node.nodeName !== 'INPUT') return;
+                for (const a of ATTRS) {
+                    const v = node.getAttribute(a);
+                    if (v) { const next = tr(v); if (next !== v) node.setAttribute(a, next); }
+                }
+                if (node.nodeName === 'INPUT') return;
+                const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+                let n;
+                while ((n = walker.nextNode())) {
+                    if (n.nodeType === 1) {
+                        for (const a of ATTRS) {
+                            const v = n.getAttribute(a);
+                            if (v) { const next = tr(v); if (next !== v) n.setAttribute(a, next); }
+                        }
+                    } else if (!SKIP.has(n.parentNode.nodeName)) {
+                        const next = tr(n.nodeValue);
+                        if (next !== n.nodeValue) n.nodeValue = next;
+                    }
+                }
+            };
+            const observer = new MutationObserver(list => {
+                for (const m of list) {
+                    if (m.type === 'childList') m.addedNodes.forEach(translateNode);
+                    else if (m.type === 'characterData') translateNode(m.target);
+                    else if (m.type === 'attributes') translateNode(m.target);
+                }
+            });
+            document.addEventListener('DOMContentLoaded', () => {
+                translateNode(document.body);
+                document.title = tr(document.title);
+                observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+            });
+            const nativeConfirm = window.confirm.bind(window);
+            window.confirm = msg => nativeConfirm(tr(String(msg)));
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('[data-lang-pick]').forEach(btn => {
+            btn.classList.toggle('on', btn.dataset.langPick === LANG);
+            btn.addEventListener('click', () => {
+                try { localStorage.setItem('ff-lang', btn.dataset.langPick); } catch { }
+                location.reload();
+            });
+        }));
+    </script>
+    <script>
         // ================= REGELN =================
         const SLOT_MINUTES = 25;
         const OPENING_HOURS = { 1: ['10:00', '19:00'], 2: ['10:00', '19:00'], 3: ['10:00', '19:00'], 4: ['10:00', '19:00'], 5: ['10:00', '19:00'], 6: ['10:00', '17:00'] };
@@ -2305,9 +2529,13 @@
             nicht_erschienen: { label: 'Nicht erschienen', cls: 'warn' },
             abgesagt: { label: 'Abgesagt', cls: 'off' }
         };
-        const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-        const WD_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-        const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+        const WD = LANG === 'ro' ? ['Du', 'Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ'] : ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        const WD_LONG = LANG === 'ro'
+            ? ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă']
+            : ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+        const MONTHS = LANG === 'ro'
+            ? ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie']
+            : ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
         // ================= HELFER =================
         const $ = id => document.getElementById(id);
