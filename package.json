@@ -21,5 +21,8 @@
   "homepage": "https://github.com/vsvito420/frsfde#readme",
   "dependencies": {
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
   }
 }
