@@ -47,10 +47,12 @@
     <!-- NAV -->
     <nav>
         <div class="container nav-inner">
-            <img src="./assets/beispiele/aer5.webp" alt="Fresh Fade Studio" style="border-radius:50%;"
-                class="nav-logo-img">
+            <a href="#top" class="nav-brand" aria-label="Fresh Fade Studio – Startseite">
+                <img src="./assets/logo/logo.webp" alt="Fresh Fade Studio" class="nav-logo-img">
+                <span>Fresh Fade <b>Studio</b></span>
+            </a>
             <div class="nav-links">
-                <a href="#about">Über mich</a>
+                <a href="#about">Studio</a>
                 <a href="#services">Leistungen</a>
                 <a href="#gallery">Galerie</a>
                 <a href="#preise">Preise</a>
@@ -82,67 +84,62 @@
     </div>
 
     <!-- HERO -->
-    <header class="hero">
+    <header class="hero" id="top">
         <div class="hero-slider" id="hero-slider">
         </div>
         <div class="container hero-content">
+            <p class="eyebrow">Barber · Friedrichshafen</p>
             <div class="hero-lockup">
-                <div class="hero-logo-wrap">
-                    <img src="./assets/logo/logo1280X1280.webp" alt="Fresh Fade Studio Logo" class="hero-logo-large">
-                </div>
                 <div class="hero-brand">
-                    <h1>Fresh Fade</h1>
-                    <p class="hero-line hero-studio"><span>Studio</span></p>
-                    <p class="hero-line hero-barber"><span>Barber Shop</span></p>
-                    <p class="hero-sub">Premium <em>Barber</em> <em>•</em> Friedrichshafen</p>
-                    <p class="hero-divider"><span>✂</span></p>
-                    <p class="hero-cuts">Cut <em>•</em> Trimm <em>•</em> Shave</p>
-                    <p class="hero-owner">Inhaber <strong>Zorin Marinescu</strong> · Friseurmeister</p>
+                    <h1>Fresh<br><span>Fade</span></h1>
+                    <p class="hero-studio">Studio</p>
                 </div>
+                <p class="hero-copy">Präzise Schnitte, saubere Konturen und ein Look, der zu dir passt.</p>
             </div>
             <div class="hero-actions">
                 <a href="#termin" class="btn">Termin buchen</a>
-                <a href="#preise" class="btn btn-outline">Preisliste</a>
+                <a href="#gallery" class="text-link">Unsere Looks <span>↓</span></a>
             </div>
+            <div class="hero-meta"><span>Cut · Trim · Shave</span><span>Mo–Sa in Friedrichshafen</span></div>
         </div>
     </header>
 
     <!-- ABOUT -->
     <section id="about" class="section">
         <div class="container">
-            <h2 style="text-align:center; font-size:3rem; margin-bottom:40px;"> Über <span
-                    style="color:var(--accent-red);">mich</span> </h2>
+            <p class="section-kicker">Das Studio</p>
+            <h2 class="section-title">Guter Stil beginnt<br>mit <span>Präzision.</span></h2>
             <div class="about-box">
                 <img src="./assets/beispiele/aer5.webp" alt="Zorin Marinescu"
                     style=" width:220px; height:220px; object-fit:cover; border-radius:50%; float:right; margin-left:25px; margin-bottom:15px; border: 2px solid var(--accent-red); ">
-                <p> Herzliche Grüße! Mein Name ist <strong>Zorin Marinescu</strong>. Ich verfüge über mehr als 15 Jahre
-                    Erfahrung im Friseurhandwerk. </p>
-                <p> Liebe zum Detail und Präzision sind meine Stärke. Wir verwenden professionelle und hochmoderne
-                    Werkzeuge für deinen perfekten Look. </p>
+                <p>Mein Name ist <strong>Zorin Marinescu</strong>. Seit über 15 Jahren dreht sich bei mir alles um präzises Friseurhandwerk und Looks mit Persönlichkeit.</p>
+                <p>Von der ersten Beratung bis zum letzten Detail: Hier bekommst du Zeit, Aufmerksamkeit und den Schnitt, der wirklich zu dir passt.</p>
             </div>
         </div>
     </section>
 
     <!-- SERVICES -->
-    <section id="services" class="section container">
+    <section id="services" class="section container services-section">
+        <p class="section-kicker">Was dich erwartet</p>
+        <h2 class="section-title">Dein Termin.<br><span>Dein Moment.</span></h2>
         <div class="feature-strip">
             <div class="feature">
-                <span class="feature-icon">✂️</span>
+                <span class="feature-number">01</span>
                 <h3>Präzise Schnitte</h3>
                 <p>Fades, Klassiker &amp; Styling</p>
             </div>
             <div class="feature">
-                <span class="feature-icon">🪒</span>
+                <span class="feature-number">02</span>
                 <h3>Bart &amp; Hot Towel</h3>
                 <p>Kontur, Bartöl &amp; Aftershave</p>
             </div>
             <div class="feature">
-                <span class="feature-icon">💬</span>
+                <span class="feature-number">03</span>
                 <h3>Gratis Beratung</h3>
                 <p>Wir finden deinen Look</p>
             </div>
             <div class="feature">
-                <span class="feature-icon">☕</span>
+                <span class="feature-number">04</span>
                 <h3>Kaffee &amp; Wasser</h3>
                 <p>Gratis, während du wartest</p>
             </div>
@@ -151,8 +148,8 @@
 
     <!-- GALLERY -->
     <section id="gallery" class="section container">
-        <h2 style="text-align:center; font-size:3rem;"> Stay <span style="color:var(--accent-red);">Fresh</span> </h2>
-        <p style=" text-align:center; color:var(--text-muted); margin-top:10px; margin-bottom:40px; "> Stay Cool. </p>
+        <p class="section-kicker">Galerie</p>
+        <h2 class="section-title">Stay fresh.<br><span>Stay you.</span></h2>
         <div class="gallery-grid" id="gallery-grid"></div>
     </section>
 
